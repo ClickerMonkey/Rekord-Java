@@ -11,17 +11,18 @@ import java.util.Map;
 public class AbstractTransaction implements Transaction
 {
 
-	protected Connection connection;
-	protected Map<String, PreparedStatement> statementCache;
+	protected final Connection connection;
+	protected final Map<String, PreparedStatement> statementCache;
+	protected final Map<Key, Model>[] modelCache;
 	protected boolean started;
-	protected Map<Key, Model>[] modelCache;
 
 	public AbstractTransaction( Connection connection )
 	{
 		this.connection = connection;
 		this.statementCache = new HashMap<String, PreparedStatement>();
 
-		this.modelCache = new Map[Rekord.getTableCount()];
+		this.modelCache = new Map[ Rekord.getTableCount() ];
+		
 		for (int i = 0; i < Rekord.getTableCount(); i++)
 		{
 			this.modelCache[i] = new HashMap<Key, Model>();
@@ -51,65 +52,50 @@ public class AbstractTransaction implements Transaction
 
 		return stmt;
 	}
+	
+	protected void init( boolean autoCommit, boolean newStarted )
+	{
+	    try
+	    {
+	        connection.setAutoCommit( autoCommit );
+	        started = newStarted;
+	    }
+	    catch (SQLException e)
+	    {
+	        started = false;
+	        
+	        throw new RuntimeException( e );
+	    }
+	}
 
 	@Override
 	public void start()
 	{
-		try
-		{
-			connection.setAutoCommit( false );
-
-			started = true;
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
+	    init( false, true );
 	}
 
 	@Override
 	public void end( boolean commit )
 	{
-		if (commit)
-		{
-			commit();
-		}
-		else
-		{
-			rollback();
-		}
-	}
-
-	@Override
-	public void commit()
-	{
-		try
-		{
-			if (!connection.getAutoCommit())
-			{
-				connection.commit();
-			}
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void rollback()
-	{
-		try
-		{
-			if (!connection.getAutoCommit())
-			{
-				connection.rollback();
-			}
-		}
-		catch (SQLException e)
-		{
-			e.printStackTrace();
-		}
+	    try
+        {
+	        if (commit)
+	        {
+	            connection.commit();    
+	        }
+	        else
+	        {
+	            connection.rollback();
+	        }
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException( e );
+        }
+	    finally
+	    {
+	        init( true, false );
+	    }
 	}
 
 	@Override
@@ -121,6 +107,11 @@ public class AbstractTransaction implements Transaction
 	@Override
 	public void close()
 	{
+	    if (started)
+	    {
+	        throw new RuntimeException( "You cannot close a started transaction, you must end it first" );
+	    }
+	    
 		for (PreparedStatement stmt : statementCache.values())
 		{
 			try
@@ -129,6 +120,7 @@ public class AbstractTransaction implements Transaction
 			}
 			catch (SQLException e)
 			{
+			    // log but ignore
 				e.printStackTrace();
 			}
 		}
@@ -139,10 +131,9 @@ public class AbstractTransaction implements Transaction
 		}
 		catch (SQLException e)
 		{
+		    // log but ignore
 			e.printStackTrace();
 		}
-
-		started = false;
 	}
 
 	@Override

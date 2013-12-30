@@ -9,11 +9,9 @@ public interface Transaction
 {
 	public Connection getConnection();
 	public PreparedStatement prepare(String query) throws SQLException;
+	public boolean isStarted();
 	public void start();
 	public void end(boolean commit);
-	public void commit();
-	public void rollback();
-	public boolean isStarted();
 	public void close();
 	
 	public <T extends Model> Map<Key, T> getCache(Table<T> table);
