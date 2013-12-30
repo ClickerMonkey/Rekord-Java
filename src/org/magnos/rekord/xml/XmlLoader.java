@@ -6,40 +6,26 @@ import java.lang.reflect.Modifier;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Flags;
-import org.magnos.rekord.ForeignColumn;
-import org.magnos.rekord.Formula;
-import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Logging;
-import org.magnos.rekord.ManyToOne;
-import org.magnos.rekord.OneToMany;
-import org.magnos.rekord.OneToOne;
 import org.magnos.rekord.Rekord;
-import org.magnos.rekord.Table;
-import org.magnos.rekord.View;
 import org.magnos.rekord.util.ArrayUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
-@SuppressWarnings ("rawtypes" )
 public class XmlLoader
 {
 
@@ -146,20 +132,13 @@ public class XmlLoader
 			}
 		}
 		
-		for (XmlTable t : tableMap.values())
-		{
-			t.validate( tableMap );
-		}
-		
-		for (XmlTable t : tableMap.values())
-		{
-			t.build( tableMap );
-		}
-		
-		for (XmlTable t : tableMap.values())
-		{
-			t.postbuild( tableMap );
-		}
+		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
+		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation();
+		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
+		for (XmlTable t : tableMap.values()) t.instantiateViewImplementation();
+		for (XmlTable t : tableMap.values()) t.initializeTable();
+		for (XmlTable t : tableMap.values()) t.relateFieldReferences();
+		for (XmlTable t : tableMap.values()) t.finishTable();
 		
 		for (String className : classesSet)
 		{
@@ -444,7 +423,7 @@ public class XmlLoader
 		return value;
 	}
 	
-	private String[] split(String x)
+	protected static String[] split(String x)
 	{
 		String[] split = x.split( "[, ]" );
 
@@ -463,7 +442,7 @@ public class XmlLoader
 		return Arrays.copyOf( split, nonZero );
 	}
 	
-	private <T> T[] valuesFrom(Map<String, T> map, String[] keys, T ... placeHolder)
+	protected static <T> T[] valuesFrom(Map<String, T> map, String[] keys, T ... placeHolder)
 	{
 		T[] values = Arrays.copyOf( placeHolder, keys.length );
 		
@@ -475,7 +454,7 @@ public class XmlLoader
 		return values;
 	}
 	
-	private XmlField[] getFields(XmlTable table, String[] names, String format, Object ... arguments)
+	protected static XmlField[] getFields(XmlTable table, String[] names, String format, Object ... arguments)
 	{
 		XmlField[] fields = valuesFrom( table.fieldMap, names );
 		
@@ -490,7 +469,7 @@ public class XmlLoader
 		return fields;
 	}
 	
-	private <F extends Field<?>> F[] getFields(XmlField[] xmlFields, F ... placeHolder)
+	protected static <F extends Field<?>> F[] getFields(XmlField[] xmlFields, F ... placeHolder)
 	{
 		F[] fieldArray = Arrays.copyOf( placeHolder, xmlFields.length );
 		
@@ -500,411 +479,6 @@ public class XmlLoader
 		}
 		
 		return fieldArray;
-	}
-	
-	class XmlTable
-	{
-		String name;
-		String[] keyNames;
-		Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
-		Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
-		
-		String historyTable;
-		String historyKey;
-		String historyTimestamp;
-		String[] historyColumnNames;
-		
-		XmlField[] keys;
-		XmlField[] historyColumns;
-		Class<?> clazz;
-		Column<?>[] keyColumns;
-		Field<?>[] fields;
-		Table<?> table;
-		
-		void validate(Map<String, XmlTable> tableMap)
-		{
-			keys = getFields( this, keyNames, "key value %s on table %s was not specified in fields", name );
-			
-			for (XmlField f : fieldMap.values())
-			{
-				f.validate( this, tableMap );
-			}
-			
-			for (XmlView v : viewMap.values())
-			{
-				v.validate( this, tableMap );
-			}
-			
-			if (historyKey != null && historyKey.trim().length() == 0)
-			{
-				historyKey = null;
-			}
-			
-			if (historyTimestamp != null && historyTimestamp.trim().length() == 0)
-			{
-				historyTimestamp = null;
-			}
-			
-			if (historyColumnNames != null)
-			{
-				historyColumns = getFields( this, historyColumnNames, "history column %s for table %s was not found in the fields of the table", name );	
-			}
-		}
-		
-		void build(Map<String, XmlTable> tableMap) throws Exception
-		{
-			for (XmlField f : fieldMap.values())
-			{
-				f.build( this, tableMap );
-			}
-			
-			keyColumns = getFields( keys );
-			table = new Table( name, keyColumns );
-			
-			for (XmlView v : viewMap.values())
-			{
-				v.build( this, tableMap );
-			}
-		}
-		
-		void postbuild(Map<String, XmlTable> tableMap)
-		{
-			if (historyColumns != null)
-			{
-				Column<?>[] columns = getFields( historyColumns );
-				
-				table.setHistory( new HistoryTable( historyTable, historyKey, historyTimestamp, columns ) );
-			}
-			
-			Collection<XmlField> fc = fieldMap.values();
-			table.setFields( getFields( fc.toArray( new XmlField[fc.size()] ) ) );
-			
-			for (XmlView v : viewMap.values())
-			{
-				v.postbuild( this, tableMap );
-			}
-			
-			for (XmlField f : fieldMap.values())
-			{
-				f.postbuild( this, tableMap );
-			}
-			
-			Collection<XmlView> vc = viewMap.values();
-			XmlView[] xmlViews = vc.toArray( new XmlView[ vc.size() ] );
-			View[] views = new View[ vc.size() ];
-			
-			for (int i = 0; i < views.length; i++)
-			{
-				views[i] = xmlViews[i].view;
-			}
-			
-			table.setViews( views );
-		}
-	}
-	
-	abstract class XmlField
-	{
-		XmlTable table;
-		XmlTable relatedTable;
-		String name;
-		int flags;
-		
-		Field<?> field;
-		
-		abstract void validate(XmlTable table, Map<String, XmlTable> tableMap);
-		abstract void build(XmlTable table, Map<String, XmlTable> tableMap);
-		abstract void postbuild(XmlTable table, Map<String, XmlTable> tableMap);
-	}
-    
-    class XmlColumn extends XmlField
-    {
-        Integer type;
-
-        void validate(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-            if (type == null)
-            {
-                throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
-            }
-        }
-        
-        void build(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-            field = new Column( name, type, flags );
-        }
-        
-        void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-            
-        }
-    }
-    
-    class XmlFormula extends XmlField
-    {
-        String equation;
-        String alias;
-
-        void validate(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-        }
-        
-        void build(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-            field = new Formula( name, equation, alias, flags );
-        }
-        
-        void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
-        {
-            
-        }
-    }
-	
-	class XmlForeignColumn extends XmlColumn
-	{
-		String foreignTableName;
-		String foreignColumnName;
-		
-		XmlTable foreignTable;
-		XmlField foreignColumn;
-		
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			super.validate( table, tableMap );
-			
-			foreignTable = tableMap.get( foreignTableName );
-			
-			if (foreignTable == null)
-			{
-				throw new RuntimeException( "foreign-table " + foreignTableName + " specified for field " + name + " was not found" );
-			}
-			
-			foreignColumn = foreignTable.fieldMap.get( foreignColumnName );
-			
-			if (foreignColumn == null)
-			{
-				throw new RuntimeException( "foreign-column " + foreignColumnName + " specified for field " + name + " was not found" );
-			}
-			
-			relatedTable = foreignTable;
-		}
-		
-		void build(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			field = new ForeignColumn( name, type );
-		}
-		
-		void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			ForeignColumn<Object> fc = (ForeignColumn<Object>)field;
-			fc.setForeignColumn( (Column<Object>)foreignColumn.field );
-		}
-	}
-	
-	class XmlOneToOne extends XmlField
-	{
-		String joinTableName;
-		String joinViewName;
-		String[] joinKeyNames;
-		
-		XmlTable joinTable;
-		XmlField[] joinKey;
-		XmlView view;
-		
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			joinTable = tableMap.get( joinTableName );
-			
-			if (joinTable == null)
-			{
-				throw new RuntimeException( "join-table " + joinTableName + " specified for field " + name + " was not found" );
-			}
-			
-			joinKey = getFields( table, joinKeyNames, "join-key value %s specified for field %s was not found", name );
-
-			view = joinTable.viewMap.get( joinViewName );
-			
-			if (view == null)
-			{
-				throw new RuntimeException( "join-view " + joinViewName + " specified for field " + name + " was not found" );
-			}
-			
-			relatedTable = joinTable;
-		}
-
-		void build( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			field = new OneToOne( name, flags );
-		}
-
-		void postbuild( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			OneToOne f = (OneToOne)field;
-			ForeignColumn<?>[] fcs = getFields( joinKey );
-			f.setJoin( joinTable.table, view.view, fcs );
-		}
-	}
-	
-
-	class XmlManyToOne extends XmlField
-	{
-		String joinTableName;
-		String joinViewName;
-		String[] joinKeyNames;
-		
-		XmlTable joinTable;
-		XmlField[] joinKey;
-		XmlView view;
-		
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			joinTable = tableMap.get( joinTableName );
-			
-			if (joinTable == null)
-			{
-				throw new RuntimeException( "join-table " + joinTableName + " specified for field " + name + " was not found" );
-			}
-			
-			joinKey = getFields( table, joinKeyNames, "join-key value %s specified for field %s was not found", name );
-
-			view = joinTable.viewMap.get( joinViewName );
-			
-			if (view == null)
-			{
-				throw new RuntimeException( "join-view " + joinViewName + " specified for field " + name + " was not found" );
-			}
-			
-			relatedTable = joinTable;
-		}
-
-		void build( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			field = new ManyToOne( name, flags );
-		}
-
-		void postbuild( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			ManyToOne f = (ManyToOne)field;
-			ForeignColumn<?>[] fcs = getFields( joinKey );
-			f.setJoin( joinTable.table, view.view, fcs );
-		}
-	}
-	
-	class XmlOneToMany extends XmlField
-	{
-		String joinTableName;
-		String joinViewName;
-		String[] joinKeyNames;
-		String fetchSizeString;
-		
-		int fetchSize;
-		XmlTable joinTable;
-		XmlField[] joinKey;
-		XmlView view;
-		
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			joinTable = tableMap.get( joinTableName );
-			
-			if (joinTable == null)
-			{
-				throw new RuntimeException( "join-table " + joinTableName + " specified for field " + name + " was not found" );
-			}
-
-			joinKey = getFields( joinTable, joinKeyNames, "join-key value %s specified for field %s was not found", name );
-			
-			view = joinTable.viewMap.get( joinViewName );
-			
-			if (view == null)
-			{
-				throw new RuntimeException( "join-view " + joinViewName + " specified for field " + name + " was not found" );
-			}
-			
-			relatedTable = joinTable;
-			
-			try
-			{
-				fetchSize = Integer.parseInt( fetchSizeString );
-			}
-			catch (NumberFormatException e)
-			{
-				throw new RuntimeException( "fetch-size is not a valid number: " + fetchSizeString, e );
-			}
-			
-			if (fetchSize <= 0)
-			{
-				throw new RuntimeException( "fetch-size must be a positive number greater than zero: " + fetchSize );
-			}
-		}
-
-		void build( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			field = new OneToMany( name, flags, fetchSize );
-		}
-
-		void postbuild( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			OneToMany f = (OneToMany)field;
-			ForeignColumn<?>[] fcs = getFields( joinKey );
-			f.setJoin( joinTable.table, view.view, fcs );
-		}
-	}
-	
-	static final Pattern VIEW_NAME_PATTERN = Pattern.compile( "^([^\\[]+)\\[([^\\]]+)\\]$" );
-	
-	class XmlView
-	{
-		String name;
-		String[] fieldNames;
-		
-		XmlField[] fields;
-		View view;
-		Map<XmlField, XmlView> fieldViews = new LinkedHashMap<XmlField, XmlView>();
-		
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			fields = new XmlField[ fieldNames.length ];
-			
-			for (int i = 0; i < fieldNames.length; i++)
-			{
-				String fn = fieldNames[i];
-				String vn = null;
-				
-				Matcher matcher = VIEW_NAME_PATTERN.matcher( fn );
-				
-				if (matcher.matches())
-				{
-					fn = matcher.group( 1 );
-					vn = matcher.group( 2 );
-				}
-				
-				XmlField f = table.fieldMap.get( fn );
-				
-				if (f == null)
-				{
-					throw new RuntimeException( "field " + fn + " for view " + name + " was not found on table " + table.name);
-				}
-				
-				fields[i] = f;
-				
-				if (vn != null)
-				{
-					fieldViews.put( f, f.relatedTable.viewMap.get( vn ) );
-				}
-			}
-		}
-		
-		void build( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			view = new View( name, getFields( fields ) );
-		}
-		
-		void postbuild( XmlTable table, Map<String, XmlTable> tableMap )
-		{
-			for (Entry<XmlField, XmlView> e :  fieldViews.entrySet())
-			{
-				view.add( e.getKey().field, e.getValue().view );
-			}
-		}
 	}
 	
 }
