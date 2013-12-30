@@ -1,4 +1,4 @@
-SET SESSION AUTHORIZATION "rekord_user"
+SET SESSION AUTHORIZATION "rekord_user";
 
 CREATE TABLE "commentable" (
     "id" BIGSERIAL,
@@ -6,7 +6,7 @@ CREATE TABLE "commentable" (
     "created_timestamp" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     PRIMARY KEY ("id")
-)
+);
 
 CREATE TABLE "user" (
     "id" BIGSERIAL,
@@ -16,7 +16,7 @@ CREATE TABLE "user" (
     
     PRIMARY KEY ("id"),
     FOREIGN KEY ("commentable_id") REFERENCES "commentable"("id") ON UPDATE CASCADE ON DELETE RESTRICT
-)
+);
 
 CREATE TABLE "user_history" (
     "id" BIGINT NOT NULL,
