@@ -25,6 +25,7 @@ import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Flags;
 import org.magnos.rekord.ForeignColumn;
+import org.magnos.rekord.Formula;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.ManyToOne;
@@ -60,6 +61,7 @@ public class XmlLoader
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
 	private static final String TAG_MANY_TO_ONE = "many-to-one";
 	private static final String TAG_ONE_TO_MANY = "one-to-many"; 
+    private static final String TAG_FORMULA = "formula";
 	
 	private static final Map<String, Integer> SQL_TYPES = new HashMap<String, Integer>();
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
@@ -357,6 +359,13 @@ public class XmlLoader
 				c.fetchSizeString = getAttribute( e, "fetch-size", "128" );
 				field = c;
 			}
+			else if (tag.equals( TAG_FORMULA ))
+			{
+			    XmlFormula c = new XmlFormula();
+			    c.alias = getAttribute( e, "alias", null );
+			    c.equation = getAttribute( e, "equation", null );
+			    field = c;
+			}
 			else
 			{
 				unexpectedTag( fields, e );
@@ -606,29 +615,49 @@ public class XmlLoader
 		abstract void build(XmlTable table, Map<String, XmlTable> tableMap);
 		abstract void postbuild(XmlTable table, Map<String, XmlTable> tableMap);
 	}
-	
-	class XmlColumn extends XmlField
-	{
-		Integer type;
+    
+    class XmlColumn extends XmlField
+    {
+        Integer type;
 
-		void validate(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			if (type == null)
-			{
-				throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
-			}
-		}
-		
-		void build(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			field = new Column( name, type, flags );
-		}
-		
-		void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
-		{
-			
-		}
-	}
+        void validate(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+            if (type == null)
+            {
+                throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
+            }
+        }
+        
+        void build(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+            field = new Column( name, type, flags );
+        }
+        
+        void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+            
+        }
+    }
+    
+    class XmlFormula extends XmlField
+    {
+        String equation;
+        String alias;
+
+        void validate(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+        }
+        
+        void build(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+            field = new Formula( name, equation, alias, flags );
+        }
+        
+        void postbuild(XmlTable table, Map<String, XmlTable> tableMap)
+        {
+            
+        }
+    }
 	
 	class XmlForeignColumn extends XmlColumn
 	{

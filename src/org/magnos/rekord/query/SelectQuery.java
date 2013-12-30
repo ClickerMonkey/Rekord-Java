@@ -378,7 +378,7 @@ public class SelectQuery<M extends Model>
 		{
 			if (results.next())
 			{
-				value = (T) results.getObject( 0 );
+				value = (T) results.getObject( 1 );
 			}
 		}
 		finally

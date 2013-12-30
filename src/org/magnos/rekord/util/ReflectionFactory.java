@@ -10,7 +10,7 @@ public class ReflectionFactory<T> implements Factory<T>
 	private static final Class<?>[] C_PARAMS = {};
 	private static final Object[] C_ARGS = {};
 	
-	private Constructor<T> constructor; 
+	private final Constructor<T> constructor; 
 	
 	public ReflectionFactory(Class<T> clazz) throws SecurityException, NoSuchMethodException
 	{

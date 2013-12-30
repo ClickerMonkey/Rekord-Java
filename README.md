@@ -31,7 +31,7 @@ An ORM for Java with intelligent loading and caching
 - Dynamic-Update option (only update what has changed)
 - SelectQuery.list returns LazyList
 - Select-Before-Update (ensure a change hasn't occurred since when the model was loaded)
-- Formula Fields
+- ~~Formula Fields~~
 - Saving Order?
 
 #### Other Changes
