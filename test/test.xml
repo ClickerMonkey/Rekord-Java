@@ -49,7 +49,7 @@
     <table name="commentable" key="id">
         <fields>
             <column name="id" type="BIGINT" generated="true" read-only="true" />
-            <column name="count" type="INTEGER" />
+            <column name="count" type="INTEGER" generated="true" />
             <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
             <one-to-many name="comments" lazy="true" join-table="comment" join-view="all" join-key="commentable_id" />
         </fields>        
