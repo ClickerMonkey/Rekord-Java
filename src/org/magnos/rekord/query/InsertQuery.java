@@ -44,6 +44,11 @@ public class InsertQuery
 			queryBuilder.append( " VALUES " );
 			queryBuilder.append( "(" ).append( values ).append( ")" );
 		}
+		else
+		{
+		    queryBuilder.append( " DEFAULT VALUES " );
+		}
+		
 		if (returnings.length() > 0)
 		{
 			queryBuilder.append( " RETURNING " ).append( returnings );
