@@ -1,0 +1,58 @@
+<rekord>
+    <data-source>
+        <driver>org.postgresql.Driver</driver>
+        <jdbc-url>jdbc:postgresql://localhost:5432/rekord</jdbc-url>
+        <user>rekord_user</user>
+        <password>rekord_password</password>
+    </data-source>
+    
+    <logging enable-mode="false">
+        LOADING, CACHING
+    </logging>
+    
+    <classes>
+        org.magnos.rekord.User
+        org.magnos.rekord.Comment
+        org.magnos.rekord.Commentable
+    </classes>
+    
+    <table name="user" key="id">
+        <fields>
+            <column name="id" type="BIGINT" generated="true" read-only="true" />
+            <column name="name" type="VARCHAR" />
+            <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
+            <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
+            <one-to-one name="commentable" generated="true" lazy="true" join-table="commentable" join-view="all" join-key="commentable_id" />
+            <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-view="basic" join-key="user_id" />
+        </fields>
+        <views>
+            <view name="without-comments" fields="id, name, created_timestamp, commentable_id" />
+            <view name="for-link" fields="id, name" />
+        </views>
+        <history table="user_history" timestamp="user_history_timestamp" columns="id, name" />
+    </table>
+    
+    <table name="comment" key="id">
+        <fields>
+            <column name="id" type="BIGINT" generated="true" read-only="true" />
+            <column name="text" type="VARCHAR" />
+            <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
+            <foreign-column name="user_id" type="BIGINT" foreign-table="user" foreign-column="id" />
+            <many-to-one name="commentable" join-table="commentable" join-key="commentable_id" />
+            <many-to-one name="user" join-table="user" join-view="for-link" join-key="user_id" />
+        </fields>
+        <views>
+            <view name="basic" fields="id, text, user_id, user[for-link]" />
+        </views>
+    </table>
+    
+    <table name="commentable" key="id">
+        <fields>
+            <column name="id" type="BIGINT" generated="true" read-only="true" />
+            <column name="count" type="INTEGER" />
+            <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
+            <one-to-many name="comments" lazy="true" join-table="comment" join-view="all" join-key="commentable_id" />
+        </fields>        
+    </table>
+    
+</rekord>

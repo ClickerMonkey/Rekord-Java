@@ -1,0 +1,185 @@
+package org.magnos.rekord;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.magnos.rekord.query.InsertQuery;
+import org.magnos.rekord.query.SelectQuery;
+import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.util.SqlUtil;
+
+
+public class ForeignColumn<T> extends Column<T>
+{
+	
+	protected Column<?> foreignColumn;
+
+	public ForeignColumn( String column, int type)
+	{
+		super( column, type, Flags.NONE );
+	}
+
+	@Override
+	public void prepareInsert(InsertQuery query)
+	{
+		query.addColumn( name, "?" );
+	}
+
+	@Override
+	public void prepareSelect(SelectQuery<?> query)
+	{
+		query.select( this, SqlUtil.namify( name ) );
+	}
+	
+	@Override
+	public Value<T> newValue(Model model)
+	{
+		return new ForeignValue<T>( this );
+	}
+	
+	public Column<?> getForeignColumn()
+	{
+		return foreignColumn;
+	}
+	
+	public void setForeignColumn( Column<?> foreignColumn )
+	{
+		this.foreignColumn = foreignColumn;
+	}
+
+	private static class ForeignValue<T> implements Value<T>
+	{
+		private final ForeignColumn<T> field;
+		private boolean changed = false;
+		private T value;
+		
+		public ForeignValue(ForeignColumn<T> field)
+		{
+			this.field = field;
+		}
+		
+		@Override
+		public T get(Model model)
+		{
+			return value;
+		}
+
+		@Override
+		public boolean hasValue()
+		{
+			return (value != null);
+		}
+
+		@Override
+		public void set( Model model, T value )
+		{
+			if (!SqlUtil.equals( this.value, value ))
+			{
+				this.value = value;
+				this.changed = true;	
+			}
+		}
+
+		@Override
+		public boolean hasChanged()
+		{
+			return changed;
+		}
+		
+		@Override
+		public void clearChanges()
+		{
+			changed = false;
+		}
+
+		@Override
+		public void fromResultSet( ResultSet results ) throws SQLException
+		{
+			value = (T) results.getObject( field.getName() );
+		}
+		
+		@Override
+		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
+		{
+			preparedStatement.setObject( paramIndex, value, field.getType() );
+			
+			return paramIndex + 1;
+		}
+		
+		@Override
+		public void fromInsertReturning(ResultSet results) throws SQLException
+		{
+		}
+		
+		@Override
+		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
+		{
+			return toPreparedStatement( preparedStatement, paramIndex );
+		}
+
+		@Override
+		public void prepareUpdate( UpdateQuery query )
+		{
+			query.addSet( field, "?" );
+		}
+
+		@Override
+		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
+		{
+			return toPreparedStatement( preparedStatement, paramIndex );
+		}
+
+		@Override
+		public void fromSelect( ResultSet results ) throws SQLException
+		{
+			fromResultSet( results );
+		}
+
+		@Override
+		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
+		{
+			
+		}
+		
+		@Override
+		public void preSave(Model model) throws SQLException
+		{
+			
+		}
+		
+		@Override
+		public void postSave(Model model) throws SQLException
+		{
+
+		}
+
+		@Override
+		public void serialize(ObjectOutputStream out) throws IOException
+		{
+			out.writeObject( value );
+		}
+
+		@Override
+		public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException
+		{
+			value = (T)in.readObject();
+		}
+
+		@Override
+		public Field<T> getField()
+		{
+			return field;
+		}
+		
+		@Override
+		public String toString()
+		{
+			return field.getName() + "=" + value;
+		}
+	}
+
+}
