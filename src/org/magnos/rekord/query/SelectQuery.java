@@ -411,7 +411,10 @@ public class SelectQuery<M extends Model>
 			results.close();
 		}
 		
-		postSelect( model );
+		if (model != null)
+		{
+		    postSelect( model );    
+		}
 		
 		return model;
 	}
