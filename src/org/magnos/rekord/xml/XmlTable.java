@@ -5,11 +5,11 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.View;
+import org.magnos.rekord.field.Column;
 
 class XmlTable extends XmlLoadable
 {

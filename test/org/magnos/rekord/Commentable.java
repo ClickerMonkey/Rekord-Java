@@ -3,6 +3,9 @@ package org.magnos.rekord;
 import java.util.Date;
 import java.util.List;
 
+import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.OneToMany;
+
 public class Commentable extends Model
 {
 	private static final long serialVersionUID = 1L;

@@ -3,7 +3,7 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
-import org.magnos.rekord.Formula;
+import org.magnos.rekord.field.Formula;
 
 class XmlFormula extends XmlField
 {

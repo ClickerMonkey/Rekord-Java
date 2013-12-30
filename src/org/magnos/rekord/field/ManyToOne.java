@@ -1,4 +1,4 @@
-package org.magnos.rekord;
+package org.magnos.rekord.field;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,18 +7,28 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Field;
+import org.magnos.rekord.Flags;
+import org.magnos.rekord.Key;
+import org.magnos.rekord.Logging;
+import org.magnos.rekord.Model;
+import org.magnos.rekord.Rekord;
+import org.magnos.rekord.Table;
+import org.magnos.rekord.Transaction;
+import org.magnos.rekord.Value;
+import org.magnos.rekord.View;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
-public class OneToOne<T extends Model> extends AbstractField<T>
+public class ManyToOne<T extends Model> extends AbstractField<T>
 {
 
 	protected Table<T> joinTable;
 	protected ForeignColumn<?>[] joinColumns;
 	protected View joinView;
 	
-	public OneToOne( String name, int flags )
+	public ManyToOne( String name, int flags )
 	{
 		super( name, flags );
 	}
@@ -42,12 +52,13 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 	@Override
 	public void prepareInsert( InsertQuery query )
 	{
+		
 	}
 	
 	@Override
 	public Value<T> newValue(Model model)
 	{
-		return new OneToOneValue<T>( this, model );
+		return new ManyToOneValue<T>( this, model );
 	}
 	
 	public Table<T> getJoinTable()
@@ -65,15 +76,15 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		return joinColumns;
 	}
 	
-	private static class OneToOneValue<T extends Model> implements Value<T>
+	private static class ManyToOneValue<T extends Model> implements Value<T>
 	{
-		private final OneToOne<T> field;
+		private final ManyToOne<T> field;
 		private T value;
 		private Key key;
 		private Model model;
 		private boolean changed = false;
 		
-		public OneToOneValue(OneToOne<T> field, Model model)
+		public ManyToOneValue(ManyToOne<T> field, Model model)
 		{
 			this.field = field;
 			this.model = model;
@@ -114,7 +125,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 			{
 				try
 				{
-					loadFromKey( null );	
+					loadFromKey( field.getJoinView() );	
 				}
 				catch (SQLException e)
 				{
@@ -213,25 +224,12 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public void preSave(Model model) throws SQLException
 		{
-			if (!getKey().exists() && field.is( Flags.GENERATED ))
-			{
-				if (value == null)
-				{
-					value = field.getJoinTable().newModel();
-				}
-				
-				value.save();
-				copyBackKey( value );
-			}
+
 		}
 		
 		@Override
 		public void postSave(Model model) throws SQLException
 		{
-			if (value != null && value.hasKey())
-			{
-				value.update();
-			}
 		}
 		
 		private void loadFromKey( View parentView ) throws SQLException
@@ -255,7 +253,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 			{
 				value.load( fieldView );
 				
-				Rekord.log( Logging.CACHING, "one-to-one from-cache: %s", value );
+				Rekord.log( Logging.CACHING, "many-to-one from-cache: %s", value );
 			}
 		}
 
@@ -285,7 +283,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public String toString()
 		{
-			return field.getName() + "=" + value;
+			return field.getName() + "=" + (value != null ? value.getKey() : "null");
 		}
 		
 	}

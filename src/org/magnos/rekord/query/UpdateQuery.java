@@ -3,7 +3,6 @@ package org.magnos.rekord.query;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -13,6 +12,7 @@ import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.condition.Conditions;
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.util.SqlUtil;
 
 public class UpdateQuery

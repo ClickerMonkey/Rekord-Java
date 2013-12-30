@@ -3,7 +3,7 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
-import org.magnos.rekord.Column;
+import org.magnos.rekord.field.Column;
 
 
 class XmlColumn extends XmlField

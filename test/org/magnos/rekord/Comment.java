@@ -1,5 +1,9 @@
 package org.magnos.rekord;
 
+import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ManyToOne;
+
 
 public class Comment extends Model
 {

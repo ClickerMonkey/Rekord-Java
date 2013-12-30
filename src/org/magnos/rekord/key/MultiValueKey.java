@@ -4,10 +4,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.condition.Condition;
+import org.magnos.rekord.field.Column;
 
 public class MultiValueKey implements Key
 {

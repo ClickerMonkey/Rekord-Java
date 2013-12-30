@@ -4,6 +4,10 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.OneToMany;
+import org.magnos.rekord.field.OneToOne;
 import org.magnos.rekord.query.SelectQuery;
 
 public class User extends Model

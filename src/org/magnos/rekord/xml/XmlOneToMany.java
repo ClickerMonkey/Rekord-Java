@@ -3,8 +3,8 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
-import org.magnos.rekord.ForeignColumn;
-import org.magnos.rekord.OneToMany;
+import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.OneToMany;
 
 class XmlOneToMany extends XmlField
 {

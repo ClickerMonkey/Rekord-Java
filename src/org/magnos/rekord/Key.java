@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.condition.Condition;
+import org.magnos.rekord.field.Column;
 
 public interface Key
 {

@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.util.SqlUtil;
 

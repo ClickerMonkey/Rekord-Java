@@ -9,9 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.Field;
-import org.magnos.rekord.ForeignColumn;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -24,6 +22,8 @@ import org.magnos.rekord.View;
 import org.magnos.rekord.condition.AndCondition;
 import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.condition.OperatorCondition;
+import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.util.SqlUtil;
 
 

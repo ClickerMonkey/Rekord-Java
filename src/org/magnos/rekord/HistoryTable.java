@@ -1,6 +1,8 @@
 
 package org.magnos.rekord;
 
+import org.magnos.rekord.field.Column;
+
 public class HistoryTable
 {
 

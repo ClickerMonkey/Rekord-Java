@@ -1,4 +1,4 @@
-package org.magnos.rekord;
+package org.magnos.rekord.field;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,6 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Field;
+import org.magnos.rekord.Flags;
+import org.magnos.rekord.Model;
+import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;

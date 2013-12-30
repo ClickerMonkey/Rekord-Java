@@ -1,4 +1,7 @@
-package org.magnos.rekord;
+package org.magnos.rekord.field;
+
+import org.magnos.rekord.Field;
+import org.magnos.rekord.Table;
 
 public abstract class AbstractField<T> implements Field<T>
 {

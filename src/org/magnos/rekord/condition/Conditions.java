@@ -1,8 +1,8 @@
 package org.magnos.rekord.condition;
 
-import org.magnos.rekord.Column;
 import org.magnos.rekord.Operator;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.field.Column;
 
 public class Conditions
 {

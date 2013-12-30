@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.condition.Conditions;
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.key.MultiModelKey;
 import org.magnos.rekord.key.MultiValueKey;
 import org.magnos.rekord.key.SingleModelKey;

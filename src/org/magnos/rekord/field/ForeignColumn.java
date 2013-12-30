@@ -1,4 +1,4 @@
-package org.magnos.rekord;
+package org.magnos.rekord.field;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -7,84 +7,68 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Field;
+import org.magnos.rekord.Flags;
+import org.magnos.rekord.Model;
+import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.SqlUtil;
 
 
-public class Column<T> extends AbstractField<T>
+public class ForeignColumn<T> extends Column<T>
 {
 	
-	protected int type;
+	protected Column<?> foreignColumn;
 
-	public Column( String column, int type, int flags )
+	public ForeignColumn( String column, int type)
 	{
-		super( column, flags );
-		
-		this.type = type;
+		super( column, type, Flags.NONE );
 	}
 
 	@Override
 	public void prepareInsert(InsertQuery query)
 	{
-		if (is(Flags.GENERATED))
-		{
-			query.addReturning( name );
-		}
-		else
-		{
-			query.addColumn( name, "?" );
-		}
+		query.addColumn( name, "?" );
 	}
 
 	@Override
 	public void prepareSelect(SelectQuery<?> query)
 	{
-		if (!is(Flags.LAZY))
-		{
-			query.select( this, SqlUtil.namify( name ) );
-		}
+		query.select( this, SqlUtil.namify( name ) );
 	}
 	
 	@Override
 	public Value<T> newValue(Model model)
 	{
-		return new ColumnValue<T>( this );
+		return new ForeignValue<T>( this );
+	}
+	
+	public Column<?> getForeignColumn()
+	{
+		return foreignColumn;
+	}
+	
+	public void setForeignColumn( Column<?> foreignColumn )
+	{
+		this.foreignColumn = foreignColumn;
 	}
 
-	public int getType()
+	private static class ForeignValue<T> implements Value<T>
 	{
-		return type;
-	}
-
-	private static class ColumnValue<T> implements Value<T>
-	{
-		private final Column<T> field;
+		private final ForeignColumn<T> field;
 		private boolean changed = false;
 		private T value;
 		
-		public ColumnValue(Column<T> field)
+		public ForeignValue(ForeignColumn<T> field)
 		{
 			this.field = field;
 		}
 		
-		@SuppressWarnings ("rawtypes" )
 		@Override
 		public T get(Model model)
 		{
-			if (field.is( Flags.LAZY ) && value == null && model.hasKey())
-			{
-				try
-				{
-					value = (T) new SelectQuery( model ).grab( field );	
-				}
-				catch (SQLException e)
-				{
-					throw new RuntimeException( e );
-				}
-			}
-			
 			return value;
 		}
 
@@ -133,41 +117,24 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromInsertReturning(ResultSet results) throws SQLException
 		{
-			if (field.is( Flags.GENERATED ))
-			{
-				fromResultSet( results );
-			}
 		}
 		
 		@Override
 		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			if (!field.is( Flags.GENERATED ))
-			{
-				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
-			}
-			
-			return paramIndex;
+			return toPreparedStatement( preparedStatement, paramIndex );
 		}
 
 		@Override
 		public void prepareUpdate( UpdateQuery query )
 		{
-			if (!field.is( Flags.READ_ONLY ))
-			{
-				query.addSet( field.getName(), "?" );
-			}
+			query.addSet( field, "?" );
 		}
 
 		@Override
 		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
-			if (!field.is(Flags.READ_ONLY))
-			{
-				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
-			}
-			
-			return paramIndex;
+			return toPreparedStatement( preparedStatement, paramIndex );
 		}
 
 		@Override
@@ -205,7 +172,7 @@ public class Column<T> extends AbstractField<T>
 		{
 			value = (T)in.readObject();
 		}
-		
+
 		@Override
 		public Field<T> getField()
 		{

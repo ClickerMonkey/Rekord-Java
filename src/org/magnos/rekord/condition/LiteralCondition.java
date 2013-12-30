@@ -3,7 +3,7 @@ package org.magnos.rekord.condition;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.magnos.rekord.Column;
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.util.SqlUtil;
 
 public class LiteralCondition implements Condition

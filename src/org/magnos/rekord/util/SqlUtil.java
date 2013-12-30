@@ -1,7 +1,7 @@
 
 package org.magnos.rekord.util;
 
-import org.magnos.rekord.Column;
+import org.magnos.rekord.field.Column;
 
 public class SqlUtil
 {
