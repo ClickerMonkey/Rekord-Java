@@ -60,7 +60,7 @@ public class Column<T> extends AbstractField<T>
 
 	private static class ColumnValue<T> implements Value<T>
 	{
-		private transient final Column<T> field;
+		private final Column<T> field;
 		private boolean changed = false;
 		private T value;
 		
