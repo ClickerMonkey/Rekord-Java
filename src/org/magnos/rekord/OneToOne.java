@@ -91,12 +91,11 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		
 		private void copyBackKey( T value )
 		{
-			Column<?>[] key = field.getJoinTable().getKeyColumns();
 			ForeignColumn<Object>[] foreign = (ForeignColumn<Object>[])field.getJoinColumns();
 			
-			for (int i = 0; i < key.length; i++)
+			for (int i = 0; i < foreign.length; i++)
 			{
-				model.set( foreign[i], value.get( key[i] ) );	
+				model.set( foreign[i], value.get( foreign[i].getForeignColumn() ) );	
 			}
 		}
 		

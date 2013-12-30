@@ -34,7 +34,7 @@ public class Model implements Serializable
 	{
 		valueOf( field ).set( this, value );
 	}
-
+	
 	public <T> T get( Field<T> field )
 	{
 		return valueOf( field ).get( this );
