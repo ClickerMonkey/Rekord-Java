@@ -1,11 +1,44 @@
 
 package org.magnos.rekord.util;
 
+import java.lang.reflect.Modifier;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.magnos.rekord.field.Column;
 
 public class SqlUtil
 {
+    
 
+    private static final Map<String, Integer> SQL_TYPES = new HashMap<String, Integer>();
+
+    static
+    {
+        try
+        {
+            int expectedModifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
+            
+            for (java.lang.reflect.Field f : Types.class.getFields())
+            {
+                if (f.getType() == int.class && f.getModifiers() == expectedModifiers)
+                {
+                    SQL_TYPES.put( f.getName(), f.getInt( null ) ); 
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException( e );
+        }
+    }
+    
+    public static Integer getSqlType(String name)
+    {
+        return SQL_TYPES.get( name );
+    }
+    
 	public static String namify( String name )
 	{
 		return "\"" + name + "\"";

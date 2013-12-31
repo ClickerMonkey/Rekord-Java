@@ -20,12 +20,11 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-//		User u = User.byId( User.Views.ALL, 2L );
-//		u.getCommentsBy().clear();
-//		u.save();
+		User u = User.byId( User.Views.ALL, 2L );
+		u.getCommentsBy().clear();
+		u.save();
 
-		User u = new User();
-		System.out.println( u.getCommentable().getCount() );
+//		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();
 		

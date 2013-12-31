@@ -3,6 +3,7 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
+import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.field.Column;
 
@@ -26,7 +27,7 @@ class XmlColumn extends XmlField
             throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
         }
         
-        type = XmlLoader.getType( sqlType );
+        type = Rekord.getType( sqlType );
         
         defaultValue = type.fromString( defaultValueString );
     }
