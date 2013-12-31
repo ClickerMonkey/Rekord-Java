@@ -27,15 +27,17 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 {
 
 	protected final int fetchSize;
+	protected final boolean cascadeDelete;
 	protected Table<T> joinTable;
 	protected ForeignColumn<?>[] joinColumns;
 	protected View joinView;
 	
-	public OneToMany( String name, int flags, int fetchSize )
+	public OneToMany( String name, int flags, int fetchSize, boolean cascadeDelete )
 	{
 		super( name, flags );
 		
 		this.fetchSize = fetchSize;
+		this.cascadeDelete = cascadeDelete;
 	}
 	
 	public void setJoin( Table<T> joinTable, View joinView, ForeignColumn<?> ... joinColumns )
@@ -82,8 +84,13 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	{
 		return fetchSize;
 	}
+	
+    public boolean isCascadeDelete()
+    {
+        return cascadeDelete;
+    }
 
-	private static class OneToManyValue<T extends Model> implements Value<List<T>>, Factory<SelectQuery<T>>
+    private static class OneToManyValue<T extends Model> implements Value<List<T>>, Factory<SelectQuery<T>>
 	{
 		private final OneToMany<T> field;
 		private final Model model;
@@ -210,7 +217,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 				{
 					setModelForeignKey( m, model );
 					model.save();
-				}	
+				}
 			}
 			else
 			{
@@ -221,6 +228,21 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 				}
 			}
 		}
+
+        @Override
+        public void preDelete(Model model) throws SQLException
+        {
+            if (field.isCascadeDelete() && value != null)
+            {
+                value.clear();
+            }
+        }
+
+        @Override
+        public void postDelete(Model model) throws SQLException
+        {
+            
+        }
 
 		@Override
 		public void serialize(ObjectOutputStream out) throws IOException

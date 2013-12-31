@@ -176,6 +176,18 @@ public class Formula<T> extends AbstractField<T>
         }
 
         @Override
+        public void preDelete(Model model) throws SQLException
+        {
+            
+        }
+
+        @Override
+        public void postDelete(Model model) throws SQLException
+        {
+            
+        }
+
+        @Override
         public void serialize( ObjectOutputStream out ) throws IOException
         {
             out.writeObject( value );

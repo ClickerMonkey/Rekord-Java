@@ -28,7 +28,7 @@ public class TestRekord
 //		System.out.println( u.getCommentsBy() );
 //		System.out.println( u );
 		
-		trans.rollback();
+		trans.end( false );
 		trans.close();
 	}
 	

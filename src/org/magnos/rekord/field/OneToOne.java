@@ -248,6 +248,18 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 				value.update();
 			}
 		}
+
+        @Override
+        public void preDelete(Model model) throws SQLException
+        {
+            
+        }
+
+        @Override
+        public void postDelete(Model model) throws SQLException
+        {
+            
+        }
 		
 		private void loadFromKey( View parentView ) throws SQLException
 		{

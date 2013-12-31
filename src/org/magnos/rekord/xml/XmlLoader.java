@@ -52,6 +52,7 @@ public class XmlLoader
 	private static final Map<String, Integer> SQL_TYPES = new HashMap<String, Integer>();
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
 	private static final Set<String> TRUES = new HashSet<String>( Arrays.asList( "1", "t", "true", "y", "ya", "yes", "yessums" ) );
+	private static final Set<String> FALSES = new HashSet<String>( Arrays.asList( "0", "f", "false", "n", "nah", "no", "nope" ) );
 	
 	static
 	{
@@ -206,7 +207,7 @@ public class XmlLoader
 	
 	private void loadLogging( Element logging )
 	{
-		boolean enableMode = TRUES.contains( getAttribute( logging, "enable-mode", "true" ) );
+		boolean enableMode = toBoolean( getAttribute( logging, "enable-mode", "true" ), "enable-mode" );
 		
 		if (!enableMode) 
 		{
@@ -299,6 +300,8 @@ public class XmlLoader
 			
 			XmlField field = null;
 			
+			String fieldName = getAttribute( e, "name", null );
+			
 			if (tag.equals( TAG_COLUMN ))
 			{
 				XmlColumn c = new XmlColumn();
@@ -336,6 +339,7 @@ public class XmlLoader
 				c.joinKeyNames = split( getAttribute( e, "join-key", null ) );
 				c.joinViewName = getAttribute( e, "join-view", "all" );
 				c.fetchSizeString = getAttribute( e, "fetch-size", "128" );
+				c.cascadeDelete = toBoolean( getAttribute( e, "cascade-delete", "false" ), "cascade-delete of field " + fieldName + " in table " + table.name );
 				field = c;
 			}
 			else if (tag.equals( TAG_FORMULA ))
@@ -352,24 +356,26 @@ public class XmlLoader
 			}
 			
 			field.table = table;
-			field.name = getAttribute( e, "name", null );
-			field.flags = readFlags( e );
+			field.name = fieldName;
+			field.flags = readFlags( e, field.name, table.name );
 			table.fieldMap.put( field.name, field );
 		}
 	}
 	
-	private int readFlags(Element e)
+	private int readFlags(Element e, String fieldName, String tableName)
 	{
-		String lazy = getAttribute( e, "lazy", "false" ).toLowerCase();
-		String readOnly = getAttribute( e, "read-only", "false" ).toLowerCase();
-		String generated = getAttribute( e, "generated", "false" ).toLowerCase();
-		String nonNull = getAttribute( e, "non-null", "false" ).toLowerCase();
+		String lazy = getAttribute( e, "lazy", "false" );
+		String readOnly = getAttribute( e, "read-only", "false" );
+		String generated = getAttribute( e, "generated", "false" );
+		String nonNull = getAttribute( e, "non-null", "false" );
+		
+		String messagePostfix = " of field " + fieldName + " in table " + tableName;
 		
 		return (
-			(TRUES.contains( lazy ) ? Flags.LAZY : 0) |
-			(TRUES.contains( readOnly ) ? Flags.READ_ONLY : 0) |
-			(TRUES.contains( generated ) ? Flags.GENERATED : 0) |
-			(TRUES.contains( nonNull ) ? Flags.NON_NULL : 0)
+			(toBoolean( lazy, "lazy" + messagePostfix ) ? Flags.LAZY : 0) |
+			(toBoolean( readOnly, "read-only" + messagePostfix ) ? Flags.READ_ONLY : 0) |
+			(toBoolean( generated, "generated" + messagePostfix ) ? Flags.GENERATED : 0) |
+			(toBoolean( nonNull, "non-null" + messagePostfix ) ? Flags.NON_NULL : 0)
 		);
 	}
 	
@@ -481,6 +487,23 @@ public class XmlLoader
 		}
 		
 		return fieldArray;
+	}
+	
+	protected static boolean toBoolean(String value, String valueName)
+	{
+	    value = value.toLowerCase();
+	    
+	    if (TRUES.contains( value ))
+	    {
+	        return true;
+	    }
+	    
+	    if (FALSES.contains( value ))
+	    {
+	        return false;
+	    }
+	    
+	    throw new RuntimeException(valueName + " was not a valid boolean value (" + value + "), acceptable trues: " + TRUES + ", acceptable falses: " + FALSES);
 	}
 	
 }

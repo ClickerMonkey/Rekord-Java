@@ -230,7 +230,20 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public void postSave(Model model) throws SQLException
 		{
+		    
 		}
+
+        @Override
+        public void preDelete(Model model) throws SQLException
+        {
+            
+        }
+
+        @Override
+        public void postDelete(Model model) throws SQLException
+        {
+            
+        }
 		
 		private void loadFromKey( View parentView ) throws SQLException
 		{

@@ -13,6 +13,7 @@ class XmlOneToMany extends XmlField
     String joinViewName;
     String[] joinKeyNames;
     String fetchSizeString;
+    boolean cascadeDelete;
 
     int fetchSize;
     XmlTable joinTable;
@@ -59,7 +60,7 @@ class XmlOneToMany extends XmlField
     @Override
     public void instantiateFieldImplementation()
     {
-        field = new OneToMany( name, flags, fetchSize );
+        field = new OneToMany( name, flags, fetchSize, cascadeDelete );
     }
 
     @SuppressWarnings ("rawtypes" )

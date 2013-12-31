@@ -37,5 +37,8 @@ public interface Value<T>
 	public void serialize(ObjectOutputStream out) throws IOException;
 	public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException;
 	
+	public void preDelete(Model model) throws SQLException;
+	public void postDelete(Model model) throws SQLException;
+	
 	public Field<T> getField();
 }
