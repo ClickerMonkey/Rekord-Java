@@ -139,19 +139,19 @@ public class AbstractTransaction implements Transaction
 	@Override
 	public <T extends Model> Map<Key, T> getCache( Table table )
 	{
-		return (Map<Key, T>)modelCache[table.id()];
+		return (Map<Key, T>)modelCache[table.getIndex()];
 	}
 
 	@Override
 	public <T extends Model> T getCached( Table table, Key key )
 	{
-		return (T)modelCache[table.id()].get( key );
+		return (T)modelCache[table.getIndex()].get( key );
 	}
 
 	@Override
 	public void cache( Model model )
 	{
-		modelCache[model.getTable().id()].put( model.getKey(), model );
+		modelCache[model.getTable().getIndex()].put( model.getKey(), model );
 	}
 
 }

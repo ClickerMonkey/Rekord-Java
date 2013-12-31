@@ -28,16 +28,16 @@ public class Rekord
 	
 	public static int newTable( Table table )
 	{
-		int id = tables.length;
-		tables = Arrays.copyOf( tables, id + 1 );
-		tables[id] = table;
+		int index = tables.length;
+		tables = Arrays.copyOf( tables, index + 1 );
+		tables[index] = table;
 		tableMap.put( table.getName(), table );
-		return id;
+		return index;
 	}
 
-	public static Table getTable( int id )
+	public static Table getTable( int index )
 	{
-		return tables[id];
+		return tables[index];
 	}
 	
 	public static Table getTable( String name, Factory<? extends Model> factory )

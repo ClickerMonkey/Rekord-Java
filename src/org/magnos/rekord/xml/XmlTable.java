@@ -2,8 +2,10 @@
 package org.magnos.rekord.xml;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
@@ -52,8 +54,14 @@ class XmlTable extends XmlLoadable
     
     public void instantiateTableImplementation()
     {
+        int flags = (
+            (isRelationshipTable() ? Table.RELATIONSHIP_TABLE : 0) |
+            (isSubTable() ? Table.SUB_TABLE : 0) |
+            (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0)
+        );
+        
         keyColumns = XmlLoader.getFields( keys );
-        table = new Table( name, keyColumns );
+        table = new Table( name, flags, keyColumns );
     }
     
     @Override
@@ -96,6 +104,58 @@ class XmlTable extends XmlLoadable
         }
         
         table.setViews( views );
+    }
+    
+    private boolean isRelationshipTable()
+    {
+        Set<XmlTable> related = new HashSet<XmlTable>();
+        
+        for (XmlField k : keys)
+        {
+            if (!(k instanceof XmlForeignColumn)) 
+            {
+                return false;
+            }
+            
+            related.add( k.table );
+        }
+        
+        return related.size() > 1;
+    }
+    
+    private boolean isSubTable()
+    {
+        Set<XmlTable> related = new HashSet<XmlTable>();
+        
+        for (XmlField k : keys)
+        {
+            if (!(k instanceof XmlForeignColumn)) 
+            {
+                return false;
+            }
+            
+            related.add( k.table );
+        }
+        
+        return related.size() == 1;
+    }
+    
+    private boolean isCompletelyGenerated()
+    {
+        for (XmlField f : fieldMap.values())
+        {
+            if (f instanceof XmlColumn)
+            {
+                XmlColumn c = (XmlColumn)f;
+                
+                if (c.defaultValue == null && (c.flags & Field.GENERATED) == 0)
+                {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
     
 }

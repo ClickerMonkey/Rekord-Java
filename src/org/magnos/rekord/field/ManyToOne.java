@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Flags;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -43,7 +42,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 	@Override
 	public void prepareSelect( SelectQuery<?> query )
 	{
-		if (!is(Flags.LAZY))
+		if (!is(LAZY))
 		{
 			query.addPostSelectField( this );
 		}
@@ -74,6 +73,22 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 	public ForeignColumn<?>[] getJoinColumns()
 	{
 		return joinColumns;
+	}
+	
+	@Override
+	public String toString()
+	{
+	    StringBuilder sb = beginToString();
+	    sb.append( ", join=" ).append( joinTable.getName() );
+	    sb.append( "[" ).append( joinView.getName() ).append( "]" );
+	    sb.append( ", join-key={" );
+	    for (int i = 0; i < joinColumns.length; i++) {
+	        if (i > 0) sb.append( ", " );
+	        ForeignColumn<?> fc = joinColumns[i];
+	        sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
+	    }
+	    sb.append( "}" );
+	    return endToString( sb );
 	}
 	
 	private static class ManyToOneValue<T extends Model> implements Value<T>
@@ -121,7 +136,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public T get( Model model )
 		{
-			if (field.is( Flags.LAZY ) && value == null && getKey().exists())
+			if (field.is( LAZY ) && value == null && getKey().exists())
 			{
 				try
 				{
@@ -203,7 +218,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
 		{
-			if (!field.is(Flags.LAZY) && getKey().exists())
+			if (!field.is(LAZY) && getKey().exists())
 			{
 				loadFromKey( query.getView() );
 			}

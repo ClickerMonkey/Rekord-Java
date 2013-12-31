@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Flags;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
@@ -390,10 +389,10 @@ public class XmlLoader
 		String messagePostfix = " of field " + fieldName + " in table " + tableName;
 		
 		return (
-			(TypeBoolean.parse( lazy, "lazy" + messagePostfix ) ? Flags.LAZY : 0) |
-			(TypeBoolean.parse( readOnly, "read-only" + messagePostfix ) ? Flags.READ_ONLY : 0) |
-			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Flags.GENERATED : 0) |
-			(TypeBoolean.parse( nonNull, "non-null" + messagePostfix ) ? Flags.NON_NULL : 0)
+			(TypeBoolean.parse( lazy, "lazy" + messagePostfix ) ? Field.LAZY : 0) |
+			(TypeBoolean.parse( readOnly, "read-only" + messagePostfix ) ? Field.READ_ONLY : 0) |
+			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Field.GENERATED : 0) |
+			(TypeBoolean.parse( nonNull, "non-null" + messagePostfix ) ? Field.NON_NULL : 0)
 		);
 	}
 	

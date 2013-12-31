@@ -8,8 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Flags;
 import org.magnos.rekord.Model;
+import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
@@ -22,10 +22,11 @@ public class ForeignColumn<T> extends Column<T>
 {
 	
 	protected Column<?> foreignColumn;
+	protected Table foreignTable;
 
 	public ForeignColumn( String column, int sqlType, Type<T> type, String in, String out, T defaultValue)
 	{
-		super( column, sqlType, type, Flags.NONE, in, out, defaultValue );
+		super( column, sqlType, type, NONE, in, out, defaultValue );
 	}
 
 	@Override
@@ -54,6 +55,29 @@ public class ForeignColumn<T> extends Column<T>
 	public void setForeignColumn( Column<?> foreignColumn )
 	{
 		this.foreignColumn = foreignColumn;
+	}
+	
+    public Table getForeignTable()
+    {
+        return foreignTable;
+    }
+
+    public void setForeignTable( Table foreignTable )
+    {
+        this.foreignTable = foreignTable;
+    }
+
+    @Override
+	public String toString()
+	{
+	    StringBuilder sb = beginToString();
+        sb.append( ", sql-type=" ).append( sqlType );
+        sb.append( ", type=" ).append( type.getClass().getSimpleName() );
+        sb.append( ", in=" ).append( in );
+        sb.append( ", out=" ).append( out );
+        sb.append( ", default-value=" ).append( type.toString( defaultValue ) );
+        sb.append( ", references=" ).append( foreignTable.getName() ).append( "." ).append( foreignColumn.getName() );
+        return endToString( sb );
 	}
 
 	private static class ForeignValue<T> implements Value<T>
@@ -105,7 +129,7 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-		    value = field.getType().fromResultSet( results, field.getName(), !field.is( Flags.NON_NULL ) );
+		    value = field.getType().fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
 		}
 		
 		@Override
@@ -154,7 +178,7 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void preSave(Model model) throws SQLException
 		{
-			if (field.is( Flags.NON_NULL ) && value == null)
+			if (field.is( NON_NULL ) && value == null)
 			{
 				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
 			}

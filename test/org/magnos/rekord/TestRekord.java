@@ -13,6 +13,10 @@ public class TestRekord
 	{
 		XmlLoader.load( new FileInputStream( "test/test.xml" ) );
 		
+		for (int i = 0; i < Rekord.getTableCount(); i++) {
+		    System.out.println( Rekord.getTable( i ) );
+		}
+		
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		

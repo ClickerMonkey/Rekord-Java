@@ -89,6 +89,24 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
     {
         return cascadeDelete;
     }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = beginToString();
+        sb.append( ", fetch-size=" ).append( fetchSize );
+        sb.append( ", cascade-delete=" ).append( cascadeDelete );
+        sb.append( ", join=" ).append( joinTable.getName() );
+        sb.append( "[" ).append( joinView.getName() ).append( "]" );
+        sb.append( ", join-key={" );
+        for (int i = 0; i < joinColumns.length; i++) {
+            if (i > 0) sb.append( ", " );
+            ForeignColumn<?> fc = joinColumns[i];
+            sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
+        }
+        sb.append( "}" );
+        return endToString( sb );
+    }
 
     private static class OneToManyValue<T extends Model> implements Value<List<T>>, Factory<SelectQuery<T>>
 	{

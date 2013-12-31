@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Flags;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
@@ -41,7 +40,7 @@ public class Column<T> extends AbstractField<T>
 	@Override
 	public void prepareInsert(InsertQuery query)
 	{
-		if (is(Flags.GENERATED))
+		if (is(GENERATED))
 		{
 			query.addReturning( name );
 		}
@@ -54,7 +53,7 @@ public class Column<T> extends AbstractField<T>
 	@Override
 	public void prepareSelect(SelectQuery<?> query)
 	{
-		if (!is(Flags.LAZY))
+		if (!is(LAZY))
 		{
 			query.select( this, getSelectionExpression() );
 		}
@@ -95,6 +94,18 @@ public class Column<T> extends AbstractField<T>
     {
         return defaultValue;
     }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = beginToString();
+        sb.append( ", sql-type=" ).append( sqlType );
+        sb.append( ", type=" ).append( type.getClass().getSimpleName() );
+        sb.append( ", in=" ).append( in );
+        sb.append( ", out=" ).append( out );
+        sb.append( ", default-value=" ).append( type.toString( defaultValue ) );
+        return endToString( sb );
+    }
 
     private static class ColumnValue<T> implements Value<T>
 	{
@@ -111,7 +122,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public T get(Model model)
 		{
-			if (field.is( Flags.LAZY ) && value == null && model.hasKey())
+			if (field.is( LAZY ) && value == null && model.hasKey())
 			{
 				try
 				{
@@ -159,7 +170,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-		    value = field.getType().fromResultSet( results, field.getName(), !field.is( Flags.NON_NULL ) );
+		    value = field.getType().fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
 		}
 		
 		@Override
@@ -173,7 +184,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromInsertReturning(ResultSet results) throws SQLException
 		{
-			if (field.is( Flags.GENERATED ))
+			if (field.is( GENERATED ))
 			{
 				fromResultSet( results );
 			}
@@ -182,7 +193,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			if (!field.is( Flags.GENERATED ))
+			if (!field.is( GENERATED ))
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -193,7 +204,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void prepareUpdate( UpdateQuery query )
 		{
-			if (!field.is( Flags.READ_ONLY ))
+			if (!field.is( READ_ONLY ))
 			{
 				query.addSet( field.getName(), field.getOut() );
 			}
@@ -202,7 +213,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
-			if (!field.is( Flags.READ_ONLY ))
+			if (!field.is( READ_ONLY ))
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -225,7 +236,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void preSave(Model model) throws SQLException
 		{
-			if (field.is( Flags.NON_NULL ) && !field.is( Flags.GENERATED ) && value == null)
+			if (field.is( NON_NULL ) && !field.is( GENERATED ) && value == null)
 			{
 				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
 			}

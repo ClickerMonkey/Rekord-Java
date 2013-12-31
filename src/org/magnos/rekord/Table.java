@@ -20,11 +20,16 @@ import org.magnos.rekord.util.ArrayUtil;
 
 public class Table
 {
-	
+	public static final int NONE                   = 0;
+	public static final int RELATIONSHIP_TABLE     = 1 << 0;
+	public static final int SUB_TABLE              = 1 << 1;
+	public static final int COMPLETELY_GENERATED   = 1 << 2;
+    
 	private static final Field<?>[] NO_FIELDS = {};
 
-	protected final int id;
+	protected final int index;
 	protected final String table;
+	protected final int flags;
 	protected Factory<? extends Model> factory;
 	protected Column<?>[] keyColumns = {};
 	protected Field<?>[] fields = {};
@@ -39,20 +44,21 @@ public class Table
 	protected View viewAll;
 	protected View viewId;
 	
-	public Table( String table, Column<?> ... keyColumns )
+	public Table( String table, int flags, Column<?> ... keyColumns )
 	{
-		this( table, keyColumns, NO_FIELDS );
+		this( table, flags, keyColumns, NO_FIELDS );
 	}
 	
-	public Table( String table, Table extension)
+	public Table( String table, int flags, Table extension)
 	{
-		this( table, extension.keyColumns, extension.fields );
+		this( table, flags, extension.keyColumns, extension.fields );
 	}
 	
-	private Table( String table, Column<?>[] id, Field<?>[] existingFields)
+	private Table( String table, int flags, Column<?>[] id, Field<?>[] existingFields)
 	{
 		this.table = table;
-		this.id = Rekord.newTable( this );
+		this.flags = flags;
+		this.index = Rekord.newTable( this );
 		this.fieldMap = new HashMap<String, Field<?>>();
 		this.viewMap = new HashMap<String, View>();
 		this.keyColumns = id;
@@ -144,9 +150,9 @@ public class Table
 		return fields.length == 1 ? new SingleModelKey( model, fields[0] ) : new MultiModelKey( model, fields );
 	}
 
-	public int id()
+	public int getIndex()
 	{
-		return id;
+		return index;
 	}
 	
 	public String getName()
@@ -238,5 +244,54 @@ public class Table
 	{
 		return viewId;
 	}
+
+    public int getFlags()
+    {
+        return flags;
+    }
+	
+    public boolean is(int flag)
+    {
+        return (flags & flag) == flag;
+    }
+    
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append( table );
+        sb.append( ": {" );
+        sb.append( "index=" ).append( index );
+        
+        if (is(COMPLETELY_GENERATED)) {
+            sb.append( ", completely-generated" );
+        }
+        
+        if (is(RELATIONSHIP_TABLE)) {
+            sb.append( ", relationship-table" );
+        }
+        
+        if (is(SUB_TABLE)) {
+            sb.append( ", sub-table" );
+        }
+        
+        sb.append( ", fields=[" );
+        for (int i = 0; i < fields.length; i++) {
+            if (i > 0) sb.append( ", " );
+            sb.append( fields[i] );
+        }
+        sb.append( "]" );
+        
+        sb.append( ", views=[" );
+        for (int i = 0; i < views.length; i++) {
+            if (i > 0) sb.append( ", " );
+            sb.append( views[i] );
+        }
+        sb.append( "]" );
+        
+        sb.append( "}" );
+        return sb.toString();
+    }
+	
 	
 }

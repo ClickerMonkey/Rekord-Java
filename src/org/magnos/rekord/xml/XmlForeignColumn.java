@@ -50,6 +50,7 @@ class XmlForeignColumn extends XmlColumn
     {
         ForeignColumn<Object> fc = (ForeignColumn<Object>)field;
         fc.setForeignColumn( (Column<Object>)foreignColumn.field );
+        fc.setForeignTable( foreignTable.table );
     }
 
 }
