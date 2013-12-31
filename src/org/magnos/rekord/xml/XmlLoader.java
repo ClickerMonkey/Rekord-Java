@@ -15,6 +15,7 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Logging;
@@ -24,6 +25,8 @@ import org.magnos.rekord.util.ArrayUtil;
 import org.magnos.rekord.util.SqlUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 public class XmlLoader
@@ -47,6 +50,9 @@ public class XmlLoader
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
 	private static final String TAG_MANY_TO_ONE = "many-to-one";
 	private static final String TAG_ONE_TO_MANY = "one-to-many";
+	private static final String TAG_CONVERTER_CLASSES = "converter-classes";
+	private static final String TAG_CONVERTER_CLASS = "converter-class";
+	private static final String TAG_CONVERTERS = "converters";
 	
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
 	
@@ -93,6 +99,8 @@ public class XmlLoader
 		XmlIterator<Element> nodes = new XmlIterator<Element>( element );
 		Map<String, XmlTable> tableMap = new LinkedHashMap<String, XmlTable>();
 		Set<String> classesSet = new HashSet<String>();
+		Map<String, XmlConverterClass> converterClasses = new HashMap<String, XmlConverterClass>();
+		Map<String, Converter<?, ?>> converters = new HashMap<String, Converter<?, ?>>();
 		
 		for (Element e : nodes)
 		{
@@ -106,10 +114,18 @@ public class XmlLoader
 			{
 				loadLogging( e );
 			}
-			else if (tag.equals( TAG_CLASSES ))
-			{
-				loadClasses( e, classesSet );
-			}
+            else if (tag.equals( TAG_CONVERTER_CLASSES ))
+            {
+                loadConverterClasses( e, converterClasses );
+            }
+            else if (tag.equals( TAG_CONVERTERS ))
+            {
+                loadConverters( e, converterClasses, converters );
+            }
+            else if (tag.equals( TAG_CLASSES ))
+            {
+                loadClasses( e, classesSet );
+            }
 			else if (tag.equals( TAG_TABLE ))
 			{
 				XmlTable t = loadTable( e );
@@ -122,7 +138,7 @@ public class XmlLoader
 		}
 		
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
-		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation();
+		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
 		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
 		for (XmlTable t : tableMap.values()) t.instantiateViewImplementation();
 		for (XmlTable t : tableMap.values()) t.initializeTable();
@@ -224,6 +240,62 @@ public class XmlLoader
 		}
 	}
 	
+	private void loadConverterClasses( Element converterClassesElement, Map<String, XmlConverterClass> converterClasses ) throws Exception
+	{
+	    XmlIterator<Element> nodes = new XmlIterator<Element>( converterClassesElement );
+	    
+	    for (Element e : nodes)
+	    {
+            String tag = e.getTagName().toLowerCase();
+	        
+            if (tag.equals( TAG_CONVERTER_CLASS ))
+            {
+                XmlConverterClass xcc = new XmlConverterClass();
+                xcc.converterClassName = getAttribute( e, "class", null, true );
+                xcc.elementName = getAttribute( e, "element", null, true ).toLowerCase();
+                xcc.converterClass = Class.forName( xcc.converterClassName );
+                converterClasses.put( xcc.elementName, xcc );
+            }
+            else
+            {
+                unexpectedTag( converterClassesElement, e );
+            }
+	    }
+	}
+	
+	private void loadConverters( Element convertersElement, Map<String, XmlConverterClass> converterClasses, Map<String, Converter<?, ?>> converterMap) throws Exception
+	{
+	    XmlIterator<Element> nodes = new XmlIterator<Element>( convertersElement );
+        
+        for (Element e : nodes)
+        {
+            String tag = e.getTagName().toLowerCase();
+            
+            XmlConverterClass xcc = converterClasses.get( tag );
+            
+            if (xcc == null)
+            {
+                unexpectedTag( convertersElement, e );
+            }
+
+            String name = getAttribute( e, "name", null, true );
+            
+            Map<String, String> attributes = new HashMap<String, String>();
+            NamedNodeMap attrs = e.getAttributes();
+            for (int i = 0; i < attrs.getLength(); i++) {
+                Node a = attrs.item( i );
+                attributes.put( a.getNodeName(), a.getNodeValue() );
+            }
+            
+            attributes.remove( "name" );
+            
+            Converter<?, ?> converter = xcc.newInstance();
+            converter.setName( name );
+            converter.configure( attributes );
+            converterMap.put( name, converter );
+        }
+	}
+	
 	private XmlTable loadTable( Element tableElement )
 	{
 		XmlTable table = new XmlTable();
@@ -297,17 +369,19 @@ public class XmlLoader
 				c.in = getAttribute( e, "in", "?", true );
 				c.out = getAttribute( e, "out", "?", true );
 				c.defaultValueString = getAttribute( e, "default-value", null, false );
+				c.converterName = getAttribute( e, "converter", null, false );
 				field = c;
 			}
 			else if (tag.equals( TAG_FOREIGN_COLUMN ))
 			{
 				XmlForeignColumn c = new XmlForeignColumn();
-				c.foreignTableName = getAttribute( e, "foreign-table", null, true );
-				c.foreignColumnName = getAttribute( e, "foreign-column", null, true );
 				c.sqlType = SqlUtil.getSqlType( getAttribute( e, "type", null, true ) );
 				c.in = getAttribute( e, "in", "?", true );
                 c.out = getAttribute( e, "out", "?", true );
                 c.defaultValueString = getAttribute( e, "default-value", null, false );
+                c.converterName = getAttribute( e, "converter", null, false );
+                c.foreignTableName = getAttribute( e, "foreign-table", null, true );
+                c.foreignColumnName = getAttribute( e, "foreign-column", null, true );
 				field = c;
 			}
 			else if (tag.equals( TAG_ONE_TO_ONE ))

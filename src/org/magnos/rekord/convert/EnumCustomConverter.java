@@ -51,11 +51,11 @@ public class EnumCustomConverter extends AbstractConverter<Object, Enum>
 
         for (Entry<String, String> e : attributes.entrySet())
         {
-            Object key = customType.fromString( e.getKey() );
-            Enum enumConstant = Enum.valueOf( enumClass, e.getValue() );
+            Enum enumConstant = Enum.valueOf( enumClass, e.getKey() );
+            Object value = customType.fromString( e.getValue() );
 
-            enumMap.put( key, enumConstant );
-            customMap.put( enumConstant, key );
+            enumMap.put( value, enumConstant );
+            customMap.put( enumConstant, value );
         }
     }
 

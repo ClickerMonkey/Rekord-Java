@@ -26,7 +26,7 @@ public class Column<T> extends AbstractField<T>
 	protected final String out;
 	protected final T defaultValue;
 
-	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out, T defaultValue )
+	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out, T defaultValue)
 	{
 		super( column, flags );
 		

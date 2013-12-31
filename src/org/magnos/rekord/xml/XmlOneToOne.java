@@ -3,6 +3,7 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToOne;
 
@@ -41,7 +42,7 @@ class XmlOneToOne extends XmlField
 
     @SuppressWarnings ("rawtypes" )
     @Override
-    public void instantiateFieldImplementation()
+    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
         field = new OneToOne( name, flags );
     }

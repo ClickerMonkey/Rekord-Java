@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Table;
@@ -47,11 +48,12 @@ class XmlTable extends XmlLoadable
     }
 
     @Override
-    public void instantiateFieldImplementation()
+    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
-        for (XmlField f : fieldMap.values()) f.instantiateFieldImplementation();
+        for (XmlField f : fieldMap.values()) f.instantiateFieldImplementation(converters);
     }
     
+    @Override
     public void instantiateTableImplementation()
     {
         int flags = (

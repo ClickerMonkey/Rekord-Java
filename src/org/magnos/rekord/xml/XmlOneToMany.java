@@ -3,6 +3,7 @@ package org.magnos.rekord.xml;
 
 import java.util.Map;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToMany;
 
@@ -58,7 +59,7 @@ class XmlOneToMany extends XmlField
 
     @SuppressWarnings ("rawtypes" )
     @Override
-    public void instantiateFieldImplementation()
+    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
         field = new OneToMany( name, flags, fetchSize, cascadeDelete );
     }

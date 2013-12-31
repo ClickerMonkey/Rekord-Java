@@ -10,6 +10,16 @@
         LOADING, CACHING
     </logging>
     
+    <converter-classes>
+        <converter-class class="org.magnos.rekord.convert.EnumCustomConverter" element="enum-custom-converter" />
+        <converter-class class="org.magnos.rekord.convert.EnumNameConverter" element="enum-name-converter" />
+        <converter-class class="org.magnos.rekord.convert.EnumOrdinalConverter" element="enum-ordinal-converter" />
+    </converter-classes>
+    
+    <converters>
+        <enum-custom-converter name="user-state" enum="org.magnos.rekord.UserState" custom-type="CHAR" UNVERIFIED="U" REGISTERED="R" DISABLED="D" />
+    </converters>
+    
     <classes>
         org.magnos.rekord.User
         org.magnos.rekord.Comment
