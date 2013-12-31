@@ -306,6 +306,8 @@ public class XmlLoader
 			{
 				XmlColumn c = new XmlColumn();
 				c.type = SQL_TYPES.get( getAttribute( e, "type", null ) );
+				c.in = getAttribute( e, "in", "?" );
+				c.out = getAttribute( e, "out", "?" );
 				field = c;
 			}
 			else if (tag.equals( TAG_FOREIGN_COLUMN ))
@@ -314,6 +316,8 @@ public class XmlLoader
 				c.foreignTableName = getAttribute( e, "foreign-table", null );
 				c.foreignColumnName = getAttribute( e, "foreign-column", null );
 				c.type = SQL_TYPES.get( getAttribute( e, "type", null ) );
+				c.in = getAttribute( e, "in", "?" );
+                c.out = getAttribute( e, "out", "?" );
 				field = c;
 			}
 			else if (tag.equals( TAG_ONE_TO_ONE ))

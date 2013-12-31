@@ -20,13 +20,17 @@ import org.magnos.rekord.util.SqlUtil;
 public class Column<T> extends AbstractField<T>
 {
 	
-	protected int type;
+	protected final int type;
+	protected final String in;
+	protected final String out;
 
-	public Column( String column, int type, int flags )
+	public Column( String column, int type, int flags, String in, String out )
 	{
 		super( column, flags );
 		
 		this.type = type;
+		this.in = in;
+		this.out = out;
 	}
 
 	@Override
@@ -38,7 +42,7 @@ public class Column<T> extends AbstractField<T>
 		}
 		else
 		{
-			query.addColumn( name, "?" );
+			query.addColumn( name, out );
 		}
 	}
 
@@ -47,7 +51,7 @@ public class Column<T> extends AbstractField<T>
 	{
 		if (!is(Flags.LAZY))
 		{
-			query.select( this, SqlUtil.namify( name ) );
+			query.select( this, getSelectionExpression() );
 		}
 	}
 	
@@ -61,8 +65,23 @@ public class Column<T> extends AbstractField<T>
 	{
 		return type;
 	}
+	
+    public String getIn()
+    {
+        return in;
+    }
+    
+    public String getOut()
+    {
+        return out;
+    }
+    
+    public String getSelectionExpression()
+    {
+        return in.replaceAll( "\\?", SqlUtil.namify( name ) );
+    }
 
-	private static class ColumnValue<T> implements Value<T>
+    private static class ColumnValue<T> implements Value<T>
 	{
 		private final Column<T> field;
 		private boolean changed = false;
@@ -81,7 +100,7 @@ public class Column<T> extends AbstractField<T>
 			{
 				try
 				{
-					value = (T) new SelectQuery( model ).grab( field );	
+					value = (T) new SelectQuery( model ).grab( field.getSelectionExpression() );	
 				}
 				catch (SQLException e)
 				{
@@ -159,7 +178,7 @@ public class Column<T> extends AbstractField<T>
 		{
 			if (!field.is( Flags.READ_ONLY ))
 			{
-				query.addSet( field.getName(), "?" );
+				query.addSet( field.getName(), field.getOut() );
 			}
 		}
 

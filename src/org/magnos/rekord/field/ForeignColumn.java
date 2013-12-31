@@ -22,21 +22,21 @@ public class ForeignColumn<T> extends Column<T>
 	
 	protected Column<?> foreignColumn;
 
-	public ForeignColumn( String column, int type)
+	public ForeignColumn( String column, int type, String in, String out)
 	{
-		super( column, type, Flags.NONE );
+		super( column, type, Flags.NONE, in, out );
 	}
 
 	@Override
 	public void prepareInsert(InsertQuery query)
 	{
-		query.addColumn( name, "?" );
+		query.addColumn( name, getOut() );
 	}
 
 	@Override
 	public void prepareSelect(SelectQuery<?> query)
 	{
-		query.select( this, SqlUtil.namify( name ) );
+		query.select( this, getSelectionExpression() );
 	}
 	
 	@Override
@@ -128,7 +128,7 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void prepareUpdate( UpdateQuery query )
 		{
-			query.addSet( field, "?" );
+			query.addSet( field, field.getOut() );
 		}
 
 		@Override

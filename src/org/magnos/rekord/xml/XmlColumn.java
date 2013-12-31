@@ -10,6 +10,8 @@ class XmlColumn extends XmlField
 {
 
     Integer type;
+    String in;
+    String out;
 
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
@@ -24,7 +26,7 @@ class XmlColumn extends XmlField
     @Override
     public void instantiateFieldImplementation()
     {
-        field = new Column( name, type, flags );
+        field = new Column( name, type, flags, in, out );
     }
     
 }
