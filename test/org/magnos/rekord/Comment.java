@@ -15,7 +15,7 @@ public class Comment extends Model
 		}
 	};
 	
-	public static final Table<Comment> 			TABLE 			= Rekord.getTable( "comment", FACTORY );
+	public static final Table       			TABLE 			= Rekord.getTable( "comment", FACTORY );
 	public static final Column<Long> 			ID 				= TABLE.getField( "id" );
 	public static final Column<String> 			TEXT 			= TABLE.getField( "text" );
 	public static final ForeignColumn<Long> 	COMMENTABLE_ID 	= TABLE.getField( "commentable_id" );

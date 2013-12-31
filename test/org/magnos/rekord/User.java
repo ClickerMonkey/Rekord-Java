@@ -20,7 +20,7 @@ public class User extends Model
 		}
 	};
 
-	public static final Table<User> 			TABLE 				= Rekord.getTable( "user", FACTORY ); 
+	public static final Table 			        TABLE 				= Rekord.getTable( "user", FACTORY ); 
 	public static final Column<Long> 			ID 					= TABLE.getField( "id" );
 	public static final Column<String> 			NAME 				= TABLE.getField( "name" );
 	public static final Column<Date> 			CREATED_TIMESTAMP 	= TABLE.getField( "created_timestamp" );

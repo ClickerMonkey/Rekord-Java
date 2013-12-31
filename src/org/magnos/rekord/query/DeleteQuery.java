@@ -16,11 +16,11 @@ import org.magnos.rekord.util.SqlUtil;
 public class DeleteQuery
 {
 	
-	protected Table<?> table;
+	protected Table table;
 	protected Condition condition;
 	protected String query;
 	
-	public DeleteQuery(Table<?> table)
+	public DeleteQuery(Table table)
 	{
 		this.table = table;
 		this.condition = Conditions.where( table.getKeyColumns() );

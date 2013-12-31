@@ -30,7 +30,7 @@ import org.magnos.rekord.util.SqlUtil;
 public class SelectQuery<M extends Model>
 {
 
-	protected Table<M> table;
+	protected Table table;
 	protected String from;
 	protected Condition condition;
 	protected StringBuilder selecting;
@@ -42,11 +42,11 @@ public class SelectQuery<M extends Model>
 
 	public SelectQuery( M model )
 	{
-		this( (Table<M>)model.getTable() );
+		this( model.getTable() );
 		this.byKey( model.getKey() );
 	}
 	
-	public SelectQuery( Table<M> table )
+	public SelectQuery( Table table )
 	{
 		this.table = table;
 		this.from = table.getName();
@@ -62,7 +62,7 @@ public class SelectQuery<M extends Model>
 		return this;
 	}
 
-	public SelectQuery<M> select( Table<M> table )
+	public SelectQuery<M> select( Table table )
 	{
 		for (Field<?> f : table.getFields())
 		{

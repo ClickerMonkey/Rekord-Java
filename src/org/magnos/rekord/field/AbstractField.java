@@ -9,7 +9,7 @@ public abstract class AbstractField<T> implements Field<T>
 	protected String name;
 	protected int flags;
 	protected int index;
-	protected Table<?> table;
+	protected Table table;
 	
 	public AbstractField(String name, int flags)
 	{
@@ -36,13 +36,13 @@ public abstract class AbstractField<T> implements Field<T>
 	}
 
 	@Override
-	public void setTable( Table<?> entity )
+	public void setTable( Table entity )
 	{
 		this.table = entity;
 	}
 
 	@Override
-	public Table<?> getTable()
+	public Table getTable()
 	{
 		return table;
 	}

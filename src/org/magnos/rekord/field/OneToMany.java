@@ -28,7 +28,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 
 	protected final int fetchSize;
 	protected final boolean cascadeDelete;
-	protected Table<T> joinTable;
+	protected Table joinTable;
 	protected ForeignColumn<?>[] joinColumns;
 	protected View joinView;
 	
@@ -40,7 +40,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		this.cascadeDelete = cascadeDelete;
 	}
 	
-	public void setJoin( Table<T> joinTable, View joinView, ForeignColumn<?> ... joinColumns )
+	public void setJoin( Table joinTable, View joinView, ForeignColumn<?> ... joinColumns )
 	{
 		this.joinTable = joinTable;
 		this.joinView = joinView;
@@ -65,7 +65,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		return new OneToManyValue<T>( this, model );
 	}
 	
-	public Table<T> getJoinTable()
+	public Table getJoinTable()
 	{
 		return joinTable;
 	}

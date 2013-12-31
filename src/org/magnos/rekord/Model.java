@@ -20,11 +20,11 @@ public class Model implements Serializable
 {
 	
 	private static final long serialVersionUID = 1L;
-	protected transient final Table<?> table;
+	protected transient final Table table;
 	protected transient final Key key;
 	protected final Value<?>[] values;
 
-	protected Model( Table<?> table )
+	protected Model( Table table )
 	{
 		this.table = table;
 		this.values = table.newValues( this );
@@ -131,7 +131,6 @@ public class Model implements Serializable
 		
 		LinkedHashMap<HistoryKey<T>, T> resultMap = new LinkedHashMap<HistoryKey<T>, T>();
 
-		Table<T> table = (Table<T>)getTable();
 		HistoryTable history = table.getHistory();
 		String historyKey = history.getHistoryKey();
 		String historyTimestamp = history.getHistoryTimestamp();
@@ -201,7 +200,7 @@ public class Model implements Serializable
 		return key.exists();
 	}
 
-	public Table<?> getTable()
+	public Table getTable()
 	{
 		return table;
 	}

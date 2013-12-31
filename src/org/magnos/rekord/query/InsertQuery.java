@@ -18,13 +18,13 @@ import org.magnos.rekord.util.SqlUtil;
 public class InsertQuery
 {
 
-	protected Table<?> table;
+	protected Table table;
 	protected String query;
 	protected StringBuilder columns = new StringBuilder();
 	protected StringBuilder values = new StringBuilder();
 	protected StringBuilder returnings = new StringBuilder();
 
-	public InsertQuery( Table<?> table )
+	public InsertQuery( Table table )
 	{
 		this.table = table;
 

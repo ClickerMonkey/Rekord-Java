@@ -14,7 +14,7 @@ public interface Transaction
 	public void end(boolean commit);
 	public void close();
 	
-	public <T extends Model> Map<Key, T> getCache(Table<T> table);
-	public <T extends Model> T getCached(Table<T> table, Key key);
-	public <T extends Model> void cache(T model);
+	public <T extends Model> Map<Key, T> getCache(Table table);
+	public <T extends Model> T getCached(Table table, Key key);
+	public void cache(Model model);
 }

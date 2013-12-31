@@ -18,14 +18,14 @@ import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
 
-public class Table<M extends Model>
+public class Table
 {
 	
 	private static final Field<?>[] NO_FIELDS = {};
 
 	protected final int id;
 	protected final String table;
-	protected Factory<M> factory;
+	protected Factory<? extends Model> factory;
 	protected Column<?>[] keyColumns = {};
 	protected Field<?>[] fields = {};
 	protected InsertQuery insert;
@@ -44,7 +44,7 @@ public class Table<M extends Model>
 		this( table, keyColumns, NO_FIELDS );
 	}
 	
-	public Table( String table, Table<? super M> extension)
+	public Table( String table, Table extension)
 	{
 		this( table, extension.keyColumns, extension.fields );
 	}
@@ -189,19 +189,19 @@ public class Table<M extends Model>
 		return delete;
 	}
 
-	public Factory<M> getFactory()
+	public Factory<? extends Model> getFactory()
 	{
 		return factory;
 	}
 	
-	public void setFactory( Factory<M> factory )
+	public void setFactory( Factory<? extends Model> factory )
 	{
 		this.factory = factory;
 	}
 
-	public M newModel()
+	public <T extends Model> T newModel()
 	{
-		return factory.create();
+		return (T)factory.create();
 	}
 	
 	public <F extends Field<?>> F getField(String name)

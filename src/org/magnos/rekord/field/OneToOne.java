@@ -24,7 +24,7 @@ import org.magnos.rekord.query.UpdateQuery;
 public class OneToOne<T extends Model> extends AbstractField<T>
 {
 
-	protected Table<T> joinTable;
+	protected Table joinTable;
 	protected ForeignColumn<?>[] joinColumns;
 	protected View joinView;
 	
@@ -33,7 +33,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		super( name, flags );
 	}
 	
-	public void setJoin( Table<T> joinTable, View joinView, ForeignColumn<?>[] joinColumns )
+	public void setJoin( Table joinTable, View joinView, ForeignColumn<?>[] joinColumns )
 	{
 		this.joinTable = joinTable;
 		this.joinView = joinView;
@@ -60,7 +60,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		return new OneToOneValue<T>( this, model );
 	}
 	
-	public Table<T> getJoinTable()
+	public Table getJoinTable()
 	{
 		return joinTable;
 	}

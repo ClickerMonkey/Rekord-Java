@@ -16,7 +16,7 @@ public class Commentable extends Model
 		}
 	};
 
-	public static final Table<Commentable> 	TABLE 				= Rekord.getTable( "commentable", FACTORY );
+	public static final Table           	TABLE 				= Rekord.getTable( "commentable", FACTORY );
 	public static final Column<Long> 		ID 					= TABLE.getField( "id" );
 	public static final Column<Integer> 	COUNT 				= TABLE.getField( "count" );
 	public static final Column<Date> 		CREATED_TIMESTAMP 	= TABLE.getField( "created_timestamp" );

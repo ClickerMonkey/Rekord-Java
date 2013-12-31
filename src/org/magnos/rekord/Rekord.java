@@ -17,8 +17,8 @@ import java.util.Map;
 public class Rekord
 {
 
-	private static Table<?>[] tables = {};
-	private static Map<String, Table<?>> tableMap = new HashMap<String, Table<?>>();
+	private static Table[] tables = {};
+	private static Map<String, Table> tableMap = new HashMap<String, Table>();
 	
 	private static Factory<Transaction> transactionFactory;
 	private static ThreadLocal<Transaction> transactionLocal = new ThreadLocal<Transaction>();
@@ -26,7 +26,7 @@ public class Rekord
 	private static BitSet logging = new BitSet();
 	private static PrintStream loggingStream = System.out;
 	
-	public static int newTable( Table<?> table )
+	public static int newTable( Table table )
 	{
 		int id = tables.length;
 		tables = Arrays.copyOf( tables, id + 1 );
@@ -35,14 +35,14 @@ public class Rekord
 		return id;
 	}
 
-	public static Table<?> getTable( int id )
+	public static Table getTable( int id )
 	{
 		return tables[id];
 	}
 	
-	public static <T extends Model> Table<T> getTable( String name, Factory<T> factory )
+	public static Table getTable( String name, Factory<? extends Model> factory )
 	{
-		Table<T> t = (Table<T>) tableMap.get( name );
+		Table t = tableMap.get( name );
 		
 		if (t != null)
 		{

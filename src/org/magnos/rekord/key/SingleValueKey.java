@@ -12,10 +12,10 @@ import org.magnos.rekord.field.Column;
 public class SingleValueKey implements Key
 {
 
-	public Table<?> table;
+	public Table table;
 	public Object value;
 	
-	public SingleValueKey(Table<?> table)
+	public SingleValueKey(Table table)
 	{
 		this.table = table;
 	}

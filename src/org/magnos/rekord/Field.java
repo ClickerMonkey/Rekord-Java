@@ -11,8 +11,8 @@ public interface Field<T>
 	public int getIndex();
 	public void setIndex(int index);
 	
-	public void setTable(Table<?> table);
-	public Table<?> getTable();
+	public void setTable(Table table);
+	public Table getTable();
 	
 	public int getFlags();
 	public boolean is(int flag);

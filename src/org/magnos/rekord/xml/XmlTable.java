@@ -28,7 +28,7 @@ class XmlTable extends XmlLoadable
     Class<?> clazz;
     Column<?>[] keyColumns;
     Field<?>[] fields;
-    Table<?> table;
+    Table table;
     
     @Override
     public void validate(XmlTable table, Map<String, XmlTable> tableMap)
@@ -60,7 +60,6 @@ class XmlTable extends XmlLoadable
         for (XmlField f : fieldMap.values()) f.instantiateFieldImplementation();
     }
     
-    @SuppressWarnings ("rawtypes" )
     public void instantiateTableImplementation()
     {
         keyColumns = XmlLoader.getFields( keys );

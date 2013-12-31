@@ -18,13 +18,13 @@ import org.magnos.rekord.util.SqlUtil;
 public class UpdateQuery
 {
 	
-	protected Table<?> table;
+	protected Table table;
 	protected String queryFormat;
 	protected Condition condition;
 	protected String queryHistory;
 	protected StringBuilder query;
 	
-	public UpdateQuery(Table<?> table)
+	public UpdateQuery(Table table)
 	{
 		this.table = table;
 		this.query = new StringBuilder();
@@ -123,7 +123,7 @@ public class UpdateQuery
 		return recordsUpdated;
 	}
 	
-	private static String buildUpdate(Table<?> table, Condition condition) 
+	private static String buildUpdate(Table table, Condition condition) 
 	{
 		StringBuilder queryFormatBuilder = new StringBuilder();
 		queryFormatBuilder.append( "UPDATE " );
@@ -134,7 +134,7 @@ public class UpdateQuery
 		return queryFormatBuilder.toString();
 	}
 	
-	private static String buildHistoryInsert(Table<?> table, Condition condition)
+	private static String buildHistoryInsert(Table table, Condition condition)
 	{
 		if (!table.hasHistory()) 
 		{

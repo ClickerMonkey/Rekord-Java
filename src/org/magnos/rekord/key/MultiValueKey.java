@@ -12,10 +12,10 @@ import org.magnos.rekord.field.Column;
 public class MultiValueKey implements Key
 {
 
-	public Table<?> table;
+	public Table table;
 	public Object[] values;
 	
-	public MultiValueKey(Table<?> table)
+	public MultiValueKey(Table table)
 	{
 		this.table = table;
 		this.values = new Object[ table.getKeySize() ];
