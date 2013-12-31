@@ -363,11 +363,13 @@ public class XmlLoader
 		String lazy = getAttribute( e, "lazy", "false" ).toLowerCase();
 		String readOnly = getAttribute( e, "read-only", "false" ).toLowerCase();
 		String generated = getAttribute( e, "generated", "false" ).toLowerCase();
+		String nonNull = getAttribute( e, "non-null", "false" ).toLowerCase();
 		
 		return (
 			(TRUES.contains( lazy ) ? Flags.LAZY : 0) |
 			(TRUES.contains( readOnly ) ? Flags.READ_ONLY : 0) |
-			(TRUES.contains( generated ) ? Flags.GENERATED : 0)
+			(TRUES.contains( generated ) ? Flags.GENERATED : 0) |
+			(TRUES.contains( nonNull ) ? Flags.NON_NULL : 0)
 		);
 	}
 	

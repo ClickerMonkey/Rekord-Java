@@ -87,6 +87,11 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		{
 			this.field = field;
 			this.model = model;
+			
+			if (field.is( Flags.NON_NULL ))
+			{
+				this.value = field.getJoinTable().newModel();
+			}
 		}
 		
 		private Key getKey()

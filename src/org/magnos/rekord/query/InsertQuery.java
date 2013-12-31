@@ -83,13 +83,13 @@ public class InsertQuery
 		Rekord.log( Logging.UPDATES, "pre-insert: %s -> %s", query, model );
 		
 		final Value<?>[] values = model.getValues();
-		Transaction trans = Rekord.getTransaction();
 
 		for (Value<?> v : values)
 		{
 			v.preSave( model );
 		}
-		
+
+		Transaction trans = Rekord.getTransaction();
 		PreparedStatement stmt = trans.prepare( query );
 		boolean recordsInserted = false;
 		

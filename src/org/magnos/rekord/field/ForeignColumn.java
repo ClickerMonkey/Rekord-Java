@@ -152,7 +152,10 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void preSave(Model model) throws SQLException
 		{
-			
+			if (field.is( Flags.NON_NULL ) && value == null)
+			{
+				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
+			}
 		}
 		
 		@Override

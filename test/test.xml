@@ -22,7 +22,7 @@
             <column name="name" type="VARCHAR" />
             <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
             <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
-            <one-to-one name="commentable" generated="true" lazy="true" join-table="commentable" join-view="all" join-key="commentable_id" />
+            <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-view="all" join-key="commentable_id" />
             <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-view="basic" join-key="user_id" />
         </fields>
         <views>

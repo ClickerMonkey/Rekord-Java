@@ -166,7 +166,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
-			if (!field.is(Flags.READ_ONLY))
+			if (!field.is( Flags.READ_ONLY ))
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -189,7 +189,10 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void preSave(Model model) throws SQLException
 		{
-			
+			if (field.is( Flags.NON_NULL ) && !field.is( Flags.GENERATED ) && value == null)
+			{
+				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
+			}
 		}
 		
 		@Override
