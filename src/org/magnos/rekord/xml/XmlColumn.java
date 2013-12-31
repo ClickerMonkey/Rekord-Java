@@ -6,6 +6,7 @@ import java.util.Map;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
+import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
 
 
@@ -38,7 +39,18 @@ class XmlColumn extends XmlField
     @Override
     public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
-        field = new Column( name, sqlType, type, flags, in, out, defaultValue );
+    	Converter convert = converters.get( converterName );
+    	
+    	if (convert == null)
+    	{
+    		convert = NoConverter.INSTANCE;
+    	}
+    	else
+    	{
+    		defaultValue = convert.convertFrom( defaultValue );
+    	}
+    	
+        field = new Column( name, sqlType, type, flags, in, out, defaultValue, convert );
     }
     
 }

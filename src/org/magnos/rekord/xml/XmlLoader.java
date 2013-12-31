@@ -276,6 +276,7 @@ public class XmlLoader
             if (xcc == null)
             {
                 unexpectedTag( convertersElement, e );
+                return;
             }
 
             String name = getAttribute( e, "name", null, true );

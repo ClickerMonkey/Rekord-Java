@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
@@ -24,9 +25,9 @@ public class ForeignColumn<T> extends Column<T>
 	protected Column<?> foreignColumn;
 	protected Table foreignTable;
 
-	public ForeignColumn( String column, int sqlType, Type<T> type, String in, String out, T defaultValue)
+	public ForeignColumn( String column, int sqlType, Type<Object> type, String in, String out, T defaultValue, Converter<Object, T> converter )
 	{
-		super( column, sqlType, type, NONE, in, out, defaultValue );
+		super( column, sqlType, type, NONE, in, out, defaultValue, converter );
 	}
 
 	@Override
@@ -129,13 +130,19 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-		    value = field.getType().fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
+			final Type<Object> type = field.getType();
+			final Converter<Object, T> converter = field.getConverter();
+			
+			value = converter.convertFrom( type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) ) );
 		}
 		
 		@Override
 		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-		    field.getType().toPreparedStatement( preparedStatement, value, paramIndex );
+			final Type<Object> type = field.getType();
+			final Converter<Object, T> converter = field.getConverter();
+			
+			type.toPreparedStatement( preparedStatement, converter.convertTo( value ), paramIndex );
 			
 			return paramIndex + 1;
 		}

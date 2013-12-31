@@ -20,10 +20,14 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-		User u = User.byId( User.Views.ALL, 2L );
-		u.getCommentsBy().clear();
-		u.save();
+//		User u = User.byId( User.Views.ALL, 1L );
+//		System.out.println( u.getState() );
+//		u.getCommentsBy().clear();
+//		u.save();
 
+		User u1 = User.byId( User.Views.ALL, 14L );
+		System.out.println( u1 );
+		
 //		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();

@@ -11,6 +11,7 @@ CREATE TABLE "commentable" (
 CREATE TABLE "user" (
     "id" BIGSERIAL,
     "name" TEXT NOT NULL,
+    "state" CHARACTER(1),
     "commentable_id" BIGINT NOT NULL,
     "created_timestamp" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     

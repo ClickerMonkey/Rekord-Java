@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
@@ -21,12 +22,13 @@ public class Column<T> extends AbstractField<T>
 {
 	
 	protected final int sqlType;
-	protected final Type<T> type;
+	protected final Type<Object> type;
 	protected final String in;
 	protected final String out;
 	protected final T defaultValue;
+	protected final Converter<Object, T> converter;
 
-	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out, T defaultValue)
+	public Column( String column, int sqlType, Type<Object> type, int flags, String in, String out, T defaultValue, Converter<Object, T> converter)
 	{
 		super( column, flags );
 		
@@ -35,6 +37,7 @@ public class Column<T> extends AbstractField<T>
 		this.in = in;
 		this.out = out;
 		this.defaultValue = defaultValue;
+		this.converter = converter;
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class Column<T> extends AbstractField<T>
         return sqlType;
     }
     
-    public Type<T> getType()
+    public Type<Object> getType()
     {
         return type;
     }
@@ -95,7 +98,12 @@ public class Column<T> extends AbstractField<T>
         return defaultValue;
     }
     
-    @Override
+    public Converter<Object, T> getConverter()
+	{
+		return converter;
+	}
+
+	@Override
     public String toString()
     {
         StringBuilder sb = beginToString();
@@ -103,7 +111,7 @@ public class Column<T> extends AbstractField<T>
         sb.append( ", type=" ).append( type.getClass().getSimpleName() );
         sb.append( ", in=" ).append( in );
         sb.append( ", out=" ).append( out );
-        sb.append( ", default-value=" ).append( type.toString( defaultValue ) );
+        sb.append( ", default-value=" ).append( type.toString( converter.convertTo( defaultValue ) ) );
         return endToString( sb );
     }
 
@@ -170,13 +178,19 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-		    value = field.getType().fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
+			final Type<Object> type = field.getType();
+			final Converter<Object, T> converter = field.getConverter();
+			
+			value = converter.convertFrom( type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) ) );
 		}
 		
 		@Override
 		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-		    field.getType().toPreparedStatement( preparedStatement, value, paramIndex );
+			final Type<Object> type = field.getType();
+			final Converter<Object, T> converter = field.getConverter();
+			
+			type.toPreparedStatement( preparedStatement, converter.convertTo( value ), paramIndex );
 			
 			return paramIndex + 1;
 		}

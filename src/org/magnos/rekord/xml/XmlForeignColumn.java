@@ -4,6 +4,7 @@ package org.magnos.rekord.xml;
 import java.util.Map;
 
 import org.magnos.rekord.Converter;
+import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 
@@ -43,7 +44,18 @@ class XmlForeignColumn extends XmlColumn
     @Override
     public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
-        field = new ForeignColumn( name, sqlType, type, in, out, defaultValue );
+    	Converter convert = converters.get( converterName );
+    	
+    	if (convert == null)
+    	{
+    		convert = NoConverter.INSTANCE;
+    	}
+    	else
+    	{
+    		defaultValue = convert.convertFrom( defaultValue );
+    	}
+    	
+        field = new ForeignColumn( name, sqlType, type, in, out, defaultValue, convert );
     }
 
     @Override

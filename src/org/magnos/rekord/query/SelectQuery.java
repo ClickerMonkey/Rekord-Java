@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
@@ -369,17 +370,17 @@ public class SelectQuery<M extends Model>
 		}
 	}
 
-	public <T> T grab( String columnName, Type<T> type ) throws SQLException
+	public <I, O> O grab( String columnName, Type<I> type, Converter<I, O> converter ) throws SQLException
 	{
-		T value = null;
-		
 		ResultSet results = getResults( columnName, ordering.toString(), limit, offset );
+		O output = null;
 
 		try
 		{
 			if (results.next())
 			{
-			    value = type.fromResultSet( results, 1, true );
+				I input = type.fromResultSet( results, 1, true ); 
+			    output = converter.convertFrom( input );
 			}
 		}
 		finally
@@ -387,12 +388,12 @@ public class SelectQuery<M extends Model>
 			results.close();
 		}
 		
-		return value;
+		return output;
 	}
 	
 	public <T> T grab( Column<T> column ) throws SQLException
 	{
-		return grab( column.getSelectionExpression(), column.getType() );
+		return grab( column.getSelectionExpression(), column.getType(), column.getConverter() );
 	}
 	
 	public M first() throws SQLException

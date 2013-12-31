@@ -23,6 +23,7 @@ public class User extends Model
 	public static final Table 			        TABLE 				= Rekord.getTable( "user", FACTORY ); 
 	public static final Column<Long> 			ID 					= TABLE.getField( "id" );
 	public static final Column<String> 			NAME 				= TABLE.getField( "name" );
+	public static final Column<UserState> 		STATE				= TABLE.getField( "state" );
 	public static final Column<Date> 			CREATED_TIMESTAMP 	= TABLE.getField( "created_timestamp" );
 	public static final ForeignColumn<Long> 	COMMENTABLE_ID 		= TABLE.getField( "commentable_id" );
 	public static final OneToOne<Commentable> 	COMMENTABLE 		= TABLE.getField( "commentable" );
@@ -44,7 +45,9 @@ public class User extends Model
 	public Long getId() 						{ return get( ID ); }
 	public void setId(Long id)					{ set( ID, id ); }
 	public String getName()						{ return get( NAME ); }
-	public void setName(String name)			{ set( NAME, name ); }
+	public void setName(String x)				{ set( NAME, x ); }
+	public UserState getState()					{ return get( STATE ); }
+	public void setState(UserState x)			{ set( STATE, x ); }
 	public Date getCreatedTimestamp()			{ return get( CREATED_TIMESTAMP ); }
 	public void setCreatedTimestamp(Date x) 	{ set( CREATED_TIMESTAMP, x ); }
 	public Long getCommentableId()				{ return get( COMMENTABLE_ID ); } 
