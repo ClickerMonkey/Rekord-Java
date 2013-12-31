@@ -44,4 +44,16 @@ public class TypeClob implements Type<Clob>
         preparedStatement.setClob( paramIndex, value );
     }
 
+    @Override
+    public String toString( Clob value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Clob fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

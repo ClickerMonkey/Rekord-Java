@@ -55,4 +55,16 @@ public class TypeInteger implements Type<Integer>
         }
     }
 
+    @Override
+    public String toString( Integer value )
+    {
+        return (value == null ? null : value.toString());
+    }
+
+    @Override
+    public Integer fromString( String x )
+    {
+        return (x == null ? null : Integer.valueOf( x ));
+    }
+
 }

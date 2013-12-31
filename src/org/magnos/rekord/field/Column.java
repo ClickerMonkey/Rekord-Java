@@ -25,8 +25,9 @@ public class Column<T> extends AbstractField<T>
 	protected final Type<T> type;
 	protected final String in;
 	protected final String out;
+	protected final T defaultValue;
 
-	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out )
+	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out, T defaultValue )
 	{
 		super( column, flags );
 		
@@ -34,6 +35,7 @@ public class Column<T> extends AbstractField<T>
 		this.type = type;
 		this.in = in;
 		this.out = out;
+		this.defaultValue = defaultValue;
 	}
 
 	@Override
@@ -88,6 +90,11 @@ public class Column<T> extends AbstractField<T>
     {
         return type;
     }
+    
+    public T getDefaultValue()
+    {
+        return defaultValue;
+    }
 
     private static class ColumnValue<T> implements Value<T>
 	{
@@ -98,6 +105,7 @@ public class Column<T> extends AbstractField<T>
 		public ColumnValue(Column<T> field)
 		{
 			this.field = field;
+			this.value = field.getDefaultValue();
 		}
 		
 		@Override

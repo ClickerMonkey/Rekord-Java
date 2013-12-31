@@ -44,4 +44,16 @@ public class TypeRowId implements Type<RowId>
         preparedStatement.setRowId( paramIndex, value );
     }
 
+    @Override
+    public String toString( RowId value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RowId fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

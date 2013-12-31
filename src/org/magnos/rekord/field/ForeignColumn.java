@@ -23,9 +23,9 @@ public class ForeignColumn<T> extends Column<T>
 	
 	protected Column<?> foreignColumn;
 
-	public ForeignColumn( String column, int sqlType, Type<T> type, String in, String out)
+	public ForeignColumn( String column, int sqlType, Type<T> type, String in, String out, T defaultValue)
 	{
-		super( column, sqlType, type, Flags.NONE, in, out );
+		super( column, sqlType, type, Flags.NONE, in, out, defaultValue );
 	}
 
 	@Override
@@ -65,6 +65,7 @@ public class ForeignColumn<T> extends Column<T>
 		public ForeignValue(ForeignColumn<T> field)
 		{
 			this.field = field;
+			this.value = field.getDefaultValue();
 		}
 		
 		@Override

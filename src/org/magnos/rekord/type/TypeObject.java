@@ -43,4 +43,16 @@ public class TypeObject implements Type<Object>
         preparedStatement.setObject( paramIndex, value );
     }
 
+    @Override
+    public String toString( Object value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

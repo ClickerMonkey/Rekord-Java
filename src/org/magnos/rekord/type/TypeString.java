@@ -43,4 +43,16 @@ public class TypeString implements Type<String>
         preparedStatement.setString( paramIndex, value );
     }
 
+    @Override
+    public String toString( String value )
+    {
+        return value;
+    }
+
+    @Override
+    public String fromString( String x )
+    {
+        return x;
+    }
+
 }

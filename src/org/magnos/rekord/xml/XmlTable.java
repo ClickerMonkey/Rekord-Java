@@ -35,16 +35,6 @@ class XmlTable extends XmlLoadable
     {
         keys = XmlLoader.getFields( this, keyNames, "key value %s on table %s was not specified in fields", name );
         
-        if (historyKey != null && historyKey.trim().length() == 0)
-        {
-            historyKey = null;
-        }
-        
-        if (historyTimestamp != null && historyTimestamp.trim().length() == 0)
-        {
-            historyTimestamp = null;
-        }
-        
         if (historyColumnNames != null)
         {
             historyColumns = XmlLoader.getFields( this, historyColumnNames, "history column %s for table %s was not found in the fields of the table", name );    

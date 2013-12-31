@@ -2,9 +2,9 @@
 package org.magnos.rekord.type;
 
 import java.sql.PreparedStatement;
+import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Ref;
 
 import org.magnos.rekord.Type;
 
@@ -42,6 +42,18 @@ public class TypeRef implements Type<Ref>
     public void toPreparedStatement( PreparedStatement preparedStatement, Ref value, int paramIndex ) throws SQLException
     {
         preparedStatement.setRef( paramIndex, value );
+    }
+
+    @Override
+    public String toString( Ref value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Ref fromString( String x )
+    {
+        throw new UnsupportedOperationException();
     }
 
 }

@@ -1,6 +1,8 @@
 
 package org.magnos.rekord.type;
 
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +20,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.magnos.rekord.Type;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 
 public class TypeXml implements Type<Document>
@@ -119,6 +122,51 @@ public class TypeXml implements Type<Document>
         else
         {
             preparedStatement.setNull( paramIndex, Types.SQLXML );
+        }
+    }
+    
+    @Override
+    public String toString( Document value )
+    {
+        if (value == null) 
+        { 
+            return null;
+        }
+        
+        try
+        {
+            StringWriter writer = new StringWriter();
+            
+            transformer.transform( new DOMSource( value ), new StreamResult( writer ) );
+            
+            return writer.toString();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException( "Error converting document to string", e );
+        }
+    }
+
+    @Override
+    public Document fromString( String x )
+    {
+        if (x == null)
+        {
+            return null;
+        }
+        
+        if (x.trim().length() == 0)
+        {
+            return newDocument();
+        }
+        
+        try
+        {
+            return documentBuilder.parse( new InputSource( new StringReader( x ) ) );
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException( "Error parsing XML column", e );
         }
     }
 

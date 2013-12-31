@@ -14,6 +14,9 @@ class XmlColumn extends XmlField
     String in;
     String out;
     Type<?> type;
+    String defaultValueString;
+    
+    Object defaultValue;
 
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
@@ -24,13 +27,15 @@ class XmlColumn extends XmlField
         }
         
         type = XmlLoader.getType( sqlType );
+        
+        defaultValue = type.fromString( defaultValueString );
     }
 
     @SuppressWarnings ("rawtypes" )
     @Override
     public void instantiateFieldImplementation()
     {
-        field = new Column( name, sqlType, type, flags, in, out );
+        field = new Column( name, sqlType, type, flags, in, out, defaultValue );
     }
     
 }

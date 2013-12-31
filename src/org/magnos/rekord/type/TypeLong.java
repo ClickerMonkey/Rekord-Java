@@ -55,4 +55,16 @@ public class TypeLong implements Type<Long>
         }
     }
 
+    @Override
+    public String toString( Long value )
+    {
+        return (value == null ? null : value.toString());
+    }
+
+    @Override
+    public Long fromString( String x )
+    {
+        return (x == null ? null : Long.valueOf( x ));
+    }
+
 }

@@ -44,4 +44,16 @@ public class TypeStruct implements Type<Struct>
         preparedStatement.setObject( paramIndex, value );
     }
 
+    @Override
+    public String toString( Struct value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Struct fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

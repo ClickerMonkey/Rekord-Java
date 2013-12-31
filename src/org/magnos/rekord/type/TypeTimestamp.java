@@ -1,10 +1,12 @@
 
 package org.magnos.rekord.type;
 
-import java.sql.Timestamp;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import org.magnos.rekord.Type;
 
@@ -13,6 +15,16 @@ public class TypeTimestamp implements Type<Timestamp>
 {
     
     public static final TypeTimestamp INSTANCE = new TypeTimestamp();
+
+    public static final String DATE_FORMAT = "MM/dd/yyyy HH:mm:ss.SSSSS";
+
+    public static final ThreadLocal<SimpleDateFormat> DATE_FORMATTER_LOCAL = new ThreadLocal<SimpleDateFormat>()
+    {
+        protected SimpleDateFormat initialValue()
+        {
+            return new SimpleDateFormat( DATE_FORMAT );
+        }
+    };
 
     @Override
     public String getPartialExpression( String in, int limit )
@@ -42,6 +54,30 @@ public class TypeTimestamp implements Type<Timestamp>
     public void toPreparedStatement( PreparedStatement preparedStatement, Timestamp value, int paramIndex ) throws SQLException
     {
         preparedStatement.setTimestamp( paramIndex, value );
+    }
+
+    @Override
+    public String toString( Timestamp value )
+    {
+        return (value == null ? null : DATE_FORMATTER_LOCAL.get().format( value ));
+    }
+
+    @Override
+    public Timestamp fromString( String x )
+    {
+        if (x == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return new Timestamp( DATE_FORMATTER_LOCAL.get().parse( x ).getTime() );
+        }
+        catch (ParseException e)
+        {
+            throw new RuntimeException( e );
+        }
     }
 
 }

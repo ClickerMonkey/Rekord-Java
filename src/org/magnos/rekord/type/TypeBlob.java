@@ -44,4 +44,16 @@ public class TypeBlob implements Type<Blob>
         preparedStatement.setBlob( paramIndex, value );
     }
 
+    @Override
+    public String toString( Blob value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Blob fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

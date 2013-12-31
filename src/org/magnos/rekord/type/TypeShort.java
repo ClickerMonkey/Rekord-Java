@@ -55,4 +55,16 @@ public class TypeShort implements Type<Short>
         }
     }
 
+    @Override
+    public String toString( Short value )
+    {
+        return (value == null ? null : value.toString());
+    }
+
+    @Override
+    public Short fromString( String x )
+    {
+        return (x == null ? null : Short.valueOf( x ));
+    }
+
 }

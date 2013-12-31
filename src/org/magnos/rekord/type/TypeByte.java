@@ -55,4 +55,16 @@ public class TypeByte implements Type<Byte>
         }
     }
 
+    @Override
+    public String toString( Byte value )
+    {
+        return (value == null ? null : value.toString());
+    }
+
+    @Override
+    public Byte fromString( String x )
+    {
+        return (x == null ? null : Byte.valueOf( x ));
+    }
+
 }

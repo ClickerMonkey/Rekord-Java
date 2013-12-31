@@ -72,8 +72,6 @@ public class XmlLoader
 	
 	private static final Map<String, Integer> SQL_TYPES = new HashMap<String, Integer>();
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
-	private static final Set<String> TRUES = new HashSet<String>( Arrays.asList( "1", "t", "true", "y", "ya", "yes", "yessums" ) );
-	private static final Set<String> FALSES = new HashSet<String>( Arrays.asList( "0", "f", "false", "n", "nah", "no", "nope" ) );
 	
 	static
 	{
@@ -228,7 +226,7 @@ public class XmlLoader
 	
 	private void loadLogging( Element logging )
 	{
-		boolean enableMode = toBoolean( getAttribute( logging, "enable-mode", "true" ), "enable-mode" );
+		boolean enableMode = TypeBoolean.parse( getAttribute( logging, "enable-mode", "true", true ), "enable-mode" );
 		
 		if (!enableMode) 
 		{
@@ -260,8 +258,8 @@ public class XmlLoader
 	private XmlTable loadTable( Element tableElement )
 	{
 		XmlTable table = new XmlTable();
-		table.name = getAttribute( tableElement, "name", null );
-		table.keyNames = split( getAttribute( tableElement, "key", null ) );
+		table.name = getAttribute( tableElement, "name", null, true );
+		table.keyNames = split( getAttribute( tableElement, "key", null, true ) );
 		
 		XmlIterator<Element> nodes = new XmlIterator<Element>( tableElement );
 		
@@ -321,50 +319,52 @@ public class XmlLoader
 			
 			XmlField field = null;
 			
-			String fieldName = getAttribute( e, "name", null );
+			String fieldName = getAttribute( e, "name", null, true );
 			
 			if (tag.equals( TAG_COLUMN ))
 			{
 				XmlColumn c = new XmlColumn();
-				c.sqlType = SQL_TYPES.get( getAttribute( e, "type", null ) );
-				c.in = getAttribute( e, "in", "?" );
-				c.out = getAttribute( e, "out", "?" );
+				c.sqlType = SQL_TYPES.get( getAttribute( e, "type", null, true ) );
+				c.in = getAttribute( e, "in", "?", true );
+				c.out = getAttribute( e, "out", "?", true );
+				c.defaultValueString = getAttribute( e, "default-value", null, false );
 				field = c;
 			}
 			else if (tag.equals( TAG_FOREIGN_COLUMN ))
 			{
 				XmlForeignColumn c = new XmlForeignColumn();
-				c.foreignTableName = getAttribute( e, "foreign-table", null );
-				c.foreignColumnName = getAttribute( e, "foreign-column", null );
-				c.sqlType = SQL_TYPES.get( getAttribute( e, "type", null ) );
-				c.in = getAttribute( e, "in", "?" );
-                c.out = getAttribute( e, "out", "?" );
+				c.foreignTableName = getAttribute( e, "foreign-table", null, true );
+				c.foreignColumnName = getAttribute( e, "foreign-column", null, true );
+				c.sqlType = SQL_TYPES.get( getAttribute( e, "type", null, true ) );
+				c.in = getAttribute( e, "in", "?", true );
+                c.out = getAttribute( e, "out", "?", true );
+                c.defaultValueString = getAttribute( e, "default-value", null, false );
 				field = c;
 			}
 			else if (tag.equals( TAG_ONE_TO_ONE ))
 			{
 				XmlOneToOne c = new XmlOneToOne();
-				c.joinTableName = getAttribute( e, "join-table", null );
-				c.joinKeyNames = split( getAttribute( e, "join-key", null ) );
-				c.joinViewName = getAttribute( e, "join-view", "all" );
+				c.joinTableName = getAttribute( e, "join-table", null, true );
+				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
+				c.joinViewName = getAttribute( e, "join-view", "all", true );
 				field = c;
 			}
 			else if (tag.equals( TAG_MANY_TO_ONE ))
 			{
 				XmlManyToOne c = new XmlManyToOne();
-				c.joinTableName = getAttribute( e, "join-table", null );
-				c.joinKeyNames = split( getAttribute( e, "join-key", null ) );
-				c.joinViewName = getAttribute( e, "join-view", "all" );
+				c.joinTableName = getAttribute( e, "join-table", null, true );
+				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
+				c.joinViewName = getAttribute( e, "join-view", "all", true );
 				field = c;
 			}
 			else if (tag.equals( TAG_ONE_TO_MANY ))
 			{
 				XmlOneToMany c = new XmlOneToMany();
-				c.joinTableName = getAttribute( e, "join-table", null );
-				c.joinKeyNames = split( getAttribute( e, "join-key", null ) );
-				c.joinViewName = getAttribute( e, "join-view", "all" );
-				c.fetchSizeString = getAttribute( e, "fetch-size", "128" );
-				c.cascadeDelete = toBoolean( getAttribute( e, "cascade-delete", "false" ), "cascade-delete of field " + fieldName + " in table " + table.name );
+				c.joinTableName = getAttribute( e, "join-table", null, true );
+				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
+				c.joinViewName = getAttribute( e, "join-view", "all", true );
+				c.fetchSizeString = getAttribute( e, "fetch-size", "128", true );
+				c.cascadeDelete = TypeBoolean.parse( getAttribute( e, "cascade-delete", "false", true ), "cascade-delete of field " + fieldName + " in table " + table.name );
 				field = c;
 			}
 			else
@@ -382,18 +382,18 @@ public class XmlLoader
 	
 	private int readFlags(Element e, String fieldName, String tableName)
 	{
-		String lazy = getAttribute( e, "lazy", "false" );
-		String readOnly = getAttribute( e, "read-only", "false" );
-		String generated = getAttribute( e, "generated", "false" );
-		String nonNull = getAttribute( e, "non-null", "false" );
+		String lazy = getAttribute( e, "lazy", "false", true );
+		String readOnly = getAttribute( e, "read-only", "false", true );
+		String generated = getAttribute( e, "generated", "false", true );
+		String nonNull = getAttribute( e, "non-null", "false", true );
 		
 		String messagePostfix = " of field " + fieldName + " in table " + tableName;
 		
 		return (
-			(toBoolean( lazy, "lazy" + messagePostfix ) ? Flags.LAZY : 0) |
-			(toBoolean( readOnly, "read-only" + messagePostfix ) ? Flags.READ_ONLY : 0) |
-			(toBoolean( generated, "generated" + messagePostfix ) ? Flags.GENERATED : 0) |
-			(toBoolean( nonNull, "non-null" + messagePostfix ) ? Flags.NON_NULL : 0)
+			(TypeBoolean.parse( lazy, "lazy" + messagePostfix ) ? Flags.LAZY : 0) |
+			(TypeBoolean.parse( readOnly, "read-only" + messagePostfix ) ? Flags.READ_ONLY : 0) |
+			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Flags.GENERATED : 0) |
+			(TypeBoolean.parse( nonNull, "non-null" + messagePostfix ) ? Flags.NON_NULL : 0)
 		);
 	}
 	
@@ -408,8 +408,8 @@ public class XmlLoader
 			if (tag.equals( TAG_VIEW ))
 			{
 				XmlView v = new XmlView();
-				v.name = getAttribute( e, "name", null );
-				v.fieldNames = split( getAttribute( e, "fields", null ) );
+				v.name = getAttribute( e, "name", null, true );
+				v.fieldNames = split( getAttribute( e, "fields", null, true ) );
 				table.viewMap.put( v.name, v );
 			}
 			else
@@ -421,10 +421,10 @@ public class XmlLoader
 	
 	private void loadHistory( Element history, XmlTable table )
 	{
-		table.historyTable = getAttribute( history, "table", null );
-		table.historyKey = getAttribute( history, "key", "" );
-		table.historyTimestamp = getAttribute( history, "timestamp", "" );
-		table.historyColumnNames = split( getAttribute( history, "columns", null ) );
+		table.historyTable = getAttribute( history, "table", null, true );
+		table.historyKey = getAttribute( history, "key", null, false );
+		table.historyTimestamp = getAttribute( history, "timestamp", null, false );
+		table.historyColumnNames = split( getAttribute( history, "columns", null, true ) );
 	}
 	
 	private void unexpectedTag( Element parent, Element child )
@@ -432,16 +432,21 @@ public class XmlLoader
 		throw new RuntimeException( "Unexpected tag '" + child.getTagName() + "' in element '" + parent.getTagName() + "'");
 	}
 	
-	private String getAttribute(Element e, String name, String defaultValue)
+	private String getAttribute(Element e, String name, String defaultValue, boolean required)
 	{
 		String value = defaultValue;
 		
 		if (e.hasAttribute( name ))
 		{
 			value = e.getAttribute( name );
+			
+			if (value.trim().length() == 0)
+			{
+			    value = null;
+			}
 		}
 		
-		if (value == null)
+		if (value == null && required)
 		{
 			throw new NullPointerException( "Attribute " + name + " is required and missing from " + e.getTagName() );
 		}
@@ -505,23 +510,6 @@ public class XmlLoader
 		}
 		
 		return fieldArray;
-	}
-	
-	protected static boolean toBoolean(String value, String valueName)
-	{
-	    value = value.toLowerCase();
-	    
-	    if (TRUES.contains( value ))
-	    {
-	        return true;
-	    }
-	    
-	    if (FALSES.contains( value ))
-	    {
-	        return false;
-	    }
-	    
-	    throw new RuntimeException(valueName + " was not a valid boolean value (" + value + "), acceptable trues: " + TRUES + ", acceptable falses: " + FALSES);
 	}
 	
 	protected static Type<?> getType(int sqlType)

@@ -44,4 +44,16 @@ public class TypeArray implements Type<Array>
         preparedStatement.setArray( paramIndex, value );
     }
 
+    @Override
+    public String toString( Array value )
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Array fromString( String x )
+    {
+        throw new UnsupportedOperationException();
+    }
+
 }

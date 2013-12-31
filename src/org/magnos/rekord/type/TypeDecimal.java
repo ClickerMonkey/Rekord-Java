@@ -44,4 +44,16 @@ public class TypeDecimal implements Type<BigDecimal>
         preparedStatement.setBigDecimal( paramIndex, value );
     }
 
+    @Override
+    public String toString( BigDecimal value )
+    {
+        return null;
+    }
+
+    @Override
+    public BigDecimal fromString( String x )
+    {
+        return null;
+    }
+
 }

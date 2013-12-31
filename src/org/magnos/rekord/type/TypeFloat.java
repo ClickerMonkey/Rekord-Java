@@ -55,4 +55,16 @@ public class TypeFloat implements Type<Float>
         }
     }
 
+    @Override
+    public String toString( Float value )
+    {
+        return (value == null ? null : value.toString());
+    }
+
+    @Override
+    public Float fromString( String x )
+    {
+        return (x == null ? null : Float.valueOf( x ));
+    }
+
 }
