@@ -42,7 +42,7 @@ class XmlForeignColumn extends XmlColumn
     @Override
     public void instantiateFieldImplementation()
     {
-        field = new ForeignColumn( name, type, in, out );
+        field = new ForeignColumn( name, sqlType, type, in, out );
     }
 
     @Override

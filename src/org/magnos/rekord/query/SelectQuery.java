@@ -18,6 +18,7 @@ import org.magnos.rekord.Order;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
+import org.magnos.rekord.Type;
 import org.magnos.rekord.View;
 import org.magnos.rekord.condition.AndCondition;
 import org.magnos.rekord.condition.Condition;
@@ -368,7 +369,7 @@ public class SelectQuery<M extends Model>
 		}
 	}
 
-	public <T> T grab( String columnName ) throws SQLException
+	public <T> T grab( String columnName, Type<T> type ) throws SQLException
 	{
 		T value = null;
 		
@@ -378,7 +379,7 @@ public class SelectQuery<M extends Model>
 		{
 			if (results.next())
 			{
-				value = (T) results.getObject( 1 );
+			    value = type.fromResultSet( results, 1, true );
 			}
 		}
 		finally
@@ -389,9 +390,9 @@ public class SelectQuery<M extends Model>
 		return value;
 	}
 	
-	public <T> T grab(Column<T> column) throws SQLException
+	public <T> T grab( Column<T> column ) throws SQLException
 	{
-		return grab( SqlUtil.namify( column.getName() ) );
+		return grab( column.getSelectionExpression(), column.getType() );
 	}
 	
 	public M first() throws SQLException

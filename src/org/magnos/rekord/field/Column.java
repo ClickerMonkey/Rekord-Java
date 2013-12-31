@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Flags;
 import org.magnos.rekord.Model;
+import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
@@ -20,14 +21,16 @@ import org.magnos.rekord.util.SqlUtil;
 public class Column<T> extends AbstractField<T>
 {
 	
-	protected final int type;
+	protected final int sqlType;
+	protected final Type<T> type;
 	protected final String in;
 	protected final String out;
 
-	public Column( String column, int type, int flags, String in, String out )
+	public Column( String column, int sqlType, Type<T> type, int flags, String in, String out )
 	{
 		super( column, flags );
 		
+		this.sqlType = sqlType;
 		this.type = type;
 		this.in = in;
 		this.out = out;
@@ -61,11 +64,6 @@ public class Column<T> extends AbstractField<T>
 		return new ColumnValue<T>( this );
 	}
 
-	public int getType()
-	{
-		return type;
-	}
-	
     public String getIn()
     {
         return in;
@@ -80,6 +78,16 @@ public class Column<T> extends AbstractField<T>
     {
         return in.replaceAll( "\\?", SqlUtil.namify( name ) );
     }
+    
+    public int getSqlType()
+    {
+        return sqlType;
+    }
+    
+    public Type<T> getType()
+    {
+        return type;
+    }
 
     private static class ColumnValue<T> implements Value<T>
 	{
@@ -92,7 +100,6 @@ public class Column<T> extends AbstractField<T>
 			this.field = field;
 		}
 		
-		@SuppressWarnings ("rawtypes" )
 		@Override
 		public T get(Model model)
 		{
@@ -100,7 +107,9 @@ public class Column<T> extends AbstractField<T>
 			{
 				try
 				{
-					value = (T) new SelectQuery( model ).grab( field.getSelectionExpression() );	
+				    SelectQuery<Model> query = new SelectQuery<Model>( model );
+				    
+				    value = query.grab( field );
 				}
 				catch (SQLException e)
 				{
@@ -142,13 +151,13 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-			value = (T) results.getObject( field.getName() );
+		    value = field.getType().fromResultSet( results, field.getName(), !field.is( Flags.NON_NULL ) );
 		}
 		
 		@Override
 		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			preparedStatement.setObject( paramIndex, value, field.getType() );
+		    field.getType().toPreparedStatement( preparedStatement, value, paramIndex );
 			
 			return paramIndex + 1;
 		}

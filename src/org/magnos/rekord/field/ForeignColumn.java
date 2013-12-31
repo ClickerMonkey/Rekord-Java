@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Flags;
 import org.magnos.rekord.Model;
+import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
@@ -22,9 +23,9 @@ public class ForeignColumn<T> extends Column<T>
 	
 	protected Column<?> foreignColumn;
 
-	public ForeignColumn( String column, int type, String in, String out)
+	public ForeignColumn( String column, int sqlType, Type<T> type, String in, String out)
 	{
-		super( column, type, Flags.NONE, in, out );
+		super( column, sqlType, type, Flags.NONE, in, out );
 	}
 
 	@Override
@@ -103,13 +104,13 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
-			value = (T) results.getObject( field.getName() );
+		    value = field.getType().fromResultSet( results, field.getName(), !field.is( Flags.NON_NULL ) );
 		}
 		
 		@Override
 		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			preparedStatement.setObject( paramIndex, value, field.getType() );
+		    field.getType().toPreparedStatement( preparedStatement, value, paramIndex );
 			
 			return paramIndex + 1;
 		}
