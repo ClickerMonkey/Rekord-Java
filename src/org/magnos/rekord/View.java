@@ -1,8 +1,6 @@
 
 package org.magnos.rekord;
 
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class View
@@ -10,27 +8,20 @@ public class View
 
 	private final String name;
 	private final Field<?>[] fields;
-	private final Map<Field<?>, View> fieldViews;
+	private final FieldView[] fieldViews;
 
-	public View( String name, Field<?>... fields )
+	public View( String name, Field<?>[] fields, FieldView[] fieldViews )
 	{
 		this.name = name;
 		this.fields = fields;
-		this.fieldViews = new HashMap<Field<?>, View>();
-	}
-
-	public View add( Field<?> f, View v )
-	{
-		fieldViews.put( f, v );
-
-		return this;
+		this.fieldViews = fieldViews;
 	}
 
 	public View getFieldView( Field<?> f, View defaultView )
 	{
-		View v = fieldViews.get( f );
-
-		return (v == null ? defaultView : v);
+		FieldView fc = fieldViews[ f.getIndex() ];
+		
+		return (fc == null || fc.getView() == null ? defaultView : fc.getView());
 	}
 
 	public String getName()
@@ -43,7 +34,7 @@ public class View
 		return fields;
 	}
 
-	public Map<Field<?>, View> getFieldViews()
+	public FieldView[] getFieldViews()
 	{
 		return fieldViews;
 	}
@@ -58,8 +49,13 @@ public class View
 	    for (int i = 0; i < fields.length; i++) {
 	        if (i > 0) sb.append( ", " );
 	        sb.append( fields[i].getName() );
-	        if (fieldViews.containsKey( fields[i] )) {
-	            sb.append( "[" ).append( fieldViews.get( fields[i] ).getName() ).append( "]" );
+	        if (fieldViews[i] != null) {
+	        	if (fieldViews[i].getLimit() != -1) {
+	        		sb.append( "(" ).append( fieldViews[i].getLimit() ).append( ")" );
+	        	}
+	        	if (fieldViews[i].getView() != null) {
+	        		sb.append( "[" ).append( fieldViews[i].getView().getName() ).append( "]" );	
+	        	}
 	        }
 	    }
 	    

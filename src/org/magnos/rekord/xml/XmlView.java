@@ -1,55 +1,59 @@
 
 package org.magnos.rekord.xml;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.View;
 
 class XmlView extends XmlLoadable
 {
-    static final Pattern VIEW_NAME_PATTERN = Pattern.compile( "^([^\\[]+)\\[([^\\]]+)\\]$" );
+    static final Pattern VIEW_NAME_PATTERN = Pattern.compile( "^([^\\[\\(]+)(|\\(([\\d]+)\\))(|\\[([^\\]]+)\\])$" );
     
     String name;
     String[] fieldNames;
+    XmlFieldView[] fieldViews;
 
     XmlField[] fields;
     View view;
-    Map<XmlField, XmlView> fieldViews = new LinkedHashMap<XmlField, XmlView>();
 
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
     {
         fields = new XmlField[fieldNames.length];
+        fieldViews = new XmlFieldView[table.fieldMap.size()];
 
         for (int i = 0; i < fieldNames.length; i++)
         {
             String fn = fieldNames[i];
-            String vn = null;
 
             Matcher matcher = VIEW_NAME_PATTERN.matcher( fn );
-
-            if (matcher.matches())
+            
+            if (!matcher.matches())
             {
-                fn = matcher.group( 1 );
-                vn = matcher.group( 2 );
+            	throw new RuntimeException( "field name must be in the format of 'field(limit)[sub-view]' where (limit) and [sub-view] are optional" );
             }
+            
+            String fieldName = matcher.group( 1 );
+            String limitNumber = matcher.group( 3 );
+            String viewName = matcher.group( 5 );
 
-            XmlField f = table.fieldMap.get( fn );
+            XmlField f = table.fieldMap.get( fieldName );
 
             if (f == null)
             {
-                throw new RuntimeException( "field " + fn + " for view " + name + " was not found on table " + table.name );
+                throw new RuntimeException( "field " + fieldName + " for view " + name + " was not found on table " + table.name );
             }
 
             fields[i] = f;
-
-            if (vn != null)
+            
+            if (limitNumber != null || viewName != null)
             {
-                fieldViews.put( f, f.relatedTable.viewMap.get( vn ) );
+            	fieldViews[i] = new XmlFieldView();
+            	fieldViews[i].view = f.relatedTable.viewMap.get( viewName ); 
+            	fieldViews[i].limitNumber = limitNumber == null ? -1 : Integer.parseInt( limitNumber );
             }
         }
     }
@@ -57,16 +61,24 @@ class XmlView extends XmlLoadable
     @Override
     public void instantiateViewImplementation()
     {
-        view = new View( name, XmlLoader.getFields( fields ) );
+        view = new View( name, XmlLoader.getFields( fields ), new FieldView[ fieldViews.length ] );
     }
 
     @Override
     public void relateFieldReferences()
     {
-        for (Entry<XmlField, XmlView> e : fieldViews.entrySet())
-        {
-            view.add( e.getKey().field, e.getValue().view );
-        }
+    	for (int i = 0; i < fieldViews.length; i++)
+    	{
+    		XmlFieldView xfv = fieldViews[i];
+    		
+    		if (xfv != null)
+    		{
+    			FieldView fv = new FieldView();
+    			fv.setView( xfv.view.view );
+    			fv.setLimit( xfv.limitNumber );
+    			view.getFieldViews()[i] = fv;
+    		}
+    	}
     }
     
 }

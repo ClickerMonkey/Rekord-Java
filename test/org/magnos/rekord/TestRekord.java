@@ -25,17 +25,17 @@ public class TestRekord
 //		u.getCommentsBy().clear();
 //		u.save();
 
-		User u1 = User.byId( User.Views.ALL, 14L );
-		System.out.println( u1 );
+//		User u1 = User.byId( User.Views.ALL, 14L );
+//		System.out.println( u1 );
 		
 //		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();
 		
-//		User u = User.byId( User.Views.ID, 2L );
-//		System.out.println( u );
-//		System.out.println( u.getCommentsBy() );
-//		System.out.println( u );
+		User u = User.byId( User.Views.ID, 1L );
+		System.out.println( u );
+		System.out.println( u.getCommentsBy() );
+		System.out.println( u );
 		
 		trans.end( false );
 		trans.close();

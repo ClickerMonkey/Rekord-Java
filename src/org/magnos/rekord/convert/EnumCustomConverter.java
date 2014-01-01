@@ -9,15 +9,14 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.util.SqlUtil;
 
-@SuppressWarnings ("rawtypes" )
-public class EnumCustomConverter extends AbstractConverter<Object, Enum>
+public class EnumCustomConverter<T extends Enum<T>> extends AbstractConverter<Object, T>
 {
 
-    protected Map<Object, Enum> enumMap;
-    protected Map<Enum, Object> customMap;
+    protected Map<Object, T> enumMap;
+    protected Map<T, Object> customMap;
 
     @Override
-    public Enum convertFrom( Object in )
+    public T convertFrom( Object in )
     {
         if (in == null)
         {
@@ -28,7 +27,7 @@ public class EnumCustomConverter extends AbstractConverter<Object, Enum>
     }
 
     @Override
-    public Object convertTo( Enum out )
+    public Object convertTo( T out )
     {
         if (out == null)
         {
@@ -41,17 +40,17 @@ public class EnumCustomConverter extends AbstractConverter<Object, Enum>
     @Override
     public void configure( Map<String, String> attributes ) throws Exception
     {
-        Class<Enum> enumClass = (Class<Enum>)Class.forName( attributes.remove( "enum" ) );
+        Class<T> enumClass = (Class<T>)Class.forName( attributes.remove( "enum" ) );
 
         Integer sqlType = SqlUtil.getSqlType( attributes.remove( "custom-type" ) );
         Type<?> customType = Rekord.getType( sqlType );
 
-        enumMap = new HashMap<Object, Enum>();
-        customMap = new HashMap<Enum, Object>();
+        enumMap = new HashMap<Object, T>();
+        customMap = new HashMap<T, Object>();
 
         for (Entry<String, String> e : attributes.entrySet())
         {
-            Enum enumConstant = Enum.valueOf( enumClass, e.getKey() );
+            T enumConstant = Enum.valueOf( enumClass, e.getKey() );
             Object value = customType.fromString( e.getValue() );
 
             enumMap.put( value, enumConstant );

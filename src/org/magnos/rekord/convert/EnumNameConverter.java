@@ -3,21 +3,19 @@ package org.magnos.rekord.convert;
 
 import java.util.Map;
 
-
-@SuppressWarnings ("rawtypes" )
-public class EnumNameConverter extends AbstractConverter<String, Enum>
+public class EnumNameConverter<T extends Enum<T>> extends AbstractConverter<String, T>
 {
 
-    protected Class<Enum> enumClass;
+    protected Class<T> enumClass;
 
     @Override
-    public Enum<?> convertFrom( String in )
+    public T convertFrom( String in )
     {
         return (in == null ? null : Enum.valueOf( enumClass, in ));
     }
 
     @Override
-    public String convertTo( Enum out )
+    public String convertTo( T out )
     {
         return (out == null ? null : out.name());
     }
@@ -25,7 +23,7 @@ public class EnumNameConverter extends AbstractConverter<String, Enum>
     @Override
     public void configure( Map<String, String> attributes ) throws Exception
     {
-        enumClass = (Class<Enum>)Class.forName( attributes.get( "enum" ) );
+        enumClass = (Class<T>)Class.forName( attributes.get( "enum" ) );
     }
 
 }
