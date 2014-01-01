@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.magnos.rekord.type.TypeArray;
 import org.magnos.rekord.type.TypeBlob;
@@ -29,6 +30,7 @@ import org.magnos.rekord.type.TypeStruct;
 import org.magnos.rekord.type.TypeTime;
 import org.magnos.rekord.type.TypeTimestamp;
 import org.magnos.rekord.type.TypeXml;
+import org.magnos.rekord.util.ModelCache;
 
 
 /**
@@ -42,6 +44,7 @@ public class Rekord
 
 	private static Table[] tables = {};
 	private static Map<String, Table> tableMap = new HashMap<String, Table>();
+	private static ModelCache[] tableCache = {};
 	
 	private static Factory<Transaction> transactionFactory;
 	private static ThreadLocal<Transaction> transactionLocal = new ThreadLocal<Transaction>();
@@ -52,9 +55,15 @@ public class Rekord
 	public static int newTable( Table table )
 	{
 		int index = tables.length;
+		
 		tables = Arrays.copyOf( tables, index + 1 );
 		tables[index] = table;
+		
+		tableCache = Arrays.copyOf( tableCache, index + 1 );
+		tableCache[index] = new ModelCache( table.is( Table.APPLICATION_CACHED ) ? new ConcurrentHashMap<Key, Model>() : null );
+		
 		tableMap.put( table.getName(), table );
+		
 		return index;
 	}
 
@@ -73,6 +82,21 @@ public class Rekord
 		}
 		
 		return t;
+	}
+	
+	public static <T extends Model> Map<Key, T> getCache(Table table)
+	{
+		return tableCache[ table.getIndex() ].getMap();
+	}
+	
+	public static <T extends Model> T getCached(Table table, Key key)
+	{
+		return tableCache[ table.getIndex() ].get( key );
+	}
+	
+	public static boolean cache(Model model)
+	{
+		return tableCache[ model.getTable().getIndex() ].put( model );
 	}
 
 	public static int getTableCount()

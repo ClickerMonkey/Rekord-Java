@@ -17,5 +17,5 @@ public interface Transaction
 	
 	public <T extends Model> Map<Key, T> getCache(Table table);
 	public <T extends Model> T getCached(Table table, Key key);
-	public void cache(Model model);
+	public boolean cache(Model model);
 }

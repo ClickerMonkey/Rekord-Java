@@ -7,13 +7,15 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.magnos.rekord.util.ModelCache;
+
 
 public class DefaultTransaction implements Transaction
 {
 
 	protected final Connection connection;
 	protected final Map<String, PreparedStatement> statementCache;
-	protected final Map<Key, Model>[] modelCache;
+	protected final ModelCache[] modelCache;
 	protected boolean started;
 	protected boolean closed;
 
@@ -24,14 +26,11 @@ public class DefaultTransaction implements Transaction
 
 		final int tableCount = Rekord.getTableCount();
 		
-		this.modelCache = new Map[ tableCount ];
+		this.modelCache = new ModelCache[ tableCount ];
 		
 		for (int i = 0; i < tableCount; i++)
 		{
-			if (Rekord.getTable( i ).is( Table.TRANSACTION_CACHED ))
-			{
-				this.modelCache[i] = new HashMap<Key, Model>();	
-			}
+			this.modelCache[i] = new ModelCache( Rekord.getTable( i ).is( Table.TRANSACTION_CACHED ) ? new HashMap<Key, Model>() : null );
 		}
 	}
 	
@@ -171,35 +170,33 @@ public class DefaultTransaction implements Transaction
 	@Override
 	public <T extends Model> Map<Key, T> getCache( Table table )
 	{
-		return (Map<Key, T>)modelCache[ table.getIndex() ];
+		return modelCache[ table.getIndex() ].getMap();
 	}
 
 	@Override
 	public <T extends Model> T getCached( Table table, Key key )
 	{
-		Map<Key, T> cache = getCache( table );
+		T cached = Rekord.getCached( table, key );
 		
-		return (cache == null ? null : cache.get( key ));
+		if (cached == null)
+		{
+			cached = modelCache[ table.getIndex() ].get( key );
+		}
+		
+		return cached;
 	}
 
 	@Override
-	public void cache( Model model )
+	public boolean cache( Model model )
 	{
-		Map<Key, Model> cache = getCache( model.getTable() );
+		boolean cached = Rekord.cache( model );
 		
-		if (cache != null)
+		if (!cached)
 		{
-			Key key = model.getKey();
-			
-			if (key.exists())
-			{
-				cache.put( key, model );	
-			}
-			else
-			{
-				Rekord.log( Logging.CACHING, "You cannot cache the following model without having a key: " + model );
-			}
+			cached = modelCache[ model.getTable().getIndex() ].put( model );
 		}
+		
+		return cached;
 	}
 
 }

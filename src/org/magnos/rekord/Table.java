@@ -29,6 +29,7 @@ public class Table
 	public static final int DYNAMICALLY_INSERTED   = 1 << 3;
 	public static final int DYNAMICALLY_UPDATED	   = 1 << 4;
 	public static final int TRANSACTION_CACHED	   = 1 << 5;
+	public static final int APPLICATION_CACHED	   = 1 << 6;
 	
     
 	private static final Field<?>[] NO_FIELDS = {};
@@ -279,6 +280,22 @@ public class Table
         
         if (is(SUB_TABLE)) {
             sb.append( ", sub-table" );
+        }
+        
+        if (is(DYNAMICALLY_INSERTED)) {
+            sb.append( ", dynamically-inserted" );
+        }
+        
+        if (is(DYNAMICALLY_UPDATED)) {
+            sb.append( ", dynamically-updated" );
+        }
+        
+        if (is(TRANSACTION_CACHED)) {
+            sb.append( ", transaction-cached" );
+        }
+        
+        if (is(APPLICATION_CACHED)) {
+            sb.append( ", application-cached" );
         }
         
         sb.append( ", fields=[" );

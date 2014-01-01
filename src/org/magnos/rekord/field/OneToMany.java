@@ -12,7 +12,6 @@ import java.util.Set;
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldView;
-import org.magnos.rekord.LazyList;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Operator;
 import org.magnos.rekord.Table;
@@ -23,6 +22,7 @@ import org.magnos.rekord.condition.OperatorCondition;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.util.LazyList;
 
 public class OneToMany<T extends Model> extends AbstractField<List<T>>
 {

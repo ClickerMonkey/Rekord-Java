@@ -21,6 +21,7 @@ class XmlTable extends XmlLoadable
     boolean dynamicInserts;
     boolean dynamicUpdates;
     boolean transactionCached;
+    boolean applicationCached;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
 
@@ -65,7 +66,8 @@ class XmlTable extends XmlLoadable
             (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0) |
             (isDynamicallyInserted() ? Table.DYNAMICALLY_INSERTED : 0) |
             (isDynamicallyUpdated() ? Table.DYNAMICALLY_UPDATED : 0) |
-            (isTransactionCached() ? Table.TRANSACTION_CACHED : 0)
+            (isTransactionCached() ? Table.TRANSACTION_CACHED : 0) |
+            (isApplicationCached() ? Table.APPLICATION_CACHED : 0)
         );
         
         keyColumns = XmlLoader.getFields( keys );
@@ -179,6 +181,11 @@ class XmlTable extends XmlLoadable
     private boolean isTransactionCached()
     {
     	return transactionCached;
+    }
+    
+    private boolean isApplicationCached()
+    {
+    	return applicationCached;
     }
     
 }

@@ -1,4 +1,4 @@
-package org.magnos.rekord;
+package org.magnos.rekord.util;
 
 import java.sql.SQLException;
 import java.util.AbstractList;
@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.magnos.rekord.Factory;
+import org.magnos.rekord.Model;
 import org.magnos.rekord.query.SelectQuery;
 
 public class LazyList<T extends Model> extends AbstractList<T>
