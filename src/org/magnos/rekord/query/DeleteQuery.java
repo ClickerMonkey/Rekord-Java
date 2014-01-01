@@ -11,7 +11,6 @@ import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.condition.Conditions;
-import org.magnos.rekord.util.SqlUtil;
 
 public class DeleteQuery
 {
@@ -27,7 +26,7 @@ public class DeleteQuery
 		
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append( "DELETE FROM " );
-		queryBuilder.append( SqlUtil.namify( table.getName() ) );
+		queryBuilder.append( table.getQuotedName() );
 		queryBuilder.append( " WHERE " );
 		condition.toQuery( queryBuilder );
 		

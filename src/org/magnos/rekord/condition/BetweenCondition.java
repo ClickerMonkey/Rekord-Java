@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.util.SqlUtil;
 
 public class BetweenCondition<T> implements Condition
 {
@@ -23,7 +22,7 @@ public class BetweenCondition<T> implements Condition
 	@Override
 	public void toQuery( StringBuilder query )
 	{
-		query.append( SqlUtil.namify( column.getName() ) );
+		query.append( column.getQuotedName() );
 		query.append( " BETWEEN ? AND ?" );
 	}
 

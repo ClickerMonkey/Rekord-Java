@@ -15,7 +15,7 @@ public class TypeClob implements Type<Clob>
     public static final TypeClob INSTANCE = new TypeClob();
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

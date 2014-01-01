@@ -40,7 +40,7 @@ public class ForeignColumn<T> extends Column<T>
 	@Override
 	public void prepareInsert(InsertQuery query)
 	{
-		query.addColumn( name, out );
+		query.addColumn( quotedName, out );
 	}
 	
 	@Override
@@ -157,7 +157,7 @@ public class ForeignColumn<T> extends Column<T>
 		@Override
 		public void prepareDynamicInsert(InsertQuery query)
 		{
-			query.addColumn( field.getName(), field.getOut() );
+			query.addColumn( field.getQuotedName(), field.getOut() );
 		}
 		
 		@Override

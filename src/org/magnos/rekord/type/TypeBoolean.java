@@ -41,7 +41,7 @@ public class TypeBoolean implements Type<Boolean>
     }
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

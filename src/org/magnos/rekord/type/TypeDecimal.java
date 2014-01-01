@@ -15,7 +15,7 @@ public class TypeDecimal implements Type<BigDecimal>
     public static final TypeDecimal INSTANCE = new TypeDecimal();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

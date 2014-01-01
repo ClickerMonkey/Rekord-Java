@@ -52,7 +52,11 @@ class XmlView extends XmlLoadable
             if (limitNumber != null || viewName != null)
             {
             	fieldViews[i] = new XmlFieldView();
-            	fieldViews[i].view = f.relatedTable.viewMap.get( viewName ); 
+            	
+            	if (viewName != null && f.relatedTable != null) {
+            		fieldViews[i].view = f.relatedTable.viewMap.get( viewName );	
+            	}
+            	 
             	fieldViews[i].limitNumber = limitNumber == null ? -1 : Integer.parseInt( limitNumber );
             }
         }
@@ -74,7 +78,7 @@ class XmlView extends XmlLoadable
     		if (xfv != null)
     		{
     			FieldView fv = new FieldView();
-    			fv.setView( xfv.view.view );
+    			fv.setView( xfv.view != null ? xfv.view.view : null );
     			fv.setLimit( xfv.limitNumber );
     			view.getFieldViews()[i] = fv;
     		}

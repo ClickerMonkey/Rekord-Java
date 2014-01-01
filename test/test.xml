@@ -39,6 +39,7 @@
         <views>
             <view name="without-comments" fields="id, name, created_timestamp, commentable_id" />
             <view name="for-link" fields="id, name" />
+            <view name="short-name" fields="id, name(3)" />
         </views>
         <history table="user_history" timestamp="user_history_timestamp" columns="id, name" />
     </table>

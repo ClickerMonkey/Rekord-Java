@@ -15,7 +15,7 @@ public class TypeBlob implements Type<Blob>
     public static final TypeBlob INSTANCE = new TypeBlob();
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

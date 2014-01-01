@@ -15,7 +15,7 @@ public class TypeInteger implements Type<Integer>
     public static final TypeInteger INSTANCE = new TypeInteger();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

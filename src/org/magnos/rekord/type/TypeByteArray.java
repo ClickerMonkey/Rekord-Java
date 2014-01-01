@@ -16,9 +16,9 @@ public class TypeByteArray implements Type<byte[]>
     public static final char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
-        return "substring(" + in + " for " + limit + ")";
+        return "substring(" + in + " for " + limit + ") as " + alias;
     }
 
     @Override

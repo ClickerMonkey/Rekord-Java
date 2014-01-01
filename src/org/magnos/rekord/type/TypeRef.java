@@ -15,7 +15,7 @@ public class TypeRef implements Type<Ref>
     public static final TypeRef INSTANCE = new TypeRef();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

@@ -19,6 +19,7 @@ import org.magnos.rekord.query.FixedInsertQuery;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
+import org.magnos.rekord.util.SqlUtil;
 
 public class Table
 {
@@ -36,6 +37,7 @@ public class Table
 
 	protected final int index;
 	protected final String table;
+	protected final String quotedName;
 	protected final int flags;
 	protected Factory<? extends Model> factory;
 	protected Column<?>[] keyColumns = {};
@@ -64,6 +66,7 @@ public class Table
 	private Table( String table, int flags, Column<?>[] id, Field<?>[] existingFields)
 	{
 		this.table = table;
+		this.quotedName = SqlUtil.namify( table );
 		this.flags = flags;
 		this.index = Rekord.newTable( this );
 		this.fieldMap = new HashMap<String, Field<?>>();
@@ -165,6 +168,11 @@ public class Table
 	public String getName()
 	{
 		return table;
+	}
+	
+	public String getQuotedName()
+	{
+		return quotedName;
 	}
 
 	public Field<?>[] getFields()

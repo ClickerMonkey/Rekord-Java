@@ -27,7 +27,7 @@ public class TypeTime implements Type<Time>
     };
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

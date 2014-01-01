@@ -20,6 +20,10 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
+		User u = User.byId( User.Views.SHORT_NAME, 1L );
+		System.out.println( u.getName() );
+//		u.save();
+		
 //		User u = User.byId( User.Views.ALL, 1L );
 //		System.out.println( u.getState() );
 //		u.getCommentsBy().clear();

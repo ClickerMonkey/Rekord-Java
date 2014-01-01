@@ -3,12 +3,14 @@ package org.magnos.rekord.field;
 
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Table;
+import org.magnos.rekord.util.SqlUtil;
 
 
 public abstract class AbstractField<T> implements Field<T>
 {
 
     protected String name;
+    protected String quotedName;
     protected int flags;
     protected int index;
     protected Table table;
@@ -16,6 +18,7 @@ public abstract class AbstractField<T> implements Field<T>
     public AbstractField( String name, int flags )
     {
         this.name = name;
+        this.quotedName = SqlUtil.namify( name );
         this.flags = flags;
     }
 
@@ -23,6 +26,11 @@ public abstract class AbstractField<T> implements Field<T>
     public String getName()
     {
         return name;
+    }
+    
+    public String getQuotedName()
+    {
+    	return name;
     }
 
     @Override

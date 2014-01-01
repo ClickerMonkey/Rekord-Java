@@ -14,9 +14,9 @@ public class TypeString implements Type<String>
     public static final TypeString INSTANCE = new TypeString();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
-        return "substring(" + in + " for " + limit + ")";
+        return "substring(" + in + " for " + limit + ") as " + alias;
     }
 
     @Override

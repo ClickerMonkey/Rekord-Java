@@ -15,7 +15,7 @@ public class TypeByte implements Type<Byte>
     public static final TypeByte INSTANCE = new TypeByte();
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

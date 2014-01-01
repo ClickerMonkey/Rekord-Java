@@ -15,7 +15,7 @@ public class TypeArray implements Type<Array>
     public static final TypeArray INSTANCE = new TypeArray();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

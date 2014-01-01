@@ -50,7 +50,7 @@ public class Column<T> extends AbstractField<T>
 			
 			if (limit != -1)
 			{
-				query.select( type.getPartialExpression( getSelectionExpression(), limit ) );
+				query.select( this, type.getPartialExpression( getSelectionExpression(), limit, quotedName ) );
 			}
 			else
 			{
@@ -90,7 +90,7 @@ public class Column<T> extends AbstractField<T>
     
     public String getSelectionExpression()
     {
-        return in.replaceAll( "\\?", SqlUtil.namify( name ) );
+        return in.replaceAll( "\\?", quotedName );
     }
     
     public int getSqlType()
@@ -130,6 +130,7 @@ public class Column<T> extends AbstractField<T>
 		private final Column<T> field;
 		private boolean changed = false;
 		private boolean partial = false;
+		private boolean defaultValue = true;
 		private T value;
 		
 		public ColumnValue(Column<T> field)
@@ -149,6 +150,7 @@ public class Column<T> extends AbstractField<T>
 				    
 				    value = query.grab( field );
 				    partial = false;
+				    defaultValue = false;
 				}
 				catch (SQLException e)
 				{
@@ -173,6 +175,7 @@ public class Column<T> extends AbstractField<T>
 				this.value = value;
 				this.changed = true;
 				this.partial = false;
+				this.defaultValue = false;
 			}
 		}
 
@@ -223,7 +226,7 @@ public class Column<T> extends AbstractField<T>
 			}
 			else
 			{
-				query.addColumn( field.getName(), field.getOut() );
+				query.addColumn( field.getQuotedName(), field.getOut() );
 			}
 		}
 		
@@ -239,7 +242,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			if (!field.is( GENERATED ) || hasValue())
+			if (!field.is( GENERATED ) || (hasValue() && !defaultValue))
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -252,7 +255,7 @@ public class Column<T> extends AbstractField<T>
 		{
 			if (!field.is( READ_ONLY ) && !partial)
 			{
-				query.addSet( field.getName(), field.getOut() );
+				query.addSet( field, field.getOut() );
 			}
 		}
 
@@ -276,7 +279,7 @@ public class Column<T> extends AbstractField<T>
 			
 			if ( limit != -1 )
 			{
-				partial = field.getType().isPartial( query, limit );
+				partial = field.getType().isPartial( value, limit );
 			}
 		}
 

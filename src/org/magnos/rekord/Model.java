@@ -137,13 +137,13 @@ public class Model implements Serializable
 		
 		SelectQuery<T> query = new SelectQuery<T>( table );
 		
-		query.from( history.getHistoryTable() );
+		query.from( SqlUtil.namify( history.getHistoryTable() ) );
 		query.select( historyKey );
 		query.select( historyTimestamp );
 		
 		for (Column<?> historyColumn : history.getHistoryColumns())
 		{
-			query.select( historyColumn, SqlUtil.namify( historyColumn.getName() ) );
+			query.select( historyColumn, historyColumn.getQuotedName() );
 		}
 		
 		if (history.getHistoryTimestamp() != null)

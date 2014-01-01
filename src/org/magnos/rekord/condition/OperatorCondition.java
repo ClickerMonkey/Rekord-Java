@@ -5,7 +5,6 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Operator;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.util.SqlUtil;
 
 public class OperatorCondition implements Condition
 {
@@ -16,7 +15,7 @@ public class OperatorCondition implements Condition
 	
 	public OperatorCondition(Column<?> column, Operator operator, Object value)
 	{
-		this( column.getName(), operator, value );
+		this( column.getQuotedName(), operator, value );
 	}
 	
 	public OperatorCondition(String column, Operator operator, Object value)
@@ -29,7 +28,7 @@ public class OperatorCondition implements Condition
 	@Override
 	public void toQuery( StringBuilder query )
 	{
-		query.append( SqlUtil.namify( column ) );
+		query.append( column );
 		query.append( operator.getSymbol() );
 		query.append( "?" );
 	}

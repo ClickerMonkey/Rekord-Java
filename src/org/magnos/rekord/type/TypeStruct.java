@@ -15,7 +15,7 @@ public class TypeStruct implements Type<Struct>
     public static final TypeStruct INSTANCE = new TypeStruct();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

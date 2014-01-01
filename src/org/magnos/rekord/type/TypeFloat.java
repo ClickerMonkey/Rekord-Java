@@ -15,7 +15,7 @@ public class TypeFloat implements Type<Float>
     public static final TypeFloat INSTANCE = new TypeFloat();
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

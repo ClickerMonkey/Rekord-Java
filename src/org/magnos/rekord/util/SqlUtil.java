@@ -44,23 +44,6 @@ public class SqlUtil
 		return "\"" + name + "\"";
 	}
 	
-	public static String joinAndNamify( Column<?> ... columns )
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		for (int i = 0; i < columns.length; i++)
-		{
-			if (i > 0)
-			{
-				sb.append( "," );
-			}
-			
-			sb.append( namify( columns[i].getName() ) );
-		}
-		
-		return sb.toString();
-	}
-	
 	public static String join( String delimiter, String ... words )
 	{
 		StringBuilder sb = new StringBuilder();	
@@ -78,18 +61,18 @@ public class SqlUtil
 		return sb.toString();
 	}
 	
-	public static String join( String delimiter, Column<?> ... words )
+	public static String join( String delimiter, Column<?> ... columns )
 	{
 		StringBuilder sb = new StringBuilder();	
 		
-		for (int i = 0; i < words.length; i++)
+		for (int i = 0; i < columns.length; i++)
 		{
 			if (i > 0)
 			{
 				sb.append( delimiter );
 			}
 			
-			sb.append( words[i].getName() );
+			sb.append( columns[i].getQuotedName() );
 		}
 		
 		return sb.toString();
@@ -118,7 +101,7 @@ public class SqlUtil
 				where.append( " AND " );
 			}
 			
-			where.append( namify( columns[i].getName() ) );
+			where.append( columns[i].getQuotedName() );
 			where.append( " = ?" );
 		}
 		

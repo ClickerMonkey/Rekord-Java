@@ -14,7 +14,7 @@ public class TypeObject implements Type<Object>
     public static final TypeObject INSTANCE = new TypeObject();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

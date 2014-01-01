@@ -15,7 +15,7 @@ public class TypeLong implements Type<Long>
     public static final TypeLong INSTANCE = new TypeLong();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

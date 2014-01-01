@@ -11,7 +11,6 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.util.SqlUtil;
 
 
 public abstract class InsertQuery
@@ -48,7 +47,7 @@ public abstract class InsertQuery
 	{
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append( "INSERT INTO " );
-		queryBuilder.append( SqlUtil.namify( table.getName() ) );
+		queryBuilder.append( table.getQuotedName() );
 		queryBuilder.append( " " );
 
 		if (columns.length() > 0)
@@ -72,13 +71,13 @@ public abstract class InsertQuery
 	
 	public void addColumn( String column, String value )
 	{
-		append( columns, ",", SqlUtil.namify( column ) );
+		append( columns, ",", column );
 		append( values, ",", value );
 	}
 
 	public void addReturning( String returning )
 	{
-		append( returnings, ",", SqlUtil.namify( returning ) );
+		append( returnings, ",", returning );
 	}
 
 	private void append( StringBuilder out, String delimiter, String text )

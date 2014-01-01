@@ -15,7 +15,7 @@ public class TypeShort implements Type<Short>
     public static final TypeShort INSTANCE = new TypeShort();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

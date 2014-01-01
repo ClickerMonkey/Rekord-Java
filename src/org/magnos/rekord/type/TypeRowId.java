@@ -15,7 +15,7 @@ public class TypeRowId implements Type<RowId>
     public static final TypeRowId INSTANCE = new TypeRowId();
 
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

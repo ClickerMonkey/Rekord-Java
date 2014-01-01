@@ -4,7 +4,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.util.SqlUtil;
 
 public class LiteralCondition implements Condition
 {
@@ -30,7 +29,7 @@ public class LiteralCondition implements Condition
 	
 	public static LiteralCondition forNullColumn(Column<?> column)
 	{
-		return new LiteralCondition( SqlUtil.namify( column.getName() ) + " IS NULL" );
+		return new LiteralCondition( column.getQuotedName() + " IS NULL" );
 	}
 
 }

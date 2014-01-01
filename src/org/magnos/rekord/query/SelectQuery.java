@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -26,7 +27,6 @@ import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.condition.OperatorCondition;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
-import org.magnos.rekord.util.SqlUtil;
 
 
 public class SelectQuery<M extends Model>
@@ -51,7 +51,7 @@ public class SelectQuery<M extends Model>
 	public SelectQuery( Table table )
 	{
 		this.table = table;
-		this.from = table.getName();
+		this.from = table.getQuotedName();
 		this.selecting = new StringBuilder();
 		this.ordering = new StringBuilder();
 		this.selectFields = new ArrayList<Field<?>>();
@@ -76,13 +76,13 @@ public class SelectQuery<M extends Model>
 
 	public SelectQuery<M> select( View view )
 	{
+		this.view = view;
+		
 		for (Field<?> f : view.getFields())
 		{
 			f.prepareSelect( this );
 		}
 		
-		this.view = view;
-
 		return this;
 	}
 
@@ -234,7 +234,14 @@ public class SelectQuery<M extends Model>
 	
 	public int getFieldLimit(Field<?> f)
 	{
-		return (view != null && view.getFieldView( f ) != null ? view.getFieldView( f ).getLimit() : -1 );
+		if (view == null)
+		{
+			return -1;
+		}
+		
+		FieldView fv = view.getFieldView( f );
+		
+		return (fv == null ? -1 : fv.getLimit());
 	}
 	
 	public ResultSet getResults() throws SQLException
@@ -253,7 +260,7 @@ public class SelectQuery<M extends Model>
 		query.append( "SELECT " );
 		query.append( selecting );
 		query.append( " FROM " );
-		query.append( SqlUtil.namify( from ) );
+		query.append( from );
 		
 		if (condition != null)
 		{

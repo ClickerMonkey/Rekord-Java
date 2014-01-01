@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public interface Type<T>
 {
-    public String getPartialExpression( String in, int limit );
+    public String getPartialExpression( String in, int limit, String alias );
 
     public T fromResultSet( ResultSet resultSet, String column, boolean nullable ) throws SQLException;
 

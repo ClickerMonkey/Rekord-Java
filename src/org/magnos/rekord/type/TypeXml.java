@@ -59,7 +59,7 @@ public class TypeXml implements Type<Document>
     }
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

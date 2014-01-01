@@ -15,7 +15,7 @@ public class TypeDouble implements Type<Double>
     public static final TypeDouble INSTANCE = new TypeDouble();
     
     @Override
-    public String getPartialExpression( String in, int limit )
+    public String getPartialExpression( String in, int limit, String alias )
     {
         return in;
     }

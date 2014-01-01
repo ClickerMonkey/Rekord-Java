@@ -35,7 +35,7 @@ public class UpdateQuery
 	
 	public void addSet(Column<?> column, String value)
 	{
-		addSet( column.getName(), value );
+		addSet( column.getQuotedName(), value );
 	}
 	
 	public void addSet(String column, String value)
@@ -45,7 +45,7 @@ public class UpdateQuery
 			query.append( "," );
 		}
 		
-		query.append( SqlUtil.namify( column ) );
+		query.append( column );
 		query.append( " = " );
 		query.append( value );
 	}
@@ -127,7 +127,7 @@ public class UpdateQuery
 	{
 		StringBuilder queryFormatBuilder = new StringBuilder();
 		queryFormatBuilder.append( "UPDATE " );
-		queryFormatBuilder.append( SqlUtil.namify( table.getName() ) );
+		queryFormatBuilder.append( table.getQuotedName() );
 		queryFormatBuilder.append( " SET %s WHERE " );
 		condition.toQuery( queryFormatBuilder );
 		
@@ -143,7 +143,7 @@ public class UpdateQuery
 		
 		HistoryTable history = table.getHistory();
 		
-		String columns = SqlUtil.joinAndNamify( history.getHistoryColumns() );
+		String columns = SqlUtil.join( ",", history.getHistoryColumns() );
 		
 		StringBuilder queryHistoryBuilder = new StringBuilder();
 		queryHistoryBuilder.append( "INSERT INTO " );
@@ -154,7 +154,7 @@ public class UpdateQuery
 		queryHistoryBuilder.append( "SELECT " );
 		queryHistoryBuilder.append( columns );
 		queryHistoryBuilder.append( " FROM " );
-		queryHistoryBuilder.append( SqlUtil.namify( table.getName() ) );
+		queryHistoryBuilder.append( table.getQuotedName() );
 		queryHistoryBuilder.append( " WHERE " );
 		condition.toQuery( queryHistoryBuilder );
 		

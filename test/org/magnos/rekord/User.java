@@ -35,6 +35,7 @@ public class User extends Model
 		public static final View				ID					= TABLE.getView( "id" );
 		public static final View 				WITHOUT_COMMENTS 	= TABLE.getView( "without-comments" );
 		public static final View 				FOR_LINK		 	= TABLE.getView( "for-link" );
+		public static final View 				SHORT_NAME		 	= TABLE.getView( "short-name" );
 	}
 	
 	public User()
