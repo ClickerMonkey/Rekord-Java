@@ -84,19 +84,13 @@ public class Rekord
 	{
 		Transaction trans = transactionLocal.get();
 
-		if (trans == null)
+		if (trans == null || trans.isClosed())
 		{
 			trans = transactionFactory.create();
 			transactionLocal.set( trans );
 		}
 
 		return trans;
-	}
-
-	public static void close( Transaction transaction )
-	{
-		transaction.close();
-		transactionLocal.set( null );
 	}
 
 	public static void setTransactionFactory( Factory<Transaction> factory )

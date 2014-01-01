@@ -32,10 +32,10 @@ public class TestRekord
 //		u.setName( "lowercase" );
 //		u.save();
 		
-		User u = User.byId( User.Views.ID, 1L );
-		System.out.println( u );
-		System.out.println( u.getCommentsBy() );
-		System.out.println( u );
+//		User u = User.byId( User.Views.ID, 1L );
+//		System.out.println( u );
+//		System.out.println( u.getCommentsBy() );
+//		System.out.println( u );
 		
 		trans.end( false );
 		trans.close();

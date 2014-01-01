@@ -15,15 +15,18 @@ public class DefaultTransaction implements Transaction
 	protected final Map<String, PreparedStatement> statementCache;
 	protected final Map<Key, Model>[] modelCache;
 	protected boolean started;
+	protected boolean closed;
 
 	public DefaultTransaction( Connection connection )
 	{
 		this.connection = connection;
 		this.statementCache = new HashMap<String, PreparedStatement>();
 
-		this.modelCache = new Map[ Rekord.getTableCount() ];
+		final int tableCount = Rekord.getTableCount();
 		
-		for (int i = 0; i < Rekord.getTableCount(); i++)
+		this.modelCache = new Map[ tableCount ];
+		
+		for (int i = 0; i < tableCount; i++)
 		{
 			if (Rekord.getTable( i ).is( Table.TRANSACTION_CACHED ))
 			{
@@ -31,29 +34,13 @@ public class DefaultTransaction implements Transaction
 			}
 		}
 	}
-
-	@Override
-	public Connection getConnection()
+	
+	protected void checkOpen()
 	{
-		return connection;
-	}
-
-	@Override
-	public PreparedStatement prepare( String query ) throws SQLException
-	{
-		PreparedStatement stmt = statementCache.get( query );
-
-		if (stmt == null)
+		if (closed)
 		{
-			stmt = connection.prepareStatement( query );
-			statementCache.put( query, stmt );
+			throw new RuntimeException( "You cannot perform this operation with a closed transaction" );
 		}
-		else
-		{
-			stmt.clearParameters();
-		}
-
-		return stmt;
 	}
 	
 	protected void init( boolean autoCommit, boolean newStarted )
@@ -72,14 +59,37 @@ public class DefaultTransaction implements Transaction
 	}
 
 	@Override
+	public PreparedStatement prepare( String query ) throws SQLException
+	{
+		checkOpen();
+		
+		PreparedStatement stmt = statementCache.get( query );
+
+		if (stmt == null)
+		{
+			stmt = connection.prepareStatement( query );
+			statementCache.put( query, stmt );
+		}
+		else
+		{
+			stmt.clearParameters();
+		}
+
+		return stmt;
+	}
+
+	@Override
 	public void start()
 	{
+		checkOpen();
 	    init( false, true );
 	}
 
 	@Override
 	public void end( boolean commit )
 	{
+		checkOpen();
+		
 	    try
         {
 	        if (commit)
@@ -102,17 +112,16 @@ public class DefaultTransaction implements Transaction
 	}
 
 	@Override
-	public boolean isStarted()
-	{
-		return started;
-	}
-
-	@Override
 	public void close()
 	{
 	    if (started)
 	    {
 	        throw new RuntimeException( "You cannot close a started transaction, you must end it first" );
+	    }
+	    
+	    if (closed)
+	    {
+	    	return;
 	    }
 	    
 		for (PreparedStatement stmt : statementCache.values())
@@ -137,30 +146,59 @@ public class DefaultTransaction implements Transaction
 		    // log but ignore
 			e.printStackTrace();
 		}
+		
+		closed = true;
+	}
+
+	@Override
+	public boolean isStarted()
+	{
+		return started;
+	}
+	
+	@Override
+	public boolean isClosed()
+	{
+		return closed;
+	}
+
+	@Override
+	public Connection getConnection()
+	{
+		return connection;
 	}
 
 	@Override
 	public <T extends Model> Map<Key, T> getCache( Table table )
 	{
-		return (Map<Key, T>)modelCache[table.getIndex()];
+		return (Map<Key, T>)modelCache[ table.getIndex() ];
 	}
 
 	@Override
 	public <T extends Model> T getCached( Table table, Key key )
 	{
-		Map<Key, Model> cache = modelCache[table.getIndex()];
+		Map<Key, T> cache = getCache( table );
 		
-		return (cache == null ? null : (T)cache.get( key ));
+		return (cache == null ? null : cache.get( key ));
 	}
 
 	@Override
 	public void cache( Model model )
 	{
-		Map<Key, Model> cache = modelCache[model.getTable().getIndex()];
+		Map<Key, Model> cache = getCache( model.getTable() );
 		
-		if (cache != null && model.hasKey())
+		if (cache != null)
 		{
-			cache.put( model.getKey(), model );
+			Key key = model.getKey();
+			
+			if (key.exists())
+			{
+				cache.put( key, model );	
+			}
+			else
+			{
+				Rekord.log( Logging.CACHING, "You cannot cache the following model without having a key: " + model );
+			}
 		}
 	}
 
