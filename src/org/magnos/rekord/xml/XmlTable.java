@@ -18,6 +18,9 @@ class XmlTable extends XmlLoadable
 {
     String name;
     String[] keyNames;
+    boolean dynamicInserts;
+    boolean dynamicUpdates;
+    boolean transactionCached;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
 
@@ -59,7 +62,10 @@ class XmlTable extends XmlLoadable
         int flags = (
             (isRelationshipTable() ? Table.RELATIONSHIP_TABLE : 0) |
             (isSubTable() ? Table.SUB_TABLE : 0) |
-            (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0)
+            (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0) |
+            (isDynamicallyInserted() ? Table.DYNAMICALLY_INSERTED : 0) |
+            (isDynamicallyUpdated() ? Table.DYNAMICALLY_UPDATED : 0) |
+            (isTransactionCached() ? Table.TRANSACTION_CACHED : 0)
         );
         
         keyColumns = XmlLoader.getFields( keys );
@@ -158,6 +164,21 @@ class XmlTable extends XmlLoadable
         }
         
         return true;
+    }
+    
+    private boolean isDynamicallyInserted()
+    {
+    	return dynamicInserts;
+    }
+    
+    private boolean isDynamicallyUpdated()
+    {
+    	return dynamicUpdates;
+    }
+    
+    private boolean isTransactionCached()
+    {
+    	return transactionCached;
     }
     
 }

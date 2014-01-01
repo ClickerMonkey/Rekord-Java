@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
@@ -41,6 +42,24 @@ public class Column<T> extends AbstractField<T>
 	}
 
 	@Override
+	public void prepareSelect(SelectQuery<?> query)
+	{
+		if (!is(LAZY))
+		{
+			int limit = query.getFieldLimit( this );
+			
+			if (limit != -1)
+			{
+				query.select( type.getPartialExpression( getSelectionExpression(), limit ) );
+			}
+			else
+			{
+				query.select( this, getSelectionExpression() );	
+			}
+		}
+	}
+	
+	@Override
 	public void prepareInsert(InsertQuery query)
 	{
 		if (is(GENERATED))
@@ -50,15 +69,6 @@ public class Column<T> extends AbstractField<T>
 		else
 		{
 			query.addColumn( name, out );
-		}
-	}
-
-	@Override
-	public void prepareSelect(SelectQuery<?> query)
-	{
-		if (!is(LAZY))
-		{
-			query.select( this, getSelectionExpression() );
 		}
 	}
 	
@@ -119,6 +129,7 @@ public class Column<T> extends AbstractField<T>
 	{
 		private final Column<T> field;
 		private boolean changed = false;
+		private boolean partial = false;
 		private T value;
 		
 		public ColumnValue(Column<T> field)
@@ -137,6 +148,7 @@ public class Column<T> extends AbstractField<T>
 				    SelectQuery<Model> query = new SelectQuery<Model>( model );
 				    
 				    value = query.grab( field );
+				    partial = false;
 				}
 				catch (SQLException e)
 				{
@@ -159,7 +171,8 @@ public class Column<T> extends AbstractField<T>
 			if (!SqlUtil.equals( this.value, value ))
 			{
 				this.value = value;
-				this.changed = true;	
+				this.changed = true;
+				this.partial = false;
 			}
 		}
 
@@ -194,6 +207,25 @@ public class Column<T> extends AbstractField<T>
 			
 			return paramIndex + 1;
 		}
+
+		@Override
+		public void load( FieldView fieldView ) throws SQLException
+		{
+			
+		}
+		
+		@Override
+		public void prepareDynamicInsert(InsertQuery query)
+		{
+			if (field.is(GENERATED) && !hasValue())
+			{
+				query.addReturning( field.getName() );
+			}
+			else
+			{
+				query.addColumn( field.getName(), field.getOut() );
+			}
+		}
 		
 		@Override
 		public void fromInsertReturning(ResultSet results) throws SQLException
@@ -207,7 +239,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
-			if (!field.is( GENERATED ))
+			if (!field.is( GENERATED ) || hasValue())
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -216,9 +248,9 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void prepareUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( UpdateQuery query )
 		{
-			if (!field.is( READ_ONLY ))
+			if (!field.is( READ_ONLY ) && !partial)
 			{
 				query.addSet( field.getName(), field.getOut() );
 			}
@@ -227,7 +259,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
-			if (!field.is( READ_ONLY ))
+			if (!field.is( READ_ONLY ) && !partial)
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -236,9 +268,16 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results ) throws SQLException
+		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
 		{
 			fromResultSet( results );
+			
+			int limit = query.getFieldLimit( field );
+			
+			if ( limit != -1 )
+			{
+				partial = field.getType().isPartial( query, limit );
+			}
 		}
 
 		@Override

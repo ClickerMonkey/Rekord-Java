@@ -232,6 +232,11 @@ public class SelectQuery<M extends Model>
 		return where( new AndCondition( conditions ) );
 	}
 	
+	public int getFieldLimit(Field<?> f)
+	{
+		return (view != null && view.getFieldView( f ) != null ? view.getFieldView( f ).getLimit() : -1 );
+	}
+	
 	public ResultSet getResults() throws SQLException
 	{
 		return getResults( selecting.toString(), ordering.toString(), limit, offset );
@@ -350,7 +355,7 @@ public class SelectQuery<M extends Model>
 	{
 		for (Field<?> f : selectFields)
 		{
-			model.valueOf( f ).fromSelect( results );
+			model.valueOf( f ).fromSelect( results, this );
 		}
 	}
 	

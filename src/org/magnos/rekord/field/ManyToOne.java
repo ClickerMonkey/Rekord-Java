@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -184,6 +185,18 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		{
 			changed = false;
 		}
+
+		@Override
+		public void load( FieldView fieldView ) throws SQLException
+		{
+			
+		}
+
+		@Override
+		public void prepareDynamicInsert( InsertQuery query )
+		{
+			
+		}
 		
 		@Override
 		public void fromInsertReturning( ResultSet results ) throws SQLException
@@ -198,7 +211,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void prepareUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( UpdateQuery query )
 		{
 			
 		}
@@ -210,7 +223,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void fromSelect( ResultSet results ) throws SQLException
+		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
 		{
 			
 		}
@@ -266,20 +279,15 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 			Transaction trans = Rekord.getTransaction();
 			value = trans.getCached( field.getJoinTable(), key );
 			
-			View fieldView = field.getJoinView();
-			
-			if (parentView != null)
-			{
-				fieldView = parentView.getFieldView( field, fieldView );
-			}
+			View view = View.coalesce( parentView, null, field.getJoinView(), field );
 			
 			if (value == null)
 			{
-				value = new SelectQuery<T>( field.getJoinTable() ).select( fieldView ).byForeignKey( key ).first();	
+				value = new SelectQuery<T>( field.getJoinTable() ).select( view ).byForeignKey( key ).first();	
 			}
 			else
 			{
-				value.load( fieldView );
+				value.load( view );
 				
 				Rekord.log( Logging.CACHING, "many-to-one from-cache: %s", value );
 			}

@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
@@ -15,7 +14,7 @@ import org.magnos.rekord.Value;
 import org.magnos.rekord.util.SqlUtil;
 
 
-public class InsertQuery
+public abstract class InsertQuery
 {
 
 	protected Table table;
@@ -27,12 +26,26 @@ public class InsertQuery
 	public InsertQuery( Table table )
 	{
 		this.table = table;
-
+	}
+	
+	protected void prepareFixed()
+	{
 		for (Field<?> f : table.getFields())
 		{
 			f.prepareInsert( this );
 		}
+	}
+	
+	protected void prepareDynamic(Model model)
+	{
+		for (Value<?> v : model.getValues())
+		{
+			v.prepareDynamicInsert( this );
+		}
+	}
 
+	protected void buildQuery()
+	{
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append( "INSERT INTO " );
 		queryBuilder.append( SqlUtil.namify( table.getName() ) );
@@ -56,7 +69,7 @@ public class InsertQuery
 
 		this.query = queryBuilder.toString();
 	}
-
+	
 	public void addColumn( String column, String value )
 	{
 		append( columns, ",", SqlUtil.namify( column ) );
@@ -77,11 +90,9 @@ public class InsertQuery
 
 		out.append( text );
 	}
-
-	public boolean execute( Model model ) throws SQLException
+	
+	protected boolean executeInsert( Model model ) throws SQLException
 	{
-		Rekord.log( Logging.UPDATES, "pre-insert: %s -> %s", query, model );
-		
 		final Value<?>[] values = model.getValues();
 
 		for (Value<?> v : values)
@@ -133,9 +144,9 @@ public class InsertQuery
 			v.clearChanges();
 		}
 
-		Rekord.log( Logging.UPDATES, "post-insert: %s -> %s", query, model );
-		
 		return recordsInserted;
 	}
+
+	public abstract boolean execute( Model model ) throws SQLException;
 
 }

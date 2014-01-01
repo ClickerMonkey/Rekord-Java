@@ -14,6 +14,8 @@ import org.magnos.rekord.key.MultiValueKey;
 import org.magnos.rekord.key.SingleModelKey;
 import org.magnos.rekord.key.SingleValueKey;
 import org.magnos.rekord.query.DeleteQuery;
+import org.magnos.rekord.query.DynamicInsertQuery;
+import org.magnos.rekord.query.FixedInsertQuery;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
@@ -24,6 +26,10 @@ public class Table
 	public static final int RELATIONSHIP_TABLE     = 1 << 0;
 	public static final int SUB_TABLE              = 1 << 1;
 	public static final int COMPLETELY_GENERATED   = 1 << 2;
+	public static final int DYNAMICALLY_INSERTED   = 1 << 3;
+	public static final int DYNAMICALLY_UPDATED	   = 1 << 4;
+	public static final int TRANSACTION_CACHED	   = 1 << 5;
+	
     
 	private static final Field<?>[] NO_FIELDS = {};
 
@@ -75,7 +81,7 @@ public class Table
 		registerFields( fieldCount );
 		mapFields( newFields );
 		
-		insert = new InsertQuery( this );
+		insert = is(DYNAMICALLY_INSERTED) ? new DynamicInsertQuery( this ) : new FixedInsertQuery( this );
 		update = new UpdateQuery( this );
 		delete = new DeleteQuery( this );
 	}

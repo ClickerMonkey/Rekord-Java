@@ -24,7 +24,7 @@ public class DefaultTransactionFactory implements Factory<Transaction>
 	{
 		try
 		{
-			return new AbstractTransaction( dataSource.getConnection() );
+			return new DefaultTransaction( dataSource.getConnection() );
 		}
 		catch (SQLException e)
 		{

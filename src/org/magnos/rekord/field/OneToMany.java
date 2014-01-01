@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.LazyList;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Operator;
@@ -168,6 +169,18 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
+		public void load( FieldView fieldView ) throws SQLException
+		{
+			
+		}
+
+		@Override
+		public void prepareDynamicInsert( InsertQuery query )
+		{
+			
+		}
+
+		@Override
 		public void fromInsertReturning( ResultSet results ) throws SQLException
 		{
 			
@@ -180,7 +193,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void prepareUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( UpdateQuery query )
 		{
 			
 		}
@@ -192,7 +205,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results ) throws SQLException
+		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
 		{
 			
 		}
@@ -306,19 +319,10 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		
 		private void updateSelect( View parentView )
 		{
-			View fieldView = query.getView();
-			
-			if (fieldView == null)
-			{
-				fieldView = field.getJoinView();
-			}
-			if (parentView != null)
-			{
-				fieldView = parentView.getFieldView( field, fieldView );
-			}
+			View view = View.coalesce( parentView, query.getView(), field.getJoinView(), field );
 			
 			query.clear();
-			query.select( fieldView );
+			query.select( view );
 			query.where( whereCondition );
 		}
 		

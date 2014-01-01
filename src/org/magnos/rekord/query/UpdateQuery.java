@@ -67,7 +67,7 @@ public class UpdateQuery
 		{
 			if (v.hasChanged())
 			{
-				v.prepareUpdate( this );
+				v.prepareDynamicUpdate( this );
 			}
 		}
 		

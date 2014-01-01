@@ -17,6 +17,11 @@ public class View
 		this.fieldViews = fieldViews;
 	}
 
+	public FieldView getFieldView( Field<?> f )
+	{
+		return fieldViews[ f.getIndex() ];
+	}
+	
 	public View getFieldView( Field<?> f, View defaultView )
 	{
 		FieldView fc = fieldViews[ f.getIndex() ];
@@ -62,6 +67,21 @@ public class View
 	    sb.append( "]" );
 	    
 	    return sb.toString();
+	}
+	
+	public static View coalesce(View parentView, View childView, View defaultChildView, Field<?> field)
+	{
+		if (childView == null)
+		{
+			childView = defaultChildView;
+		}
+		
+		if (parentView != null)
+		{
+			childView = parentView.getFieldView( field, childView );
+		}
+		
+		return childView;
 	}
 
 }

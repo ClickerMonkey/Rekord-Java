@@ -7,6 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
@@ -19,13 +20,16 @@ public interface Value<T>
 	public boolean hasChanged();
 	public void clearChanges();
 	
-	public void fromInsertReturning(ResultSet results) throws SQLException;
+	public void load(FieldView fieldView) throws SQLException;
+
+	public void prepareDynamicInsert(InsertQuery query);
 	public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
+	public void fromInsertReturning(ResultSet results) throws SQLException;
 	
-	public void prepareUpdate(UpdateQuery query);
+	public void prepareDynamicUpdate(UpdateQuery query);
 	public int toUpdate(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
 	
-	public void fromSelect(ResultSet results) throws SQLException;
+	public void fromSelect(ResultSet results, SelectQuery<?> query) throws SQLException;
 	public void postSelect(Model model, SelectQuery<?> query) throws SQLException;
 	
 	public void fromResultSet(ResultSet results) throws SQLException;
@@ -34,11 +38,11 @@ public interface Value<T>
 	public void preSave(Model model) throws SQLException;
 	public void postSave(Model model) throws SQLException;
 	
-	public void serialize(ObjectOutputStream out) throws IOException;
-	public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException;
-	
 	public void preDelete(Model model) throws SQLException;
 	public void postDelete(Model model) throws SQLException;
+	
+	public void serialize(ObjectOutputStream out) throws IOException;
+	public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException;
 	
 	public Field<T> getField();
 }

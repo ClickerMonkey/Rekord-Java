@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
@@ -31,15 +32,15 @@ public class ForeignColumn<T> extends Column<T>
 	}
 
 	@Override
-	public void prepareInsert(InsertQuery query)
-	{
-		query.addColumn( name, getOut() );
-	}
-
-	@Override
 	public void prepareSelect(SelectQuery<?> query)
 	{
 		query.select( this, getSelectionExpression() );
+	}
+
+	@Override
+	public void prepareInsert(InsertQuery query)
+	{
+		query.addColumn( name, out );
 	}
 	
 	@Override
@@ -146,10 +147,23 @@ public class ForeignColumn<T> extends Column<T>
 			
 			return paramIndex + 1;
 		}
+
+		@Override
+		public void load( FieldView fieldView ) throws SQLException
+		{
+			
+		}
+
+		@Override
+		public void prepareDynamicInsert(InsertQuery query)
+		{
+			query.addColumn( field.getName(), field.getOut() );
+		}
 		
 		@Override
 		public void fromInsertReturning(ResultSet results) throws SQLException
 		{
+			
 		}
 		
 		@Override
@@ -159,7 +173,7 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void prepareUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( UpdateQuery query )
 		{
 			query.addSet( field, field.getOut() );
 		}
@@ -171,7 +185,7 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results ) throws SQLException
+		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
 		{
 			fromResultSet( results );
 		}

@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class AbstractTransaction implements Transaction
+public class DefaultTransaction implements Transaction
 {
 
 	protected final Connection connection;
@@ -16,7 +16,7 @@ public class AbstractTransaction implements Transaction
 	protected final Map<Key, Model>[] modelCache;
 	protected boolean started;
 
-	public AbstractTransaction( Connection connection )
+	public DefaultTransaction( Connection connection )
 	{
 		this.connection = connection;
 		this.statementCache = new HashMap<String, PreparedStatement>();
@@ -25,7 +25,10 @@ public class AbstractTransaction implements Transaction
 		
 		for (int i = 0; i < Rekord.getTableCount(); i++)
 		{
-			this.modelCache[i] = new HashMap<Key, Model>();
+			if (Rekord.getTable( i ).is( Table.TRANSACTION_CACHED ))
+			{
+				this.modelCache[i] = new HashMap<Key, Model>();	
+			}
 		}
 	}
 
@@ -145,13 +148,20 @@ public class AbstractTransaction implements Transaction
 	@Override
 	public <T extends Model> T getCached( Table table, Key key )
 	{
-		return (T)modelCache[table.getIndex()].get( key );
+		Map<Key, Model> cache = modelCache[table.getIndex()];
+		
+		return (cache == null ? null : (T)cache.get( key ));
 	}
 
 	@Override
 	public void cache( Model model )
 	{
-		modelCache[model.getTable().getIndex()].put( model.getKey(), model );
+		Map<Key, Model> cache = modelCache[model.getTable().getIndex()];
+		
+		if (cache != null && model.hasKey())
+		{
+			cache.put( model.getKey(), model );
+		}
 	}
 
 }

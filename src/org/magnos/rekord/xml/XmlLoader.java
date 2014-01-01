@@ -302,6 +302,9 @@ public class XmlLoader
 		XmlTable table = new XmlTable();
 		table.name = getAttribute( tableElement, "name", null, true );
 		table.keyNames = split( getAttribute( tableElement, "key", null, true ) );
+		table.dynamicInserts = TypeBoolean.parse( getAttribute( tableElement, "dynamic-insert", "false", true ), "dynamic-insert" );
+		table.dynamicUpdates = TypeBoolean.parse( getAttribute( tableElement, "dynamic-update", "true", true ), "dynamic-update" );
+		table.transactionCached = TypeBoolean.parse( getAttribute( tableElement, "transaction-cached", "true", true ), "transaction-cached" );
 		
 		XmlIterator<Element> nodes = new XmlIterator<Element>( tableElement );
 		
