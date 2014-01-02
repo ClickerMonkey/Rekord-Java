@@ -78,6 +78,7 @@ public class ForeignColumn<T> extends Column<T>
         sb.append( ", in=" ).append( in );
         sb.append( ", out=" ).append( out );
         sb.append( ", default-value=" ).append( type.toString( defaultValue ) );
+        sb.append( ", converter=" ).append( converter.getClass().getSimpleName() );
         sb.append( ", references=" ).append( foreignTable.getName() ).append( "." ).append( foreignColumn.getName() );
         return endToString( sb );
 	}
@@ -161,15 +162,15 @@ public class ForeignColumn<T> extends Column<T>
 		}
 		
 		@Override
-		public void fromInsertReturning(ResultSet results) throws SQLException
-		{
-			
-		}
-		
-		@Override
 		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
 		{
 			return toPreparedStatement( preparedStatement, paramIndex );
+		}
+		
+		@Override
+		public void fromInsertReturning(ResultSet results) throws SQLException
+		{
+			
 		}
 
 		@Override

@@ -127,14 +127,17 @@ public abstract class InsertQuery
 					}
 					
 					recordsInserted = true;
-					
-					trans.cache( model );
 				}
 			}
 			finally
 			{
 				results.close();
 			}
+		}
+
+		if (recordsInserted)
+		{
+			trans.cache( model );
 		}
 		
 		for (Value<?> v : values)

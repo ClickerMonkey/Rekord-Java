@@ -56,6 +56,12 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
+	public void prepareUpdate( UpdateQuery query )
+	{
+		
+	}
+	
+	@Override
 	public Value<T> newValue(Model model)
 	{
 		return new OneToOneValue<T>( this, model );

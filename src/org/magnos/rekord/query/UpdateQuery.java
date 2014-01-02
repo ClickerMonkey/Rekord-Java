@@ -3,6 +3,7 @@ package org.magnos.rekord.query;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -15,13 +16,14 @@ import org.magnos.rekord.condition.Conditions;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.util.SqlUtil;
 
-public class UpdateQuery
+public abstract class UpdateQuery
 {
 	
 	protected Table table;
 	protected String queryFormat;
 	protected Condition condition;
 	protected String queryHistory;
+	protected String queryString;
 	protected StringBuilder query;
 	
 	public UpdateQuery(Table table)
@@ -31,6 +33,38 @@ public class UpdateQuery
 		this.condition = Conditions.where( table.getKeyColumns() );
 		this.queryFormat = buildUpdate( table, condition );
 		this.queryHistory = buildHistoryInsert( table, condition );
+	}
+	
+	protected void prepareFixed()
+	{
+		query.setLength( 0 );
+		
+		for (Field<?> f : table.getFields())
+		{
+			f.prepareUpdate( this );
+		}
+
+		queryString = String.format( queryFormat, query );
+	}
+	
+	protected void prepareDynamic(Model model)
+	{
+		query.setLength( 0 );
+		
+		for (Value<?> v : model.getValues())
+		{
+			if (v.hasChanged())
+			{
+				v.prepareDynamicUpdate( this );
+			}
+		}
+		
+		queryString = String.format( queryFormat, query );
+	}
+	
+	public void addSet(Column<?> column)
+	{
+		addSet( column.getQuotedName(), column.getOut() );
 	}
 	
 	public void addSet(Column<?> column, String value)
@@ -50,44 +84,41 @@ public class UpdateQuery
 		query.append( value );
 	}
 	
-	public boolean execute( Model model ) throws SQLException
+	protected void saveHistory(Model model) throws SQLException
 	{
-		final Value<?>[] values = model.getValues();
-		
-		for (Value<?> v : values)
+		if (queryHistory != null)
+		{
+			Transaction trans = Rekord.getTransaction();
+			PreparedStatement stmt = trans.prepare( queryHistory );
+			Conditions.whereBind( condition, table.getKeyColumns(), model.getValues() );
+			condition.toPreparedstatement( stmt, 1 );
+			stmt.executeUpdate();
+			
+			Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
+		}
+	}
+	
+	protected void preSave( Model model ) throws SQLException
+	{
+		for (Value<?> v : model.getValues())
 		{
 			v.preSave( model );
 		}
+	}
+	
+	protected boolean updateModel( Model model ) throws SQLException
+	{
+		Value<?>[] values = model.getValues();
 		
 		boolean recordsUpdated = false;
 		
-		query.setLength( 0 );
-		
-		for (Value<?> v : values)
-		{
-			if (v.hasChanged())
-			{
-				v.prepareDynamicUpdate( this );
-			}
-		}
-		
 		if (query.length() > 0)
 		{
-			Transaction trans = Rekord.getTransaction();
-			String queryString = String.format( queryFormat, query );
-			
 			Rekord.log( Logging.UPDATES, "%s -> %s", queryString, model );
 			
-			if (queryHistory != null)
-			{
-				PreparedStatement stmt = trans.prepare( queryHistory );
-				Conditions.whereBind( condition, table.getKeyColumns(), values );
-				condition.toPreparedstatement( stmt, 1 );
-				stmt.executeUpdate();
-				
-				Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
-			}
-			
+			saveHistory( model );
+
+			Transaction trans = Rekord.getTransaction();
 			PreparedStatement stmt = trans.prepare( queryString );
 			int paramIndex = 1;
 		
@@ -122,6 +153,8 @@ public class UpdateQuery
 		
 		return recordsUpdated;
 	}
+	
+	public abstract boolean execute( Model model ) throws SQLException;
 	
 	private static String buildUpdate(Table table, Condition condition) 
 	{

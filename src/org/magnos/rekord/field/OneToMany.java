@@ -61,6 +61,12 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	}
 	
 	@Override
+	public void prepareUpdate( UpdateQuery query )
+	{
+		
+	}
+	
+	@Override
 	public Value<List<T>> newValue(Model model)
 	{
 		return new OneToManyValue<T>( this, model );
@@ -181,15 +187,15 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void fromInsertReturning( ResultSet results ) throws SQLException
-		{
-			
-		}
-
-		@Override
 		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
 			return paramIndex;
+		}
+
+		@Override
+		public void fromInsertReturning( ResultSet results ) throws SQLException
+		{
+			
 		}
 
 		@Override
@@ -237,35 +243,50 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		@Override
 		public void postSave(Model m) throws SQLException
 		{
-			for (T model : value.getRemoved())
-			{
-				model.delete();
-			}
+			Set<T> removed = value.getRemoved();
+			Set<T> added = value.getAdded();
 			
+			for (T child : removed)
+			{
+				child.delete();
+			}
+
 			if (value.hasSet())
 			{
-				for (T model : value.getSet())
+				for (T child : value.getSet())
 				{
-					setModelForeignKey( m, model );
-					model.save();
+					setModelForeignKey( m, child );
+					child.save();
 				}
 			}
 			else
 			{
-				for (T model : value.getAdded())
+				for (T child : added)
 				{
-					setModelForeignKey( m, model );
-					model.save();
+					setModelForeignKey( m, child );
+					child.save();
 				}
 			}
+			
+			removed.clear();
+			added.clear();
 		}
 
         @Override
         public void preDelete(Model model) throws SQLException
         {
-            if (field.isCascadeDelete() && value != null)
+            if (field.isCascadeDelete())
             {
                 value.clear();
+                
+                Set<T> removed = value.getRemoved();
+                
+                for (T child : removed)
+                {
+                	child.delete();
+                }
+                
+                removed.clear();
             }
         }
 

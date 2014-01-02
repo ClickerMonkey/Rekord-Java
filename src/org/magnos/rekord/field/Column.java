@@ -1,3 +1,4 @@
+
 package org.magnos.rekord.field;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ import org.magnos.rekord.util.SqlUtil;
 
 public class Column<T> extends AbstractField<T>
 {
-	
+
 	protected final int sqlType;
 	protected final Type<Object> type;
 	protected final String in;
@@ -29,10 +30,10 @@ public class Column<T> extends AbstractField<T>
 	protected final T defaultValue;
 	protected final Converter<Object, T> converter;
 
-	public Column( String column, int sqlType, Type<Object> type, int flags, String in, String out, T defaultValue, Converter<Object, T> converter)
+	public Column( String column, int sqlType, Type<Object> type, int flags, String in, String out, T defaultValue, Converter<Object, T> converter )
 	{
 		super( column, flags );
-		
+
 		this.sqlType = sqlType;
 		this.type = type;
 		this.in = in;
@@ -42,27 +43,27 @@ public class Column<T> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareSelect(SelectQuery<?> query)
+	public void prepareSelect( SelectQuery<?> query )
 	{
-		if (!is(LAZY))
+		if (!is( LAZY ))
 		{
 			int limit = query.getFieldLimit( this );
-			
+
 			if (limit != -1)
 			{
 				query.select( this, type.getPartialExpression( getSelectionExpression(), limit, quotedName ) );
 			}
 			else
 			{
-				query.select( this, getSelectionExpression() );	
+				query.select( this, getSelectionExpression() );
 			}
 		}
 	}
-	
+
 	@Override
-	public void prepareInsert(InsertQuery query)
+	public void prepareInsert( InsertQuery query )
 	{
-		if (is(GENERATED))
+		if (is( HAS_DEFAULT ))
 		{
 			query.addReturning( name );
 		}
@@ -71,93 +72,103 @@ public class Column<T> extends AbstractField<T>
 			query.addColumn( name, out );
 		}
 	}
-	
+
 	@Override
-	public Value<T> newValue(Model model)
+	public void prepareUpdate( UpdateQuery query )
+	{
+		if (!is( READ_ONLY ))
+		{
+			query.addSet( this );
+		}
+	}
+
+	@Override
+	public Value<T> newValue( Model model )
 	{
 		return new ColumnValue<T>( this );
 	}
 
-    public String getIn()
-    {
-        return in;
-    }
-    
-    public String getOut()
-    {
-        return out;
-    }
-    
-    public String getSelectionExpression()
-    {
-        return in.replaceAll( "\\?", quotedName );
-    }
-    
-    public int getSqlType()
-    {
-        return sqlType;
-    }
-    
-    public Type<Object> getType()
-    {
-        return type;
-    }
-    
-    public T getDefaultValue()
-    {
-        return defaultValue;
-    }
-    
-    public Converter<Object, T> getConverter()
+	public String getIn()
+	{
+		return in;
+	}
+
+	public String getOut()
+	{
+		return out;
+	}
+
+	public String getSelectionExpression()
+	{
+		return in.replaceAll( "\\?", quotedName );
+	}
+
+	public int getSqlType()
+	{
+		return sqlType;
+	}
+
+	public Type<Object> getType()
+	{
+		return type;
+	}
+
+	public T getDefaultValue()
+	{
+		return defaultValue;
+	}
+
+	public Converter<Object, T> getConverter()
 	{
 		return converter;
 	}
 
 	@Override
-    public String toString()
-    {
-        StringBuilder sb = beginToString();
-        sb.append( ", sql-type=" ).append( sqlType );
-        sb.append( ", type=" ).append( type.getClass().getSimpleName() );
-        sb.append( ", in=" ).append( in );
-        sb.append( ", out=" ).append( out );
-        sb.append( ", default-value=" ).append( type.toString( converter.convertTo( defaultValue ) ) );
-        return endToString( sb );
-    }
+	public String toString()
+	{
+		StringBuilder sb = beginToString();
+		sb.append( ", sql-type=" ).append( sqlType );
+		sb.append( ", type=" ).append( type.getClass().getSimpleName() );
+		sb.append( ", in=" ).append( in );
+		sb.append( ", out=" ).append( out );
+		sb.append( ", default-value=" ).append( type.toString( converter.convertTo( defaultValue ) ) );
+		sb.append( ", converter=" ).append( converter.getClass().getSimpleName() );
+		return endToString( sb );
+	}
 
-    private static class ColumnValue<T> implements Value<T>
+	private static class ColumnValue<T> implements Value<T>
 	{
 		private final Column<T> field;
 		private boolean changed = false;
 		private boolean partial = false;
 		private boolean defaultValue = true;
 		private T value;
-		
-		public ColumnValue(Column<T> field)
+
+		public ColumnValue( Column<T> field )
 		{
 			this.field = field;
 			this.value = field.getDefaultValue();
 		}
-		
+
 		@Override
-		public T get(Model model)
+		public T get( Model model )
 		{
 			if (field.is( LAZY ) && value == null && model.hasKey())
 			{
 				try
 				{
-				    SelectQuery<Model> query = new SelectQuery<Model>( model );
-				    
-				    value = query.grab( field );
-				    partial = false;
-				    defaultValue = false;
+					SelectQuery<Model> query = new SelectQuery<Model>( model );
+
+					value = query.grab( field );
+					partial = false;
+					defaultValue = false;
 				}
 				catch (SQLException e)
 				{
 					throw new RuntimeException( e );
 				}
 			}
-			
+
 			return value;
 		}
 
@@ -184,7 +195,7 @@ public class Column<T> extends AbstractField<T>
 		{
 			return changed;
 		}
-		
+
 		@Override
 		public void clearChanges()
 		{
@@ -196,31 +207,32 @@ public class Column<T> extends AbstractField<T>
 		{
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
-			
+
 			value = converter.convertFrom( type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) ) );
+			defaultValue = false;
 		}
-		
+
 		@Override
-		public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException
+		public int toPreparedStatement( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
-			
+
 			type.toPreparedStatement( preparedStatement, converter.convertTo( value ), paramIndex );
-			
+
 			return paramIndex + 1;
 		}
 
 		@Override
 		public void load( FieldView fieldView ) throws SQLException
 		{
-			
+
 		}
-		
+
 		@Override
-		public void prepareDynamicInsert(InsertQuery query)
+		public void prepareDynamicInsert( InsertQuery query )
 		{
-			if (field.is(GENERATED) && !hasValue())
+			if (field.is( HAS_DEFAULT ) && !hasValue())
 			{
 				query.addReturning( field.getName() );
 			}
@@ -229,25 +241,25 @@ public class Column<T> extends AbstractField<T>
 				query.addColumn( field.getQuotedName(), field.getOut() );
 			}
 		}
-		
+
 		@Override
-		public void fromInsertReturning(ResultSet results) throws SQLException
+		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
+		{
+			if (!field.is( HAS_DEFAULT ) || (hasValue() && !defaultValue))
+			{
+				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
+			}
+
+			return paramIndex;
+		}
+
+		@Override
+		public void fromInsertReturning( ResultSet results ) throws SQLException
 		{
 			if (field.is( GENERATED ))
 			{
 				fromResultSet( results );
 			}
-		}
-		
-		@Override
-		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
-		{
-			if (!field.is( GENERATED ) || (hasValue() && !defaultValue))
-			{
-				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
-			}
-			
-			return paramIndex;
 		}
 
 		@Override
@@ -255,7 +267,7 @@ public class Column<T> extends AbstractField<T>
 		{
 			if (!field.is( READ_ONLY ) && !partial)
 			{
-				query.addSet( field, field.getOut() );
+				query.addSet( field );
 			}
 		}
 
@@ -266,7 +278,7 @@ public class Column<T> extends AbstractField<T>
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
-			
+
 			return paramIndex;
 		}
 
@@ -274,66 +286,66 @@ public class Column<T> extends AbstractField<T>
 		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
 		{
 			fromResultSet( results );
-			
+
 			int limit = query.getFieldLimit( field );
-			
-			if ( limit != -1 )
+
+			if (limit != -1)
 			{
 				partial = field.getType().isPartial( value, limit );
 			}
 		}
 
 		@Override
-		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
+		public void postSelect( Model model, SelectQuery<?> query ) throws SQLException
 		{
-			
+
 		}
-		
+
 		@Override
-		public void preSave(Model model) throws SQLException
+		public void preSave( Model model ) throws SQLException
 		{
 			if (field.is( NON_NULL ) && !field.is( GENERATED ) && value == null)
 			{
 				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
 			}
 		}
-		
+
 		@Override
-		public void postSave(Model model) throws SQLException
+		public void postSave( Model model ) throws SQLException
 		{
 
 		}
 
-        @Override
-        public void preDelete(Model model) throws SQLException
-        {
-            
-        }
-
-        @Override
-        public void postDelete(Model model) throws SQLException
-        {
-            
-        }
-		
 		@Override
-		public void serialize(ObjectOutputStream out) throws IOException
+		public void preDelete( Model model ) throws SQLException
+		{
+
+		}
+
+		@Override
+		public void postDelete( Model model ) throws SQLException
+		{
+
+		}
+
+		@Override
+		public void serialize( ObjectOutputStream out ) throws IOException
 		{
 			out.writeObject( value );
 		}
 
 		@Override
-		public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException
+		public void deserialize( ObjectInputStream in ) throws IOException, ClassNotFoundException
 		{
 			value = (T)in.readObject();
 		}
-		
+
 		@Override
 		public Field<T> getField()
 		{
 			return field;
 		}
-		
+
 		@Override
 		public String toString()
 		{

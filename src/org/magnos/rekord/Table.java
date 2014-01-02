@@ -15,7 +15,9 @@ import org.magnos.rekord.key.SingleModelKey;
 import org.magnos.rekord.key.SingleValueKey;
 import org.magnos.rekord.query.DeleteQuery;
 import org.magnos.rekord.query.DynamicInsertQuery;
+import org.magnos.rekord.query.DynamicUpdateQuery;
 import org.magnos.rekord.query.FixedInsertQuery;
+import org.magnos.rekord.query.FixedUpdateQuery;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
@@ -86,7 +88,7 @@ public class Table
 		mapFields( newFields );
 		
 		insert = is(DYNAMICALLY_INSERTED) ? new DynamicInsertQuery( this ) : new FixedInsertQuery( this );
-		update = new UpdateQuery( this );
+		update = is(DYNAMICALLY_UPDATED) ? new DynamicUpdateQuery( this ) : new FixedUpdateQuery( this );
 		delete = new DeleteQuery( this );
 	}
 	

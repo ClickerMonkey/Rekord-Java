@@ -22,6 +22,7 @@ public class TestRekord
 		
 		User u = User.byId( User.Views.SHORT_NAME, 1L );
 		System.out.println( u.getName() );
+		u.delete();
 //		u.save();
 		
 //		User u = User.byId( User.Views.ALL, 1L );

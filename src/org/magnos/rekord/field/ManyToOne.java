@@ -56,6 +56,12 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
+	public void prepareUpdate( UpdateQuery query )
+	{
+		
+	}
+	
+	@Override
 	public Value<T> newValue(Model model)
 	{
 		return new ManyToOneValue<T>( this, model );
@@ -199,15 +205,15 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void fromInsertReturning( ResultSet results ) throws SQLException
-		{
-			
-		}
-		
-		@Override
 		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
 			return paramIndex;
+		}
+		
+		@Override
+		public void fromInsertReturning( ResultSet results ) throws SQLException
+		{
+			
 		}
 		
 		@Override

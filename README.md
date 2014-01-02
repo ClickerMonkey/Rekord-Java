@@ -30,7 +30,7 @@ An ORM for Java with intelligent loading and caching
 - Schema option (global and table level) [default depends on database implementation]
 - Catalog option (global and table level) [default depends on database implementation]
 - ~~Dynamic-Insert option (if a field is given, supply it even if it's generated)~~
-- Dynamic-Update option (only update what has changed)
+- ~~Dynamic-Update option (only update what has changed)~~
 - SelectQuery.list returns LazyList
 - Select-Before-Update (ensure a change hasn't occurred since when the model was loaded)
 - ~~Formula Fields~~
