@@ -29,16 +29,18 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 
 	protected final int fetchSize;
 	protected final boolean cascadeDelete;
+	protected final boolean cascadeSave;
 	protected Table joinTable;
 	protected ForeignColumn<?>[] joinColumns;
 	protected View joinView;
 	
-	public OneToMany( String name, int flags, int fetchSize, boolean cascadeDelete )
+	public OneToMany( String name, int flags, int fetchSize, boolean cascadeDelete, boolean cascadeSave )
 	{
 		super( name, flags );
 		
 		this.fetchSize = fetchSize;
 		this.cascadeDelete = cascadeDelete;
+		this.cascadeSave = cascadeSave;
 	}
 	
 	public void setJoin( Table joinTable, View joinView, ForeignColumn<?> ... joinColumns )
@@ -95,6 +97,11 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
     public boolean isCascadeDelete()
     {
         return cascadeDelete;
+    }
+    
+    public boolean isCascadeSave()
+    {
+        return cascadeSave;
     }
     
     @Override
@@ -243,33 +250,36 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		@Override
 		public void postSave(Model m) throws SQLException
 		{
-			Set<T> removed = value.getRemoved();
-			Set<T> added = value.getAdded();
-			
-			for (T child : removed)
-			{
-				child.delete();
-			}
+		    if (field.isCascadeSave())
+		    {
+		        Set<T> removed = value.getRemoved();
+	            Set<T> added = value.getAdded();
+	            
+	            for (T child : removed)
+	            {
+	                child.delete();
+	            }
 
-			if (value.hasSet())
-			{
-				for (T child : value.getSet())
-				{
-					setModelForeignKey( m, child );
-					child.save();
-				}
-			}
-			else
-			{
-				for (T child : added)
-				{
-					setModelForeignKey( m, child );
-					child.save();
-				}
-			}
-			
-			removed.clear();
-			added.clear();
+	            if (value.hasSet())
+	            {
+	                for (T child : value.getSet())
+	                {
+	                    setModelForeignKey( m, child );
+	                    child.save();
+	                }
+	            }
+	            else
+	            {
+	                for (T child : added)
+	                {
+	                    setModelForeignKey( m, child );
+	                    child.save();
+	                }
+	            }
+	            
+	            removed.clear();
+	            added.clear();
+		    }
 		}
 
         @Override

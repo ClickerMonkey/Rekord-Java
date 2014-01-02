@@ -412,7 +412,8 @@ public class XmlLoader
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
 				c.joinViewName = getAttribute( e, "join-view", "all", true );
 				c.fetchSizeString = getAttribute( e, "fetch-size", "128", true );
-				c.cascadeDelete = TypeBoolean.parse( getAttribute( e, "cascade-delete", "false", true ), "cascade-delete of field " + fieldName + " in table " + table.name );
+				c.cascadeDelete = TypeBoolean.parse( getAttribute( e, "cascade-delete", "true", true ), "cascade-delete of field " + fieldName + " in table " + table.name );
+				c.cascadeSave = TypeBoolean.parse( getAttribute( e, "cascade-save", "true", true ), "cascade-save of field " + fieldName + " in table " + table.name );
 				field = c;
 			}
 			else

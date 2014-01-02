@@ -26,8 +26,8 @@ An ORM for Java with intelligent loading and caching
 - Generic Pointer (distinction field, key)
 - Improve LazyList performance
 - Outer-Join fetching for one-to-one
-- Cascade Save option [default=true]
-- Schema option (global and table level) [default depends on database implementation]
+- ~~Cascade Save option [default=true]~~
+- ~~Schema option (global and table level) [default depends on database implementation]~~
 - Catalog option (global and table level) [default depends on database implementation]
 - ~~Dynamic-Insert option (if a field is given, supply it even if it's generated)~~
 - ~~Dynamic-Update option (only update what has changed)~~

@@ -151,7 +151,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 				}
 				catch (SQLException e)
 				{
-					e.printStackTrace();
+				    throw new RuntimeException( e );
 				}
 			}
 			else if (field.is( NON_NULL ) && value == null)
@@ -286,7 +286,10 @@ public class OneToOne<T extends Model> extends AbstractField<T>
         @Override
         public void preDelete(Model model) throws SQLException
         {
-            
+            if (value != null && value.hasKey())
+            {
+                value.delete();
+            }
         }
 
         @Override

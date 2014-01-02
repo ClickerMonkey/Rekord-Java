@@ -1,7 +1,7 @@
 <rekord>
     <data-source>
         <driver>org.postgresql.Driver</driver>
-        <jdbc-url>jdbc:postgresql://localhost:5432/rekord</jdbc-url>
+        <jdbc-url>jdbc:postgresql://localhost:5432/rekord:currentSchema=public</jdbc-url>
         <user>rekord_user</user>
         <password>rekord_password</password>
     </data-source>

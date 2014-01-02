@@ -15,6 +15,7 @@ class XmlOneToMany extends XmlField
     String[] joinKeyNames;
     String fetchSizeString;
     boolean cascadeDelete;
+    boolean cascadeSave;
 
     int fetchSize;
     XmlTable joinTable;
@@ -61,7 +62,7 @@ class XmlOneToMany extends XmlField
     @Override
     public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {
-        field = new OneToMany( name, flags, fetchSize, cascadeDelete );
+        field = new OneToMany( name, flags, fetchSize, cascadeDelete, cascadeSave );
     }
 
     @SuppressWarnings ("rawtypes" )
