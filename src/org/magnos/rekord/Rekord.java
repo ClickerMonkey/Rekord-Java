@@ -2,9 +2,18 @@
 package org.magnos.rekord;
 
 import java.io.PrintStream;
+import java.math.BigDecimal;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Ref;
+import java.sql.RowId;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +40,7 @@ import org.magnos.rekord.type.TypeTime;
 import org.magnos.rekord.type.TypeTimestamp;
 import org.magnos.rekord.type.TypeXml;
 import org.magnos.rekord.util.ModelCache;
+import org.w3c.dom.Document;
 
 
 /**
@@ -48,6 +58,8 @@ public class Rekord
 	
 	private static Factory<Transaction> transactionFactory;
 	private static ThreadLocal<Transaction> transactionLocal = new ThreadLocal<Transaction>();
+	
+	private static HashMap<Class<?>, Type<?>> typeMap = new HashMap<Class<?>, Type<?>>();
 	
 	private static BitSet logging = new BitSet();
 	private static PrintStream loggingStream = System.out;
@@ -165,6 +177,28 @@ public class Rekord
 	{
 		loggingStream.format( format + "\n", arguments );
 	}
+
+	static
+	{
+	    addType( TypeByte.INSTANCE, Byte.class, byte.class );
+	    addType( TypeShort.INSTANCE, Short.class, short.class );
+	    addType( TypeInteger.INSTANCE, Integer.class, int.class );
+	    addType( TypeString.INSTANCE, Character.class, char.class, String.class );
+	    addType( TypeByteArray.INSTANCE, byte[].class );
+	    addType( TypeBoolean.INSTANCE, Boolean.class, boolean.class );
+	    addType( TypeDate.INSTANCE, Date.class, java.sql.Date.class );
+	    addType( TypeTime.INSTANCE, Time.class );
+	    addType( TypeTimestamp.INSTANCE, Timestamp.class );
+	    addType( TypeDecimal.INSTANCE, BigDecimal.class );
+	    addType( TypeDouble.INSTANCE, Double.class, double.class );
+	    addType( TypeFloat.INSTANCE, Float.class, float.class );
+	    addType( TypeArray.INSTANCE, Array.class );
+	    addType( TypeRowId.INSTANCE, RowId.class );
+	    addType( TypeRef.INSTANCE, Ref.class );
+	    addType( TypeXml.INSTANCE, Document.class );
+	    addType( TypeClob.INSTANCE, Clob.class );
+	    addType( TypeBlob.INSTANCE, Blob.class );
+	}
 	
 	public static Type<?> getType(int sqlType)
     {
@@ -224,6 +258,21 @@ public class Rekord
         default:
             return TypeObject.INSTANCE;
         }
+    }
+    
+    public static void addType( Type<?> type, Class<?> ... classes )
+    {
+        for (Class<?> c : classes)
+        {
+            typeMap.put( c, type );
+        }
+    }
+    
+    public static Type<?> getType( Class<?> clazz )
+    {
+        Type<?> t = typeMap.get( clazz );
+        
+        return (t == null ? TypeObject.INSTANCE : t);
     }
 
 }

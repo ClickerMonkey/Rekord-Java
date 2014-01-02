@@ -8,6 +8,7 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToMany;
 import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.NativeQueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
 
 public class User extends Model
@@ -36,6 +37,12 @@ public class User extends Model
 		public static final View 				WITHOUT_COMMENTS 	= TABLE.getView( "without-comments" );
 		public static final View 				FOR_LINK		 	= TABLE.getView( "for-link" );
 		public static final View 				SHORT_NAME		 	= TABLE.getView( "short-name" );
+	}
+	
+	public static class Query
+	{
+	    public static final NativeQueryTemplate<User>   CREATED_BEFORE      = TABLE.getQuery( "created-before" );
+	    public static final NativeQueryTemplate<User>   UPDATE_STATE        = TABLE.getQuery( "update-state" );
 	}
 	
 	public User()

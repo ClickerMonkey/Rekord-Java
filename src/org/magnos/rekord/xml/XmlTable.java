@@ -1,9 +1,11 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,6 +26,7 @@ class XmlTable extends XmlLoadable
     boolean applicationCached;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
+    List<XmlNativeQuery> nativeQueries = new ArrayList<XmlNativeQuery>();
 
     String historyTable;
     String historyKey;
@@ -49,6 +52,14 @@ class XmlTable extends XmlLoadable
         
         for (XmlField f : fieldMap.values()) f.validate( table, tableMap );
         for (XmlView v : viewMap.values()) v.validate( table, tableMap );
+        
+        for (XmlNativeQuery nq : nativeQueries)
+        {
+            if (nq.view != null && !viewMap.containsKey( nq.view ))
+            {
+                throw new RuntimeException( "Native query " + nq.name + " has view " + nq.view + " specified but it was not found in table " + table.name );
+            }
+        }
     }
 
     @Override
@@ -114,6 +125,11 @@ class XmlTable extends XmlLoadable
         }
         
         table.setViews( views );
+        
+        for (XmlNativeQuery nq : nativeQueries)
+        {
+            table.addNativeQuery( nq.name, nq.query, nq.view );
+        }
     }
     
     private boolean isRelationshipTable()

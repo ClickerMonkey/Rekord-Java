@@ -30,7 +30,7 @@ public abstract class AbstractField<T> implements Field<T>
     
     public String getQuotedName()
     {
-    	return name;
+    	return quotedName;
     }
 
     @Override

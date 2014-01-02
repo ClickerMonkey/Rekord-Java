@@ -141,7 +141,7 @@ public class Column<T> extends AbstractField<T>
 		private final Column<T> field;
 		private boolean changed = false;
 		private boolean partial = false;
-		private boolean defaultValue = true;
+		private boolean defaultValue = false;
 		private T value;
 
 		public ColumnValue( Column<T> field )
@@ -167,6 +167,11 @@ public class Column<T> extends AbstractField<T>
 				{
 					throw new RuntimeException( e );
 				}
+			} 
+			else if (value == null)
+			{
+			    value = field.getDefaultValue();
+			    defaultValue = true; 
 			}
 
 			return value;
@@ -232,7 +237,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void prepareDynamicInsert( InsertQuery query )
 		{
-			if (field.is( HAS_DEFAULT ) && !hasValue())
+			if (field.is( HAS_DEFAULT ) && defaultValue)
 			{
 				query.addReturning( field.getName() );
 			}
@@ -245,7 +250,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
 		{
-			if (!field.is( HAS_DEFAULT ) || (hasValue() && !defaultValue))
+			if (!field.is( HAS_DEFAULT ) || !defaultValue)
 			{
 				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
 			}
@@ -256,7 +261,7 @@ public class Column<T> extends AbstractField<T>
 		@Override
 		public void fromInsertReturning( ResultSet results ) throws SQLException
 		{
-			if (field.is( GENERATED ))
+			if (field.is( HAS_DEFAULT ) && defaultValue)
 			{
 				fromResultSet( results );
 			}

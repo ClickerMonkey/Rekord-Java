@@ -13,7 +13,7 @@ An ORM for Java with intelligent loading and caching
   - Salted Encrypted Fields
 - ~~Partial Selection (like the first 100 characters of a text field)~~
 - ~~Application Caching (opposed to transaction caching)~~
-- Native Queries
+- ~~Native Queries~~
 
 #### Simple Changes
 - Model has BitSet of set values to quickly know that it already has a view

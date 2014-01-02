@@ -1,12 +1,13 @@
 
 package org.magnos.rekord.type;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.magnos.rekord.Type;
 
@@ -53,7 +54,14 @@ public class TypeDate implements Type<Date>
     @Override
     public void toPreparedStatement( PreparedStatement preparedStatement, Date value, int paramIndex ) throws SQLException
     {
-        preparedStatement.setDate( paramIndex, value );
+        if (value == null)
+        {
+            preparedStatement.setNull( paramIndex, Types.DATE );
+        }
+        else
+        {
+            preparedStatement.setDate( paramIndex, new java.sql.Date( value.getTime() ) );
+        }
     }
 
     @Override

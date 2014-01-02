@@ -53,6 +53,8 @@ public class XmlLoader
 	private static final String TAG_CONVERTER_CLASSES = "converter-classes";
 	private static final String TAG_CONVERTER_CLASS = "converter-class";
 	private static final String TAG_CONVERTERS = "converters";
+	private static final String TAG_NATIVE_QUERIES = "native-queries";
+	private static final String TAG_QUERY = "query";
 	
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
 	
@@ -325,6 +327,10 @@ public class XmlLoader
 			{
 				loadHistory( e, table );
 			}
+			else if (tag.equals( TAG_NATIVE_QUERIES ))
+			{
+			    loadNativeQueries( e, table );
+			}
 			else
 			{
 				unexpectedTag( tableElement, e );
@@ -476,6 +482,29 @@ public class XmlLoader
 		table.historyKey = getAttribute( history, "key", null, false );
 		table.historyTimestamp = getAttribute( history, "timestamp", null, false );
 		table.historyColumnNames = split( getAttribute( history, "columns", null, true ) );
+	}
+	
+	private void loadNativeQueries( Element nativeQueries, XmlTable table )
+	{
+	    XmlIterator<Element> nodes = new XmlIterator<Element>( nativeQueries );
+	    
+	    for (Element e : nodes)
+	    {
+	        String tag = e.getTagName().toLowerCase();
+	        
+	        if (tag.equals( TAG_QUERY ))
+	        {
+	            XmlNativeQuery nq = new XmlNativeQuery();
+	            nq.name = getAttribute( e, "name", null, true );
+	            nq.view = getAttribute( e, "view", null, false );
+	            nq.query = e.getTextContent().trim();
+	            table.nativeQueries.add( nq );
+	        }
+	        else
+	        {
+	            unexpectedTag( nativeQueries, e );
+	        }
+	    }
 	}
 	
 	private void unexpectedTag( Element parent, Element child )

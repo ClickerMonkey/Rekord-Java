@@ -479,12 +479,15 @@ public class SelectQuery<M extends Model>
             
             populate( results, model, view, fields );
             
-            trans.cache( model );
-            
-            Rekord.log( Logging.CACHING, "to-cache: %s", model );
+            if (trans.cache( model ))
+            {
+                Rekord.log( Logging.CACHING, "to-cache: %s", model );    
+            }
         }
         else
         {
+            model.load( view );
+            
             Rekord.log( Logging.CACHING, "from-cache: %s", model );
         }
 

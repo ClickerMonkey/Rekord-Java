@@ -1,7 +1,7 @@
 <rekord>
     <data-source>
         <driver>org.postgresql.Driver</driver>
-        <jdbc-url>jdbc:postgresql://localhost:5432/rekord:currentSchema=public</jdbc-url>
+        <jdbc-url>jdbc:postgresql://localhost:5432/rekord</jdbc-url>
         <user>rekord_user</user>
         <password>rekord_password</password>
     </data-source>
@@ -41,6 +41,14 @@
             <view name="for-link" fields="id, name" />
             <view name="short-name" fields="id, name(3)" />
         </views>
+        <native-queries>
+            <query name="created-before" view="for-link"><![CDATA[
+                SELECT #id, #name FROM "user" WHERE "created_timestamp" < ?date
+            ]]></query>
+            <query name="update-state"><![CDATA[
+                UPDATE "user" SET "state" = ?new_state WHERE "id" = ?id
+            ]]></query>
+        </native-queries>
         <history table="user_history" timestamp="user_history_timestamp" columns="id, name" />
     </table>
     
