@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
 public interface Value<T>
@@ -29,8 +28,8 @@ public interface Value<T>
 	public void prepareDynamicUpdate(UpdateQuery query);
 	public int toUpdate(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
 	
-	public void fromSelect(ResultSet results, SelectQuery<?> query) throws SQLException;
-	public void postSelect(Model model, SelectQuery<?> query) throws SQLException;
+	public void fromSelect(ResultSet results, FieldView fieldView) throws SQLException;
+	public void postSelect(Model model, FieldView fieldView) throws SQLException;
 	
 	public void fromResultSet(ResultSet results) throws SQLException;
 	public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException;

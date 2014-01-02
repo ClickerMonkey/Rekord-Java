@@ -218,13 +218,13 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
+		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
 		{
 			
 		}
 
 		@Override
-		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
+		public void postSelect(Model model, FieldView fieldView) throws SQLException
 		{
 			
 		}

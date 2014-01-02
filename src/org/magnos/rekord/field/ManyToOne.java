@@ -147,7 +147,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 			{
 				try
 				{
-					loadFromKey( field.getJoinView() );	
+					loadFromKey( FieldView.DEFAULT );	
 				}
 				catch (SQLException e)
 				{
@@ -229,17 +229,17 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
+		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
 		{
 			
 		}
 		
 		@Override
-		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
+		public void postSelect(Model model, FieldView fieldView) throws SQLException
 		{
 			if (!field.is(LAZY) && getKey().exists())
 			{
-				loadFromKey( query.getView() );
+				loadFromKey( fieldView );
 			}
 		}
 		
@@ -279,13 +279,13 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
             
         }
 		
-		private void loadFromKey( View parentView ) throws SQLException
+		private void loadFromKey( FieldView fieldView ) throws SQLException
 		{
 			Key key = getKey();
 			Transaction trans = Rekord.getTransaction();
 			value = trans.getCached( field.getJoinTable(), key );
 			
-			View view = View.coalesce( parentView, null, field.getJoinView(), field );
+			View view = fieldView.getView( field.getJoinView() );
 			
 			if (value == null)
 			{

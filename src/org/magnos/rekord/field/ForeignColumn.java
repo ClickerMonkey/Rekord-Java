@@ -186,13 +186,13 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
+		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
 		{
 			fromResultSet( results );
 		}
 
 		@Override
-		public void postSelect(Model model, SelectQuery<?> query) throws SQLException
+		public void postSelect(Model model, FieldView fieldView) throws SQLException
 		{
 			
 		}

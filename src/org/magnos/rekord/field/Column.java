@@ -283,11 +283,11 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results, SelectQuery<?> query ) throws SQLException
+		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
 		{
 			fromResultSet( results );
 
-			int limit = query.getFieldLimit( field );
+			int limit = fieldView.getLimit();
 
 			if (limit != -1)
 			{
@@ -296,7 +296,7 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void postSelect( Model model, SelectQuery<?> query ) throws SQLException
+		public void postSelect( Model model, FieldView fieldView ) throws SQLException
 		{
 
 		}

@@ -332,56 +332,27 @@ public class SelectQuery<M extends Model>
 		
 		return out;
 	}
+    
+    public void postSelect(Collection<M> collection) throws SQLException
+    {
+        postSelect( collection, view, selectFields );
+    }
+    
+    public void postSelect(M model) throws SQLException
+    {
+        postSelect( model, view, selectFields );
+    }
 	
 	private M fromResultSet(ResultSet results) throws SQLException
 	{
-		final Transaction trans = Rekord.getTransaction();
-		final Key key = table.keyFromResults( results );
-		
-		M model = trans.getCached( table, key );
-		
-		if (model == null)
-		{
-			model = table.newModel();
-			
-			populate( results, model );
-			
-			trans.cache( model );
-			
-			Rekord.log( Logging.CACHING, "to-cache: %s", model );
-		}
-		else
-		{
-			Rekord.log( Logging.CACHING, "from-cache: %s", model );
-		}
-
-		return model;
+	    return fromResultSet( results, table, view, selectFields );
 	}
 	
 	public void populate( ResultSet results, Model model ) throws SQLException
 	{
-		for (Field<?> f : selectFields)
-		{
-			model.valueOf( f ).fromSelect( results, this );
-		}
+	    populate( results, model, view, selectFields );
 	}
 	
-	public void postSelect(Collection<M> collection) throws SQLException
-	{
-		for (M model : collection)
-		{
-			postSelect( model );
-		}
-	}
-	
-	public void postSelect(M model) throws SQLException
-	{
-		for (Field<?> f : selectFields)
-		{
-			model.valueOf( f ).postSelect( model, this );
-		}
-	}
-
 	public <I, O> O grab( String columnName, Type<I> type, Converter<I, O> converter ) throws SQLException
 	{
 		ResultSet results = getResults( columnName, ordering.toString(), limit, offset );
@@ -454,7 +425,6 @@ public class SelectQuery<M extends Model>
 		return count;
 	}
 	
-	
 	public boolean any() throws SQLException
 	{
 		ResultSet results = getResults( "1", null, 1L, null );
@@ -470,5 +440,99 @@ public class SelectQuery<M extends Model>
 	}
 	
 	
+	
+	
+	public static <M extends Model, C extends Collection<M>> C collect(ResultSet results, Table table, View view, List<Field<?>> fields, C out, boolean callPostSelect) throws SQLException
+    {
+        try 
+        {
+            while (results.next())
+            {
+                M model = fromResultSet( results, table, view, fields ); 
+                
+                out.add( model );
+            }
+        }
+        finally
+        {
+            results.close();
+        }
+        
+        if (callPostSelect)
+        {
+            postSelect( out, view, fields );
+        }
+        
+        return out;
+    }
+	
+	public static <M extends Model> M fromResultSet(ResultSet results, Table table, View view, List<Field<?>> fields) throws SQLException
+    {
+        final Transaction trans = Rekord.getTransaction();
+        final Key key = table.keyFromResults( results );
+        
+        M model = trans.getCached( table, key );
+        
+        if (model == null)
+        {
+            model = table.newModel();
+            
+            populate( results, model, view, fields );
+            
+            trans.cache( model );
+            
+            Rekord.log( Logging.CACHING, "to-cache: %s", model );
+        }
+        else
+        {
+            Rekord.log( Logging.CACHING, "from-cache: %s", model );
+        }
+
+        return model;
+    }
+    
+    public static void populate( ResultSet results, Model model, View view, List<Field<?>> fields) throws SQLException
+    {
+        if (view != null)
+        {
+            for (Field<?> f : fields)
+            {
+                model.valueOf( f ).fromSelect( results, view.getFieldView( f ) );
+            }    
+        }
+        else
+        {
+            for (Field<?> f : fields)
+            {
+                model.valueOf( f ).fromSelect( results, FieldView.DEFAULT );
+            }  
+        }
+    }
+    
+    public static <M extends Model> void postSelect(Collection<M> collection, View view, List<Field<?>> fields) throws SQLException
+    {
+        for (M model : collection)
+        {
+            postSelect( model, view, fields );
+        }
+    }
+    
+    public static <M extends Model> void postSelect(M model, View view, List<Field<?>> fields) throws SQLException
+    {
+        if (view != null)
+        {
+            for (Field<?> f : fields)
+            {
+                model.valueOf( f ).postSelect( model, view.getFieldView( f ) );
+            }
+        }
+        else
+        {
+            for (Field<?> f : fields)
+            {
+                model.valueOf( f ).postSelect( model, FieldView.DEFAULT );
+            }
+        }
+    }
 
 }

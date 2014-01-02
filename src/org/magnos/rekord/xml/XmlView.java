@@ -77,10 +77,11 @@ class XmlView extends XmlLoadable
     		
     		if (xfv != null)
     		{
-    			FieldView fv = new FieldView();
-    			fv.setView( xfv.view != null ? xfv.view.view : null );
-    			fv.setLimit( xfv.limitNumber );
-    			view.getFieldViews()[i] = fv;
+    			view.getFieldViews()[i] = new FieldView( xfv.view != null ? xfv.view.view : null, xfv.limitNumber );
+    		}
+    		else
+    		{
+    		    view.getFieldViews()[i] = FieldView.DEFAULT;
     		}
     	}
     }
