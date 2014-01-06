@@ -15,7 +15,6 @@ import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.SqlUtil;
 
@@ -32,9 +31,15 @@ public class ForeignColumn<T> extends Column<T>
 	}
 
 	@Override
-	public void prepareSelect(SelectQuery<?> query)
+	public boolean isSelectable()
 	{
-		query.select( this, getSelectionExpression() );
+		return true;
+	}
+	
+	@Override
+	public String getSelectionExpression(FieldView fieldView)
+	{
+		return getSelectionExpression();
 	}
 
 	@Override
@@ -135,7 +140,8 @@ public class ForeignColumn<T> extends Column<T>
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
 			
-			value = converter.convertFrom( type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) ) );
+			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
+			value = converter.convertFrom( databaseValue );
 		}
 		
 		@Override

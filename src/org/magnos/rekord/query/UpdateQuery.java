@@ -5,15 +5,16 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
+import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.condition.Condition;
-import org.magnos.rekord.condition.Conditions;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.condition.Condition;
+import org.magnos.rekord.query.condition.Conditions;
 import org.magnos.rekord.util.SqlUtil;
 
 public abstract class UpdateQuery
@@ -100,6 +101,8 @@ public abstract class UpdateQuery
 	
 	protected void preSave( Model model ) throws SQLException
 	{
+		model.getTable().notifyListeners( model, ListenerEvent.PRE_UPDATE );
+		
 		for (Value<?> v : model.getValues())
 		{
 			v.preSave( model );
@@ -150,6 +153,8 @@ public abstract class UpdateQuery
 		{
 			v.postSave( model );
 		}
+		
+		model.getTable().notifyListeners( model, ListenerEvent.POST_UPDATE );
 		
 		return recordsUpdated;
 	}

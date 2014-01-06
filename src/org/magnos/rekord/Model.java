@@ -11,9 +11,8 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.util.SqlUtil;
 
 
 public class Model implements Serializable
@@ -135,27 +134,10 @@ public class Model implements Serializable
 		String historyKey = history.getHistoryKey();
 		String historyTimestamp = history.getHistoryTimestamp();
 		
-		SelectQuery<T> query = new SelectQuery<T>( table );
+		Query<Model> query = history.getQuery().create();
+		query.bind( this );
 		
-		query.from( SqlUtil.namify( history.getHistoryTable() ) );
-		query.select( historyKey );
-		query.select( historyTimestamp );
-		
-		for (Column<?> historyColumn : history.getHistoryColumns())
-		{
-			query.select( historyColumn, historyColumn.getQuotedName() );
-		}
-		
-		if (history.getHistoryTimestamp() != null)
-		{
-			query.orderBy( history.getHistoryTimestamp(), Order.ASC );	
-		}
-		else if (history.getHistoryKey() != null)
-		{
-			query.orderBy( history.getHistoryKey(), Order.ASC );
-		}
-		
-		ResultSet results = query.getResults( null, null, null );
+		ResultSet results = query.getResults();
 		
 		try
 		{

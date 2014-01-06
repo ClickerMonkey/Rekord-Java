@@ -3,30 +3,45 @@ package org.magnos.rekord;
 
 public class FieldView
 {
-    public static final FieldView DEFAULT = new FieldView(null, -1);
-    
-	private View view;
-	private int limit = -1;
+	public static final FieldView DEFAULT = new FieldView();
 
-	public FieldView(View view, int limit)
+	private View view;
+	private int limit;
+
+	public FieldView()
 	{
-	    this.view = view;
-	    this.limit = limit;
+		this( null, -1 );
 	}
-	
+
+	public FieldView( View view, int limit )
+	{
+		this.view = view;
+		this.limit = limit;
+	}
+
 	public View getView()
 	{
 		return view;
 	}
-	
-	public View getView(View defaultView)
+
+	public void setView( View view )
 	{
-	    return (view != null ? view : defaultView);
+		this.view = view;
+	}
+
+	public View getView( View defaultView )
+	{
+		return (view != null ? view : defaultView);
 	}
 
 	public int getLimit()
 	{
 		return limit;
+	}
+
+	public void setLimit( int limit )
+	{
+		this.limit = limit;
 	}
 
 }

@@ -6,20 +6,19 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.magnos.rekord.condition.Condition;
-import org.magnos.rekord.condition.Conditions;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.key.MultiModelKey;
 import org.magnos.rekord.key.MultiValueKey;
 import org.magnos.rekord.key.SingleModelKey;
 import org.magnos.rekord.key.SingleValueKey;
-import org.magnos.rekord.query.DeleteQuery;
+import org.magnos.rekord.query.ModelDeleteQuery;
 import org.magnos.rekord.query.DynamicInsertQuery;
 import org.magnos.rekord.query.DynamicUpdateQuery;
 import org.magnos.rekord.query.FixedInsertQuery;
 import org.magnos.rekord.query.FixedUpdateQuery;
 import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.NativeQueryTemplate;
+import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
 import org.magnos.rekord.util.SqlUtil;
@@ -48,15 +47,15 @@ public class Table
     protected Field<?>[] fields = {};
     protected InsertQuery insert;
     protected UpdateQuery update;
-    protected DeleteQuery delete;
-    protected Condition keyCondition;
+    protected ModelDeleteQuery delete;
     protected Map<String, Field<?>> fieldMap;
     protected View[] views;
     protected Map<String, View> viewMap;
     protected HistoryTable history;
     protected View viewAll;
     protected View viewId;
-    protected Map<String, NativeQueryTemplate<?>> nativeQueries;
+    protected Map<String, QueryTemplate<?>> queries;
+    protected Listener<Model>[][] listeners;
 
     public Table( String table, int flags, Column<?>... keyColumns )
     {
@@ -76,10 +75,10 @@ public class Table
         this.index = Rekord.newTable( this );
         this.fieldMap = new HashMap<String, Field<?>>();
         this.viewMap = new HashMap<String, View>();
-        this.nativeQueries = new HashMap<String, NativeQueryTemplate<?>>();
+        this.queries = new HashMap<String, QueryTemplate<?>>();
         this.keyColumns = id;
         this.fields = existingFields;
-        this.keyCondition = Conditions.where( id );
+        this.listeners = new Listener[ ListenerEvent.values().length ][];
         this.mapFields( existingFields );
     }
 
@@ -93,7 +92,7 @@ public class Table
 
         insert = is( DYNAMICALLY_INSERTED ) ? new DynamicInsertQuery( this ) : new FixedInsertQuery( this );
         update = is( DYNAMICALLY_UPDATED ) ? new DynamicUpdateQuery( this ) : new FixedUpdateQuery( this );
-        delete = new DeleteQuery( this );
+        delete = new ModelDeleteQuery( this );
     }
 
     public void setViews( View... newViews )
@@ -107,6 +106,22 @@ public class Table
 
         viewAll = viewMap.get( "all" );
         viewId = viewMap.get( "id" );
+    }
+    
+    public void addListener(Listener<Model> listener, ListenerEvent e)
+    {
+    	int i = e.ordinal();
+    	listeners[i] = ArrayUtil.add( listener, listeners[i] );
+    }
+    
+    public void notifyListeners(Model model, ListenerEvent e)
+    {
+    	int i = e.ordinal();
+    	
+    	for (Listener<Model> l : listeners[i])
+    	{
+    		l.onEvent( model, e );
+    	}
     }
 
     private void registerFields( int start )
@@ -131,9 +146,18 @@ public class Table
         }
     }
 
-    public void addNativeQuery( String name, String query, String viewName )
+    public Table addNativeQuery( String name, String query, String viewName )
     {
-        nativeQueries.put( name, new NativeQueryTemplate<Model>( name, this, query, getView( viewName ) ) );
+    	queries.put( name, NativeQuery.parse( this, query, getView( viewName ) ) );
+    	
+    	return this;
+    }
+    
+    public Table addQuery( String name, QueryTemplate<Model> queryTemplate )
+    {
+    	queries.put( name, queryTemplate );
+    	
+    	return this;
     }
 
     public Value<?>[] newValues( Model model )
@@ -201,11 +225,6 @@ public class Table
         return keyColumns.length;
     }
 
-    public Condition getKeyCondition()
-    {
-        return keyCondition;
-    }
-
     public InsertQuery getInsert()
     {
         return insert;
@@ -216,7 +235,7 @@ public class Table
         return update;
     }
 
-    public DeleteQuery getDelete()
+    public ModelDeleteQuery getDelete()
     {
         return delete;
     }
@@ -246,9 +265,9 @@ public class Table
         return viewMap.get( name );
     }
 
-    public <T extends Model> NativeQueryTemplate<T> getQuery( String name )
+    public <T extends Model> QueryTemplate<T> getQuery( String name )
     {
-        return (NativeQueryTemplate<T>)nativeQueries.get( name );
+        return (QueryTemplate<T>)queries.get( name );
     }
 
     public HistoryTable getHistory()

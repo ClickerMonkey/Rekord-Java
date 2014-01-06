@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
+import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
@@ -92,6 +93,8 @@ public abstract class InsertQuery
 	
 	protected boolean executeInsert( Model model ) throws SQLException
 	{
+		model.getTable().notifyListeners( model, ListenerEvent.PRE_INSERT );
+		
 		final Value<?>[] values = model.getValues();
 
 		for (Value<?> v : values)
@@ -145,6 +148,8 @@ public abstract class InsertQuery
 			v.postSave( model );
 			v.clearChanges();
 		}
+		
+		model.getTable().notifyListeners( model, ListenerEvent.POST_INSERT );
 
 		return recordsInserted;
 	}

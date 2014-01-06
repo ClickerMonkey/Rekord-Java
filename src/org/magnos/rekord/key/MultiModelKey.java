@@ -8,7 +8,6 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.field.Column;
 
 public class MultiModelKey implements Key
@@ -69,12 +68,6 @@ public class MultiModelKey implements Key
 	public Column<?> fieldAt( int index )
 	{
 		return (Column<?>)values[ index ].getField();
-	}
-
-	@Override
-	public Condition condition()
-	{
-		return model.getTable().getKeyCondition();
 	}
 
 	@Override

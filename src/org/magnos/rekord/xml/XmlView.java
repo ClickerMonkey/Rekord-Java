@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldView;
 import org.magnos.rekord.View;
 
@@ -65,7 +66,16 @@ class XmlView extends XmlLoadable
     @Override
     public void instantiateViewImplementation()
     {
-        view = new View( name, XmlLoader.getFields( fields ), new FieldView[ fieldViews.length ] );
+    	Field<?>[] fieldArray = XmlLoader.getFields( fields );
+    	
+    	FieldView[] fieldViewArray = new FieldView[ fieldViews.length ];
+    	
+    	for (int i = 0; i < fieldArray.length; i++)
+    	{
+    		fieldViewArray[i] = new FieldView();
+    	}
+    	
+        view = new View( name, fieldArray, fieldViewArray );
     }
 
     @Override
@@ -74,14 +84,16 @@ class XmlView extends XmlLoadable
     	for (int i = 0; i < fieldViews.length; i++)
     	{
     		XmlFieldView xfv = fieldViews[i];
+    		FieldView fv = view.getFieldViews()[i];
     		
     		if (xfv != null)
     		{
-    			view.getFieldViews()[i] = new FieldView( xfv.view != null ? xfv.view.view : null, xfv.limitNumber );
-    		}
-    		else
-    		{
-    		    view.getFieldViews()[i] = FieldView.DEFAULT;
+    			if (xfv.view != null)
+    			{
+    				fv.setView( xfv.view.view );
+    			}
+    			
+    			fv.setLimit( xfv.limitNumber );
     		}
     	}
     }

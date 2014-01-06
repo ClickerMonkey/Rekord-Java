@@ -8,7 +8,6 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.field.Column;
 
 public class SingleModelKey implements Key 
@@ -61,12 +60,6 @@ public class SingleModelKey implements Key
 	public Column<?> fieldAt( int index )
 	{
 		return (Column<?>)value.getField();
-	}
-
-	@Override
-	public Condition condition()
-	{
-		return model.getTable().getKeyCondition();
 	}
 
 	@Override

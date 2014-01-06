@@ -1,6 +1,8 @@
 
 package org.magnos.rekord;
 
+import org.magnos.rekord.query.Selection;
+
 
 
 public class View
@@ -9,12 +11,14 @@ public class View
 	private final String name;
 	private final Field<?>[] fields;
 	private final FieldView[] fieldViews;
+	private final Selection selection;
 
 	public View( String name, Field<?>[] fields, FieldView[] fieldViews )
 	{
 		this.name = name;
 		this.fields = fields;
 		this.fieldViews = fieldViews;
+		this.selection = Selection.fromView( this );
 	}
 
 	public FieldView getFieldView( Field<?> f )
@@ -42,6 +46,11 @@ public class View
 	public FieldView[] getFieldViews()
 	{
 		return fieldViews;
+	}
+	
+	public Selection getSelection()
+	{
+		return selection;
 	}
 	
 	@Override

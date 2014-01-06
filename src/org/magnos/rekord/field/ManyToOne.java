@@ -41,12 +41,15 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareSelect( SelectQuery<?> query )
+	public boolean isSelectable()
 	{
-		if (!is(LAZY))
-		{
-			query.addPostSelectField( this );
-		}
+		return !is(LAZY);
+	}
+	
+	@Override
+	public String getSelectionExpression(FieldView fieldView)
+	{
+		return null;
 	}
 
 	@Override

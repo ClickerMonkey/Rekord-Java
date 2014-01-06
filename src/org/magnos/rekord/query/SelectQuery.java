@@ -22,14 +22,14 @@ import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.View;
-import org.magnos.rekord.condition.AndCondition;
-import org.magnos.rekord.condition.Condition;
-import org.magnos.rekord.condition.OperatorCondition;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.query.condition.Condition;
+import org.magnos.rekord.query.condition.OperatorCondition;
+import org.magnos.rekord.query.expr.GroupExpression;
 
 
-public class SelectQuery<M extends Model>
+public class SelectQuery<M extends Model> extends GroupExpression
 {
 
 	protected Table table;
@@ -60,71 +60,6 @@ public class SelectQuery<M extends Model>
 	public SelectQuery<M> from( String from )
 	{
 		this.from = from;
-		
-		return this;
-	}
-
-	public SelectQuery<M> select( Table table )
-	{
-		for (Field<?> f : table.getFields())
-		{
-			f.prepareSelect( this );
-		}
-
-		return this;
-	}
-
-	public SelectQuery<M> select( View view )
-	{
-		this.view = view;
-		
-		for (Field<?> f : view.getFields())
-		{
-			f.prepareSelect( this );
-		}
-		
-		return this;
-	}
-
-	public SelectQuery<M> addPostSelectField( Field<?> field )
-	{
-		selectFields.add( field );
-		
-		return this;
-	}
-	
-	public SelectQuery<M> select( String selector )
-	{
-		if (selector != null && selector.length() > 0)
-		{
-			if (selecting.length() > 0)
-			{
-				selecting.append( ", " );
-			}
-			
-			selecting.append( selector );	
-		}
-		
-		return this;
-	}
-	
-	public SelectQuery<M> select( Field<?> field, String selector )
-	{
-		select( selector );
-
-		selectFields.add( field );
-
-		return this;
-	}
-	
-	public SelectQuery<M> select( Key key )
-	{
-		for (int i = 0; i < key.size(); i++)
-		{
-			Column<?> c = key.fieldAt( i );
-			
-			select( c, "?" );
-		}
 		
 		return this;
 	}
@@ -200,6 +135,8 @@ public class SelectQuery<M extends Model>
 	{
 		this.view = view;
 	}
+	
+	public GroupExpression
 
 	public <T> SelectQuery<M> by(Column<T> column, T value)
 	{

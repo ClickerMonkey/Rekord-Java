@@ -1,7 +1,6 @@
 package org.magnos.rekord;
 
 import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
 
@@ -13,8 +12,11 @@ public interface Field<T>
     public static final int HAS_DEFAULT = 1 << 3;
     public static final int LAZY        = 1 << 4;
     public static final int NON_NULL    = 1 << 5;
+    public static final int MODEL    	= 1 << 6;
+    public static final int MODEL_LIST	= 1 << 7;
     
 	public String getName();
+	public String getQuotedName();
 	
 	public int getIndex();
 	public void setIndex(int index);
@@ -27,7 +29,9 @@ public interface Field<T>
 	
 	public Value<T> newValue(Model model);
 	
-	public void prepareSelect(SelectQuery<?> query);
+	public boolean isSelectable();
+	public String getSelectionExpression(FieldView fieldView);
+	
 	public void prepareInsert(InsertQuery query);
 	public void prepareUpdate(UpdateQuery query);
 }

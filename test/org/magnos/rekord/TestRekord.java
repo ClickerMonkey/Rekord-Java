@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.junit.Test;
-import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.Query;
 import org.magnos.rekord.xml.XmlLoader;
 
 public class TestRekord
@@ -46,23 +46,28 @@ public class TestRekord
 //		System.out.println( u );
 		
 /* NativeQuery */
-		NativeQuery<User> nq = User.Query.CREATED_BEFORE.create();
-	        
-        System.out.println( nq.getQuery().getQuery() );
+		Query<User> nq = User.Query.CREATED_BEFORE.create();
+		nq.bind( "date", new Timestamp( System.currentTimeMillis() ) );
+		
+		System.out.println( nq.getReadableQuery() );
+		
+		String name = nq.first( User.NAME );
+        System.out.println( name );
         
-        nq.set( "date", new Timestamp( System.currentTimeMillis() ) );
-        
-        List<User> users = nq.executeQuery();
+        List<User> users = nq.list();
 
+        System.out.println( users );
+        
         User u = users.get( 0 );
         
         trans.start();
         
-        NativeQuery<User> us = User.Query.UPDATE_STATE.create();
+        Query<User> us = User.Query.UPDATE_STATE.create();
         us.bind( u );
-        us.set( "new_state", "R" );
+        us.bind( "new_state", "R" );
         us.executeUpdate();
 /**/
+        
 		
 		trans.end( false );
 		trans.close();

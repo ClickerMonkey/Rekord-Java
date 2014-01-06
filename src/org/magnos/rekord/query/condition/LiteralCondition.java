@@ -1,9 +1,9 @@
-package org.magnos.rekord.condition;
+package org.magnos.rekord.query.condition;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.magnos.rekord.field.Column;
+import org.magnos.rekord.Field;
 
 public class LiteralCondition implements Condition
 {
@@ -27,9 +27,14 @@ public class LiteralCondition implements Condition
 		return paramIndex;
 	}
 	
-	public static LiteralCondition forNullColumn(Column<?> column)
+	public static LiteralCondition forNull(Field<?> field)
 	{
-		return new LiteralCondition( column.getQuotedName() + " IS NULL" );
+		return new LiteralCondition( field.getQuotedName() + " IS NULL" );
+	}
+	
+	public static LiteralCondition forNotNull(Field<?> field)
+	{
+		return new LiteralCondition( field.getQuotedName() + " IS NOT NULL" );
 	}
 
 }

@@ -41,23 +41,24 @@ public class Column<T> extends AbstractField<T>
 		this.defaultValue = defaultValue;
 		this.converter = converter;
 	}
-
+	
 	@Override
-	public void prepareSelect( SelectQuery<?> query )
+	public boolean isSelectable()
 	{
-		if (!is( LAZY ))
-		{
-			int limit = query.getFieldLimit( this );
+		return !is(LAZY);
+	}
+	
+	@Override
+	public String getSelectionExpression(FieldView fieldView)
+	{
+		int limit = fieldView.getLimit();
 
-			if (limit != -1)
-			{
-				query.select( this, type.getPartialExpression( getSelectionExpression(), limit, quotedName ) );
-			}
-			else
-			{
-				query.select( this, getSelectionExpression() );
-			}
+		if (limit == -1)
+		{
+			return getSelectionExpression();
 		}
+		
+		return type.getPartialExpression( getSelectionExpression(), limit, quotedName );	
 	}
 
 	@Override
@@ -213,7 +214,8 @@ public class Column<T> extends AbstractField<T>
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
 
-			value = converter.convertFrom( type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) ) );
+			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
+			value = converter.convertFrom( databaseValue );
 			defaultValue = false;
 		}
 

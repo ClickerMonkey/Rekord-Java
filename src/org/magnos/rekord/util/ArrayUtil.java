@@ -1,6 +1,7 @@
 package org.magnos.rekord.util;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
 public class ArrayUtil
 {
@@ -33,6 +34,13 @@ public class ArrayUtil
 		}
 		
 		return joined;
+	}
+	
+	public static <T> T[] add(T element, T ... array)
+	{
+		array = Arrays.copyOf( array, array.length + 1 );
+		array[ array.length - 1 ] = element;
+		return array;
 	}
 	
 }

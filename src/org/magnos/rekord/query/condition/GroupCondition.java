@@ -1,20 +1,22 @@
-package org.magnos.rekord.condition;
+package org.magnos.rekord.query.condition;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class AndCondition implements Condition
+public class GroupCondition implements Condition
 {
-
-	public Condition[] conditions;
 	
-	public AndCondition(Condition ... conditions)
+	public final String delimiter;
+	public final Condition[] conditions;
+	
+	public GroupCondition(String delimiter, Condition ... conditions) 
 	{
+		this.delimiter = delimiter;
 		this.conditions = conditions;
 	}
-	
+
 	@Override
-	public void toQuery(StringBuilder query)
+	public void toQuery( StringBuilder query )
 	{
 		query.append( "(" );
 		
@@ -22,7 +24,7 @@ public class AndCondition implements Condition
 		{
 			if (i > 0)
 			{
-				query.append( " AND " );
+				query.append( delimiter );
 			}
 			
 			conditions[i].toQuery( query );

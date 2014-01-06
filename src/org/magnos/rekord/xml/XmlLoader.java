@@ -18,6 +18,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
+import org.magnos.rekord.Listener;
+import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.type.TypeBoolean;
@@ -55,6 +57,9 @@ public class XmlLoader
 	private static final String TAG_CONVERTERS = "converters";
 	private static final String TAG_NATIVE_QUERIES = "native-queries";
 	private static final String TAG_QUERY = "query";
+	private static final String TAG_LISTENER_CLASSES = "listener-classes";
+	private static final String TAG_LISTENER_CLASS = "listener-class";
+	private static final String TAG_LISTENERS = "listeners";
 	
 	private static final Map<String, Integer> LOGGINGS = new HashMap<String, Integer>();
 	
@@ -102,6 +107,7 @@ public class XmlLoader
 		Map<String, XmlTable> tableMap = new LinkedHashMap<String, XmlTable>();
 		Set<String> classesSet = new HashSet<String>();
 		Map<String, XmlConverterClass> converterClasses = new HashMap<String, XmlConverterClass>();
+		Map<String, XmlListenerClass> listenerClasses = new HashMap<String, XmlListenerClass>();
 		Map<String, Converter<?, ?>> converters = new HashMap<String, Converter<?, ?>>();
 		
 		for (Element e : nodes)
@@ -120,6 +126,10 @@ public class XmlLoader
             {
                 loadConverterClasses( e, converterClasses );
             }
+            else if (tag.equals( TAG_LISTENER_CLASSES ))
+            {
+            	loadListenerClasses( e, listenerClasses );
+            }
             else if (tag.equals( TAG_CONVERTERS ))
             {
                 loadConverters( e, converterClasses, converters );
@@ -130,7 +140,7 @@ public class XmlLoader
             }
 			else if (tag.equals( TAG_TABLE ))
 			{
-				XmlTable t = loadTable( e );
+				XmlTable t = loadTable( e, listenerClasses );
 				tableMap.put( t.name, t );
 			}
 			else
@@ -265,6 +275,48 @@ public class XmlLoader
 	    }
 	}
 	
+	private void loadListenerClasses( Element listenerClassesElement, Map<String, XmlListenerClass> listenerClasses ) throws Exception
+	{
+		XmlIterator<Element> nodes = new XmlIterator<Element>( listenerClassesElement );
+	    
+	    for (Element e : nodes)
+	    {
+            String tag = e.getTagName().toLowerCase();
+	        
+            if (tag.equals( TAG_LISTENER_CLASS ))
+            {
+            	XmlListenerClass xlc = new XmlListenerClass();
+            	xlc.elementName = getAttribute( e, "element", null, true ).toLowerCase();
+            	xlc.listenerClassName = getAttribute( e, "class", null, true );
+            	xlc.listenerClass = Class.forName( xlc.listenerClassName );
+            	xlc.listenerEventNames = split( getAttribute( e, "events", null, true ) );
+            	
+            	ListenerEvent[] eventArray = new ListenerEvent[ xlc.listenerEventNames.length ];
+            	
+            	for (int i = 0; i < xlc.listenerEventNames.length; i++)
+            	{
+            		String name = xlc.listenerEventNames[i];
+            		ListenerEvent event = ListenerEvent.valueOf( name );
+            		
+            		if (event == null)
+            		{
+            			throw new RuntimeException( "Event " + name + " is not valid, must be one of the following values: " + Arrays.toString( ListenerEvent.values() ) );
+            		}
+            		
+            		eventArray[i] = event;
+            	}
+            	
+            	xlc.listenerEvents = eventArray;
+            	
+            	listenerClasses.put( xlc.elementName, xlc );
+            }
+            else
+            {
+                unexpectedTag( listenerClassesElement, e );
+            }
+	    }
+	}
+	
 	private void loadConverters( Element convertersElement, Map<String, XmlConverterClass> converterClasses, Map<String, Converter<?, ?>> converterMap) throws Exception
 	{
 	    XmlIterator<Element> nodes = new XmlIterator<Element>( convertersElement );
@@ -283,13 +335,7 @@ public class XmlLoader
 
             String name = getAttribute( e, "name", null, true );
             
-            Map<String, String> attributes = new HashMap<String, String>();
-            NamedNodeMap attrs = e.getAttributes();
-            for (int i = 0; i < attrs.getLength(); i++) {
-                Node a = attrs.item( i );
-                attributes.put( a.getNodeName(), a.getNodeValue() );
-            }
-            
+            Map<String, String> attributes = getAttribues( e );
             attributes.remove( "name" );
             
             Converter<?, ?> converter = xcc.newInstance();
@@ -299,7 +345,7 @@ public class XmlLoader
         }
 	}
 	
-	private XmlTable loadTable( Element tableElement )
+	private XmlTable loadTable( Element tableElement, Map<String, XmlListenerClass> listeners ) throws Exception
 	{
 		XmlTable table = new XmlTable();
 		table.name = getAttribute( tableElement, "name", null, true );
@@ -330,6 +376,10 @@ public class XmlLoader
 			else if (tag.equals( TAG_NATIVE_QUERIES ))
 			{
 			    loadNativeQueries( e, table );
+			}
+			else if (tag.equals( TAG_LISTENERS ))
+			{
+				loadListeners( e, table, listeners );
 			}
 			else
 			{
@@ -373,6 +423,8 @@ public class XmlLoader
 			
 			String fieldName = getAttribute( e, "name", null, true );
 			
+			int otherFlags = 0;
+			
 			if (tag.equals( TAG_COLUMN ))
 			{
 				XmlColumn c = new XmlColumn();
@@ -402,6 +454,7 @@ public class XmlLoader
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
 				c.joinViewName = getAttribute( e, "join-view", "all", true );
 				field = c;
+				otherFlags = Field.MODEL;
 			}
 			else if (tag.equals( TAG_MANY_TO_ONE ))
 			{
@@ -410,6 +463,7 @@ public class XmlLoader
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
 				c.joinViewName = getAttribute( e, "join-view", "all", true );
 				field = c;
+				otherFlags = Field.MODEL;
 			}
 			else if (tag.equals( TAG_ONE_TO_MANY ))
 			{
@@ -421,6 +475,7 @@ public class XmlLoader
 				c.cascadeDelete = TypeBoolean.parse( getAttribute( e, "cascade-delete", "true", true ), "cascade-delete of field " + fieldName + " in table " + table.name );
 				c.cascadeSave = TypeBoolean.parse( getAttribute( e, "cascade-save", "true", true ), "cascade-save of field " + fieldName + " in table " + table.name );
 				field = c;
+				otherFlags = Field.MODEL_LIST;
 			}
 			else
 			{
@@ -430,7 +485,7 @@ public class XmlLoader
 			
 			field.table = table;
 			field.name = fieldName;
-			field.flags = readFlags( e, field.name, table.name );
+			field.flags = readFlags( e, field.name, table.name ) | otherFlags;
 			table.fieldMap.put( field.name, field );
 		}
 	}
@@ -505,6 +560,50 @@ public class XmlLoader
 	            unexpectedTag( nativeQueries, e );
 	        }
 	    }
+	}
+	
+	private void loadListeners( Element listenersElement, XmlTable table, Map<String, XmlListenerClass> listeners ) throws Exception
+	{
+		XmlIterator<Element> nodes = new XmlIterator<Element>( listenersElement );
+		    
+	    for (Element e : nodes)
+	    {
+	        String tag = e.getTagName().toLowerCase();
+	    	
+	    	XmlListenerClass xlc = listeners.get( tag );
+	    	
+	    	if (xlc != null)
+	    	{
+	    		Listener<?> listener = xlc.newInstance();
+	    		Map<String, String> attributes = getAttribues( e );
+	    		listener.configure( attributes );
+	    		
+	    		XmlListener xl = new XmlListener();
+	    		xl.listener = listener;
+	    		xl.listenerClass = xlc;
+	    		
+	    		table.listeners.add( xl );
+	    	}
+	        else
+	        {
+	            unexpectedTag( listenersElement, e );
+	        }
+	    }
+	}
+	
+	private Map<String, String> getAttribues(Element e)
+	{
+		Map<String, String> attributes = new HashMap<String, String>();
+		
+        NamedNodeMap attrs = e.getAttributes();
+        
+        for (int i = 0; i < attrs.getLength(); i++) 
+        {
+            Node a = attrs.item( i );
+            attributes.put( a.getNodeName(), a.getNodeValue() );
+        }
+        
+        return attributes;
 	}
 	
 	private void unexpectedTag( Element parent, Element child )

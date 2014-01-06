@@ -12,6 +12,9 @@ import java.util.Set;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
+import org.magnos.rekord.Listener;
+import org.magnos.rekord.ListenerEvent;
+import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.View;
 import org.magnos.rekord.field.Column;
@@ -27,7 +30,8 @@ class XmlTable extends XmlLoadable
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
     List<XmlNativeQuery> nativeQueries = new ArrayList<XmlNativeQuery>();
-
+    List<XmlListener> listeners = new ArrayList<XmlListener>();
+    
     String historyTable;
     String historyKey;
     String historyTimestamp;
@@ -98,7 +102,7 @@ class XmlTable extends XmlLoadable
         {
             Column<?>[] columns = XmlLoader.getFields( historyColumns );
             
-            table.setHistory( new HistoryTable( historyTable, historyKey, historyTimestamp, columns ) );
+            table.setHistory( new HistoryTable( table, historyTable, historyKey, historyTimestamp, columns ) );
         }
         
         Collection<XmlField> fc = fieldMap.values();
@@ -129,6 +133,14 @@ class XmlTable extends XmlLoadable
         for (XmlNativeQuery nq : nativeQueries)
         {
             table.addNativeQuery( nq.name, nq.query, nq.view );
+        }
+        
+        for (XmlListener xl : listeners)
+        {
+        	for (ListenerEvent le : xl.listenerClass.listenerEvents)
+        	{
+        		table.addListener( (Listener<Model>)xl.listener, le );
+        	}
         }
     }
     

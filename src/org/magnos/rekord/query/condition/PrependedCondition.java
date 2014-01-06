@@ -1,22 +1,23 @@
-package org.magnos.rekord.condition;
+package org.magnos.rekord.query.condition;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class NotCondition implements Condition
+public class PrependedCondition implements Condition
 {
-
-	public Condition condition;
 	
-	public NotCondition(Condition condition)
+	public final String prepend;
+	public final Condition condition;
+	
+	public PrependedCondition(String prepend, Condition condition)
 	{
+		this.prepend = prepend;
 		this.condition = condition;
 	}
-	
+
 	@Override
-	public void toQuery(StringBuilder query)
+	public void toQuery( StringBuilder query )
 	{
-		query.append( " NOT " );
 		condition.toQuery( query );
 	}
 

@@ -274,5 +274,10 @@ public class Rekord
         
         return (t == null ? TypeObject.INSTANCE : t);
     }
+    
+    public static <T> Type<T> getTypeForObject( T o )
+    {
+    	return (Type<T>)(o == null ? TypeObject.INSTANCE : getType( o.getClass() ));
+    }
 
 }

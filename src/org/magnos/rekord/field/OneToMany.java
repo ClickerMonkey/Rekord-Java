@@ -17,11 +17,11 @@ import org.magnos.rekord.Operator;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.View;
-import org.magnos.rekord.condition.AndCondition;
-import org.magnos.rekord.condition.OperatorCondition;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.condition.AndCondition;
+import org.magnos.rekord.query.condition.OperatorCondition;
 import org.magnos.rekord.util.LazyList;
 
 public class OneToMany<T extends Model> extends AbstractField<List<T>>
@@ -49,13 +49,19 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		this.joinView = joinView;
 		this.joinColumns = joinColumns;
 	}
+
+	@Override
+	public boolean isSelectable()
+	{
+		return false;
+	}
 	
 	@Override
-	public void prepareSelect( SelectQuery<?> query )
+	public String getSelectionExpression(FieldView fieldView)
 	{
-
+		return null;
 	}
-
+	
 	@Override
 	public void prepareInsert( InsertQuery query )
 	{

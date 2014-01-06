@@ -6,7 +6,6 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.condition.Condition;
 import org.magnos.rekord.field.Column;
 
 public class MultiValueKey implements Key
@@ -59,12 +58,6 @@ public class MultiValueKey implements Key
 	public Column<?> fieldAt( int index )
 	{
 		return table.getKeyColumns()[ index ];
-	}
-
-	@Override
-	public Condition condition()
-	{
-		return table.getKeyCondition();
 	}
 
 	@Override

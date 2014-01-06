@@ -1,10 +1,10 @@
 package org.magnos.rekord.field;
 
+import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
 public class ManyToMany<T extends Model> extends AbstractField<T>
@@ -20,11 +20,17 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareSelect( SelectQuery<?> query )
+	public boolean isSelectable()
 	{
-
+		return false;
 	}
-
+	
+	@Override
+	public String getSelectionExpression(FieldView fieldView)
+	{
+		return null;
+	}
+	
 	@Override
 	public void prepareInsert( InsertQuery query )
 	{
