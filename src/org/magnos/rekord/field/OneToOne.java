@@ -17,9 +17,9 @@ import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.View;
-import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 
 public class OneToOne<T extends Model> extends AbstractField<T>
 {
@@ -53,13 +53,13 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareInsert( InsertQuery query )
+	public void prepareInsert( ModelInsertQuery query )
 	{
 		
 	}
 	
 	@Override
-	public void prepareUpdate( UpdateQuery query )
+	public void prepareUpdate( ModelUpdateQuery query )
 	{
 		
 	}
@@ -206,7 +206,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		}
 
 		@Override
-		public void prepareDynamicInsert( InsertQuery query )
+		public void prepareDynamicInsert( ModelInsertQuery query )
 		{
 			
 		}
@@ -224,7 +224,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void prepareDynamicUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( ModelUpdateQuery query )
 		{
 			
 		}
@@ -311,7 +311,11 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 			
 			if (value == null)
 			{
-				value = new SelectQuery<T>( field.getJoinTable() ).select( view ).byForeignKey( key ).first();	
+			    SelectQuery<T> select = new SelectQuery<T>( field.getJoinTable() );
+			    select.select( view );
+			    select.whereForeignKey( key );
+
+			    value = select.newQuery().first();
 			}
 			else
 			{

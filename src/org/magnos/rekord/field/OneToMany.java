@@ -13,15 +13,14 @@ import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Operator;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.View;
-import org.magnos.rekord.query.InsertQuery;
+import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.UpdateQuery;
-import org.magnos.rekord.query.condition.AndCondition;
-import org.magnos.rekord.query.condition.OperatorCondition;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.LazyList;
 
 public class OneToMany<T extends Model> extends AbstractField<List<T>>
@@ -63,13 +62,13 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	}
 	
 	@Override
-	public void prepareInsert( InsertQuery query )
+	public void prepareInsert( ModelInsertQuery query )
 	{
 		
 	}
 	
 	@Override
-	public void prepareUpdate( UpdateQuery query )
+	public void prepareUpdate( ModelUpdateQuery query )
 	{
 		
 	}
@@ -128,30 +127,34 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
         return endToString( sb );
     }
 
-    private static class OneToManyValue<T extends Model> implements Value<List<T>>, Factory<SelectQuery<T>>
+    private static class OneToManyValue<T extends Model> implements Value<List<T>>, Factory<Query<T>>
 	{
 		private final OneToMany<T> field;
 		private final Model model;
 		private final LazyList<T> value;
 		private boolean changed = false;
-		private SelectQuery<T> query;
-		private OperatorCondition[] keyConditions;
-		private AndCondition whereCondition;
+		private SelectQuery<T> select;
+		private QueryTemplate<T> queryTemplate;
 		
 		public OneToManyValue(OneToMany<T> field, Model model)
 		{
 			this.field = field;
 			this.model = model;
-			this.query = new SelectQuery<T>( field.getJoinTable() );
-			this.buildWhere();
-			this.updateSelect( null );
+			
+			this.select = new SelectQuery<T>( field.getJoinTable() );
+			this.select.whereForeignKeyBind( field.getJoinColumns() );
+			
+			this.updateQuery( null );
+			
 			this.value = new LazyList<T>( this, field.getFetchSize() );
 		}
 
 		@Override
-		public SelectQuery<T> create()
+		public Query<T> create()
 		{
-			updateSelectCondition();
+		    Query<T> query = queryTemplate.create();
+		    
+		    query.bind( model );
 			
 			return query;
 		}
@@ -194,7 +197,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void prepareDynamicInsert( InsertQuery query )
+		public void prepareDynamicInsert( ModelInsertQuery query )
 		{
 			
 		}
@@ -212,7 +215,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void prepareDynamicUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( ModelUpdateQuery query )
 		{
 			
 		}
@@ -293,6 +296,10 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
         {
             if (field.isCascadeDelete())
             {
+                select.select( field.getJoinTable().getViewId() );
+                
+                queryTemplate = select.newTemplate();
+                
                 value.clear();
                 
                 Set<T> removed = value.getRemoved();
@@ -340,37 +347,23 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 			}
 		}
 
-		private void buildWhere()
+		private void updateQuery(View parentView)
 		{
-			final ForeignColumn<?>[] columns = field.getJoinColumns();
-			
-			keyConditions = new OperatorCondition[ columns.length ];
-			
-			for (int i = 0; i < columns.length; i++)
-			{
-				keyConditions[i] = new OperatorCondition( columns[i], Operator.EQ, null );
-			}
-			
-			whereCondition = new AndCondition( keyConditions );
-		}
-		
-		private void updateSelect( View parentView )
-		{
-			View view = View.coalesce( parentView, query.getView(), field.getJoinView(), field );
-			
-			query.clear();
-			query.select( view );
-			query.where( whereCondition );
-		}
-		
-		private void updateSelectCondition()
-		{
-			final ForeignColumn<?>[] columns = field.getJoinColumns();
-			
-			for (int i = 0; i < columns.length; i++)
-			{
-				keyConditions[i].value = model.get( columns[i].getForeignColumn() );
-			}
+		    View fieldView = null;
+		    
+		    if (parentView != null)
+		    {
+		        fieldView = parentView.getFieldView( field, select.getView() );    
+		    }
+		    
+		    if (fieldView == null)
+		    {
+		        fieldView = field.getJoinView();
+		    }
+		    
+		    select.select( fieldView );
+		    
+		    queryTemplate = select.newTemplate();
 		}
 		
 		@Override

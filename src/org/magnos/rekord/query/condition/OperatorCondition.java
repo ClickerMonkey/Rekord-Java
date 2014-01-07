@@ -51,7 +51,7 @@ public class OperatorCondition<T> implements Condition
 	@Override
 	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
 	{
-		type.toPreparedStatement( stmt, converter.convertTo( value ), paramIndex++ );
+		type.toPreparedStatement( stmt, converter.toDatabase( value ), paramIndex++ );
 		
 		return paramIndex;
 	}

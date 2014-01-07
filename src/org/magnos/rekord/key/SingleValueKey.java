@@ -4,8 +4,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Table;
+import org.magnos.rekord.Type;
 import org.magnos.rekord.field.Column;
 
 public class SingleValueKey implements Key
@@ -23,8 +25,10 @@ public class SingleValueKey implements Key
 	public void fromResultSet( ResultSet results ) throws SQLException
 	{
 		final Column<?> column = table.getKeyColumns()[0];
+		final Converter<Object, ?> converter = column.getConverter();
+		final Type<Object> type = column.getType();
 		
-		value = results.getObject( column.getName() );
+		value = converter.fromDatabase( type.fromResultSet( results, column.getName(), true ) );
 	}
 
 	@Override

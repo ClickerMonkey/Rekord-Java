@@ -16,7 +16,7 @@ public class EnumCustomConverter<T extends Enum<T>> extends AbstractConverter<Ob
     protected Map<T, Object> customMap;
 
     @Override
-    public T convertFrom( Object in )
+    public T fromDatabase( Object in )
     {
         if (in == null)
         {
@@ -27,7 +27,7 @@ public class EnumCustomConverter<T extends Enum<T>> extends AbstractConverter<Ob
     }
 
     @Override
-    public Object convertTo( T out )
+    public Object toDatabase( T out )
     {
         if (out == null)
         {

@@ -4,8 +4,8 @@ import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 
 public class ManyToMany<T extends Model> extends AbstractField<T>
 {
@@ -32,13 +32,13 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public void prepareInsert( InsertQuery query )
+	public void prepareInsert( ModelInsertQuery query )
 	{
 
 	}
 
 	@Override
-	public void prepareUpdate( UpdateQuery query )
+	public void prepareUpdate( ModelUpdateQuery query )
 	{
 
 	}

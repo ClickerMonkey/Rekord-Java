@@ -1,5 +1,5 @@
 
-package org.magnos.rekord.query;
+package org.magnos.rekord.query.model;
 
 import java.sql.SQLException;
 
@@ -9,10 +9,10 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 
 
-public class FixedInsertQuery extends InsertQuery
+public class ModelFixedInsertQuery extends ModelInsertQuery
 {
 
-	public FixedInsertQuery( Table table )
+	public ModelFixedInsertQuery( Table table )
 	{
 		super( table );
 		prepareFixed();

@@ -18,14 +18,6 @@ public class StringExpression extends Expression<Object>
 		
 		this.expression = expression;
 	}
-	
-	public StringExpression(GroupExpression group, String prepend, String expression, Condition condition)
-	{
-		super( group, prepend );
-		
-		this.expression = expression;
-		this.condition = condition;
-	}
 
 	@Override
 	protected Condition newOperationCondition( Operator op, Object value )
@@ -42,25 +34,25 @@ public class StringExpression extends Expression<Object>
 	@Override
 	public GroupExpression between( Object min, Object max )
 	{
-		return setAndGet( new BetweenCondition<Object>( expression, min, max ) );
+		return addAndGet( new BetweenCondition<Object>( expression, min, max ) );
 	}
 
 	@Override
 	public GroupExpression in( Object ... values )
 	{
-		return setAndGet( new InCondition<Object>( expression, false, values ) );
+		return addAndGet( new InCondition<Object>( expression, false, values ) );
 	}
 
 	@Override
 	public GroupExpression notIn( Object ... values )
 	{
-		return setAndGet( new InCondition<Object>( expression, true, values ) );
+		return addAndGet( new InCondition<Object>( expression, true, values ) );
 	}
 
 	@Override
 	public GroupExpression nil()
 	{
-		return setAndGet( new LiteralCondition( expression ) );
+		return addAndGet( new LiteralCondition( expression ) );
 	}
 	
 }

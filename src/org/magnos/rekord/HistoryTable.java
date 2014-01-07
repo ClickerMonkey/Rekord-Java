@@ -2,10 +2,11 @@
 package org.magnos.rekord;
 
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.query.QueryBind;
+import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Selection;
-import org.magnos.rekord.query.condition.Conditions;
+import org.magnos.rekord.query.condition.Condition;
+import org.magnos.rekord.query.expr.GroupExpression;
 import org.magnos.rekord.util.SqlUtil;
 
 public class HistoryTable
@@ -78,10 +79,11 @@ public class HistoryTable
 
 	public static QueryTemplate<Model> buildQuery(Table table, HistoryTable history)
 	{
-		final Column<?>[] keys = table.getKeyColumns();
 		final String historyTimestamp = history.getHistoryTimestamp();
 		final String historyKey = history.getHistoryKey();
 		final Selection selection = Selection.fromFields( history.getHistoryColumns() );
+		
+		Condition where = new GroupExpression().whereKeyBind( table );
 		
 		StringBuilder queryBuilder = new StringBuilder();
 		queryBuilder.append( "SELECT " );
@@ -99,7 +101,7 @@ public class HistoryTable
 		queryBuilder.append( " FROM " );
 		queryBuilder.append( SqlUtil.namify( history.getHistoryTable() ) );
 		queryBuilder.append( " WHERE " );
-		queryBuilder.append( Conditions.whereString( keys ) );
+		where.toQuery( queryBuilder );
 		
 		if (historyTimestamp != null)
 		{
@@ -110,18 +112,9 @@ public class HistoryTable
 			queryBuilder.append( " ORDER BY " ).append( SqlUtil.namify( historyKey ) );
 		}
 		
-		QueryBind[] binds = new QueryBind[ keys.length ];
-		
-		for (int i = 0; i < keys.length; i++)
-		{
-			Column<?> c = keys[i];
-			
-			binds[i] = new QueryBind( c.getName(), i, c, -1, -1 );
-		}
-		
 		String query = queryBuilder.toString();
 		
-		return new QueryTemplate<Model>( table, query, null, binds, selection.getFields() );
+		return NativeQuery.parse( table, query, null );
 	}
 
 }

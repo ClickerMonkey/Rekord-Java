@@ -1,7 +1,7 @@
 package org.magnos.rekord;
 
-import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 
 
 public interface Field<T>
@@ -32,6 +32,6 @@ public interface Field<T>
 	public boolean isSelectable();
 	public String getSelectionExpression(FieldView fieldView);
 	
-	public void prepareInsert(InsertQuery query);
-	public void prepareUpdate(UpdateQuery query);
+	public void prepareInsert(ModelInsertQuery query);
+	public void prepareUpdate(ModelUpdateQuery query);
 }

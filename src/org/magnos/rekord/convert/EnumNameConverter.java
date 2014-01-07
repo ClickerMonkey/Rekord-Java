@@ -9,13 +9,13 @@ public class EnumNameConverter<T extends Enum<T>> extends AbstractConverter<Stri
     protected Class<T> enumClass;
 
     @Override
-    public T convertFrom( String in )
+    public T fromDatabase( String in )
     {
         return (in == null ? null : Enum.valueOf( enumClass, in ));
     }
 
     @Override
-    public String convertTo( T out )
+    public String toDatabase( T out )
     {
         return (out == null ? null : out.name());
     }

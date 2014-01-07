@@ -81,23 +81,27 @@ public class Model implements Serializable
 
 		for (Field<?> f : view.getFields())
 		{
-			if (!valueOf( f ).hasValue())
+			if (!valueOf( f ).hasValue() && f.isSelectable())
 			{
-				f.prepareSelect( select );
+			    select.select( f, f.getSelectionExpression( view.getFieldView( f ) ) );
 			}
 		}
 
 		select.setView( view );
 		
+        Query<Model> query = select.newQuery();
+		
 		if (select.hasSelection())
 		{
-			ResultSet results = select.getResults();
+		    query.bind( this );
+		    
+			ResultSet results = query.getResults();
 
 			try
 			{
 				if (results.next())
 				{
-					select.populate( results, this );
+				    query.populate( results, this );
 				}
 				else
 				{
@@ -116,7 +120,7 @@ public class Model implements Serializable
 			Rekord.log( Logging.LOADING, "loading view %s had no affect for %s", view.getName(), this );
 		}
 
-		select.postSelect( this );
+		query.postSelect( this );
 		
 		return true;
 	}

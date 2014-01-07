@@ -4,8 +4,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Table;
+import org.magnos.rekord.Type;
 import org.magnos.rekord.field.Column;
 
 public class MultiValueKey implements Key
@@ -27,7 +29,11 @@ public class MultiValueKey implements Key
 		
 		for (int i = 0; i < columns.length; i++)
 		{
-			values[i] = results.getObject( columns[i].getName() );
+		    final Column<?> c = columns[i];
+	        final Converter<Object, ?> converter = c.getConverter();
+	        final Type<Object> type = c.getType();
+	        
+			values[i] = converter.fromDatabase( type.fromResultSet( results, c.getName(), true ) );
 		}
 	}
 

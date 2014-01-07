@@ -11,15 +11,15 @@ import org.magnos.rekord.key.MultiModelKey;
 import org.magnos.rekord.key.MultiValueKey;
 import org.magnos.rekord.key.SingleModelKey;
 import org.magnos.rekord.key.SingleValueKey;
-import org.magnos.rekord.query.ModelDeleteQuery;
-import org.magnos.rekord.query.DynamicInsertQuery;
-import org.magnos.rekord.query.DynamicUpdateQuery;
-import org.magnos.rekord.query.FixedInsertQuery;
-import org.magnos.rekord.query.FixedUpdateQuery;
-import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.QueryTemplate;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelDeleteQuery;
+import org.magnos.rekord.query.model.ModelDynamicInsertQuery;
+import org.magnos.rekord.query.model.ModelDynamicUpdateQuery;
+import org.magnos.rekord.query.model.ModelFixedInsertQuery;
+import org.magnos.rekord.query.model.ModelFixedUpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
 import org.magnos.rekord.util.SqlUtil;
 
@@ -45,8 +45,8 @@ public class Table
     protected Factory<? extends Model> factory;
     protected Column<?>[] keyColumns = {};
     protected Field<?>[] fields = {};
-    protected InsertQuery insert;
-    protected UpdateQuery update;
+    protected ModelInsertQuery insert;
+    protected ModelUpdateQuery update;
     protected ModelDeleteQuery delete;
     protected Map<String, Field<?>> fieldMap;
     protected View[] views;
@@ -90,8 +90,8 @@ public class Table
         registerFields( fieldCount );
         mapFields( newFields );
 
-        insert = is( DYNAMICALLY_INSERTED ) ? new DynamicInsertQuery( this ) : new FixedInsertQuery( this );
-        update = is( DYNAMICALLY_UPDATED ) ? new DynamicUpdateQuery( this ) : new FixedUpdateQuery( this );
+        insert = is( DYNAMICALLY_INSERTED ) ? new ModelDynamicInsertQuery( this ) : new ModelFixedInsertQuery( this );
+        update = is( DYNAMICALLY_UPDATED ) ? new ModelDynamicUpdateQuery( this ) : new ModelFixedUpdateQuery( this );
         delete = new ModelDeleteQuery( this );
     }
 
@@ -114,13 +114,18 @@ public class Table
     	listeners[i] = ArrayUtil.add( listener, listeners[i] );
     }
     
-    public void notifyListeners(Model model, ListenerEvent e)
+    public void notifyListeners(Model model, ListenerEvent e) throws SQLException
     {
     	int i = e.ordinal();
     	
-    	for (Listener<Model> l : listeners[i])
+    	Listener<Model>[] lm = listeners[i];
+    	
+    	if (lm != null && lm.length > 0)
     	{
-    		l.onEvent( model, e );
+    	    for (Listener<Model> l : lm)
+    	    {
+    	        l.onEvent( model, e );
+    	    }
     	}
     }
 
@@ -225,12 +230,12 @@ public class Table
         return keyColumns.length;
     }
 
-    public InsertQuery getInsert()
+    public ModelInsertQuery getInsert()
     {
         return insert;
     }
 
-    public UpdateQuery getUpdate()
+    public ModelUpdateQuery getUpdate()
     {
         return update;
     }

@@ -14,9 +14,10 @@ import org.magnos.rekord.FieldView;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.InsertQuery;
+import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.SqlUtil;
 
 
@@ -62,7 +63,7 @@ public class Column<T> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareInsert( InsertQuery query )
+	public void prepareInsert( ModelInsertQuery query )
 	{
 		if (is( HAS_DEFAULT ))
 		{
@@ -75,11 +76,11 @@ public class Column<T> extends AbstractField<T>
 	}
 
 	@Override
-	public void prepareUpdate( UpdateQuery query )
+	public void prepareUpdate( ModelUpdateQuery query )
 	{
 		if (!is( READ_ONLY ))
 		{
-			query.addSet( this );
+			query.set( this );
 		}
 	}
 
@@ -97,6 +98,11 @@ public class Column<T> extends AbstractField<T>
 	public String getOut()
 	{
 		return out;
+	}
+	
+	public String getOutForBind()
+	{
+	    return out.replaceAll( "\\?", "?" + name );
 	}
 
 	public String getSelectionExpression()
@@ -132,7 +138,7 @@ public class Column<T> extends AbstractField<T>
 		sb.append( ", type=" ).append( type.getClass().getSimpleName() );
 		sb.append( ", in=" ).append( in );
 		sb.append( ", out=" ).append( out );
-		sb.append( ", default-value=" ).append( type.toString( converter.convertTo( defaultValue ) ) );
+		sb.append( ", default-value=" ).append( type.toString( converter.toDatabase( defaultValue ) ) );
 		sb.append( ", converter=" ).append( converter.getClass().getSimpleName() );
 		return endToString( sb );
 	}
@@ -158,9 +164,10 @@ public class Column<T> extends AbstractField<T>
 			{
 				try
 				{
-					SelectQuery<Model> query = new SelectQuery<Model>( model );
-
-					value = query.grab( field );
+					Query<Model> query = new SelectQuery<Model>( model ).newQuery();
+					query.bind( model );
+					
+					value = query.first( field );
 					partial = false;
 					defaultValue = false;
 				}
@@ -215,7 +222,7 @@ public class Column<T> extends AbstractField<T>
 			final Converter<Object, T> converter = field.getConverter();
 
 			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
-			value = converter.convertFrom( databaseValue );
+			value = converter.fromDatabase( databaseValue );
 			defaultValue = false;
 		}
 
@@ -225,7 +232,7 @@ public class Column<T> extends AbstractField<T>
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
 
-			type.toPreparedStatement( preparedStatement, converter.convertTo( value ), paramIndex );
+			type.toPreparedStatement( preparedStatement, converter.toDatabase( value ), paramIndex );
 
 			return paramIndex + 1;
 		}
@@ -237,7 +244,7 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void prepareDynamicInsert( InsertQuery query )
+		public void prepareDynamicInsert( ModelInsertQuery query )
 		{
 			if (field.is( HAS_DEFAULT ) && defaultValue)
 			{
@@ -270,11 +277,11 @@ public class Column<T> extends AbstractField<T>
 		}
 
 		@Override
-		public void prepareDynamicUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( ModelUpdateQuery query )
 		{
 			if (!field.is( READ_ONLY ) && !partial)
 			{
-				query.addSet( field );
+				query.set( field );
 			}
 		}
 

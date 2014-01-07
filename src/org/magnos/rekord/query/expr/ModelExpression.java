@@ -91,7 +91,7 @@ public class ModelExpression<M extends Model> extends Expression<M>
 				actualValues[i] = values[i].get( joinColumns[0] );
 			}
 
-			return setAndGet( new InCondition<Object>( (Column<Object>)joinColumns[0], not, actualValues ) );
+			return addAndGet( new InCondition<Object>( (Column<Object>)joinColumns[0], not, actualValues ) );
 		}
 
 		throw new UnsupportedOperationException();

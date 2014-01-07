@@ -47,8 +47,8 @@ public class BetweenCondition<T> implements Condition
 	@Override
 	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
 	{
-		type.toPreparedStatement( stmt, converter.convertTo( min ), paramIndex++ );
-		type.toPreparedStatement( stmt, converter.convertTo( min ), paramIndex++ );
+		type.toPreparedStatement( stmt, converter.toDatabase( min ), paramIndex++ );
+		type.toPreparedStatement( stmt, converter.toDatabase( min ), paramIndex++ );
 		
 		return paramIndex;
 	}

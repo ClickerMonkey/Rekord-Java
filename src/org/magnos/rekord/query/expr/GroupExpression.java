@@ -19,7 +19,7 @@ import org.magnos.rekord.query.condition.LiteralCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
 import org.magnos.rekord.query.condition.PrependedCondition;
 
-
+@SuppressWarnings ({ "cast", "rawtypes" } )
 public class GroupExpression extends PrependedCondition
 {
 
@@ -29,8 +29,7 @@ public class GroupExpression extends PrependedCondition
     public static final String OR_NOT = " OR NOT ";
 
     public final GroupExpression parent;
-    public final String prepend;
-    public final List<PrependedCondition> children;
+    public final List<PrependedCondition> conditions;
 
     public GroupExpression()
     {
@@ -39,72 +38,61 @@ public class GroupExpression extends PrependedCondition
 
     public GroupExpression( GroupExpression parent, String prepend )
     {
-        super( AND, null );
+        super( prepend, null );
         
         this.parent = parent;
-        this.prepend = prepend;
-        this.children = new ArrayList<PrependedCondition>();
+        this.conditions = new ArrayList<PrependedCondition>();
+    }
+    
+    public boolean hasConditions()
+    {
+        return conditions.size() > 0;
     }
 
     public void toQuery( StringBuilder query )
     {
-        int index = 0;
-
-        for (Object o : children)
+        if ( conditions.isEmpty() )
         {
-            if (o instanceof GroupExpression)
+            return;
+        }
+        
+        if ( conditions.size() == 1 )
+        {
+            conditions.get( 0 ).toQuery( query );
+        }
+        else
+        {
+            query.append( "(" );
+            
+            for (int i = 0; i < conditions.size(); i++)
             {
-                GroupExpression ge = (GroupExpression)o;
-
-                if (index > 0)
+                PrependedCondition pc = conditions.get( i );
+                
+                if (i > 0)
                 {
-                    query.append( ge.prepend );
+                    query.append( pc.prepend );
                 }
-
-                query.append( "(" );
-                ge.toQuery( query );
-                query.append( ")" );
+                
+                pc.toQuery( query );
             }
-            else if (o instanceof Expression)
-            {
-                Expression<?> e = (Expression<?>)o;
-
-                if (index > 0)
-                {
-                    query.append( e.prepend );
-                }
-
-                e.condition.toQuery( query );
-            }
-
-            index++;
+            
+            query.append( ")" );
         }
     }
 
     public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
     {
-        for (Object o : children)
+        for (PrependedCondition pc : conditions)
         {
-            if (o instanceof GroupExpression)
-            {
-                GroupExpression ge = (GroupExpression)o;
-
-                paramIndex = ge.toPreparedstatement( stmt, paramIndex );
-            }
-            else if (o instanceof Expression)
-            {
-                Expression<?> e = (Expression<?>)o;
-
-                paramIndex = e.condition.toPreparedstatement( stmt, paramIndex );
-            }
+            paramIndex = pc.toPreparedstatement( stmt, paramIndex );
         }
 
         return paramIndex;
     }
 
-    protected GroupExpression add( Expression<Object> fieldExpression )
+    protected GroupExpression add( String prepend, Condition condition )
     {
-        children.add( fieldExpression );
+        conditions.add( new PrependedCondition( prepend, condition ) );
 
         return this;
     }
@@ -113,7 +101,7 @@ public class GroupExpression extends PrependedCondition
     {
         GroupExpression child = new GroupExpression( this, prepend );
 
-        children.add( child );
+        conditions.add( child );
 
         return child;
     }
@@ -123,7 +111,6 @@ public class GroupExpression extends PrependedCondition
         return new StringExpression( this, prepend, expression );
     }
 
-    @SuppressWarnings ({ "cast", "rawtypes" } )
     protected <T> Expression<T> newFieldExpression( String prepend, Field<T> field )
     {
         if (field instanceof Column)
@@ -144,10 +131,9 @@ public class GroupExpression extends PrependedCondition
 
     protected GroupExpression newStringExpressionCustom( String prepend, String expression, Object[] values )
     {
-        return add( new ConditionExpression( this, prepend, new CustomCondition( expression, values ) ) );
+        return add( prepend, new CustomCondition( expression, values ) );
     }
 
-    @SuppressWarnings ("rawtypes" )
     protected GroupExpression newKeyCondition( String prepend, Key key )
     {
         final int keySize = key.size();
@@ -158,10 +144,9 @@ public class GroupExpression extends PrependedCondition
             conditions[i] = new OperatorCondition( key.fieldAt( i ), Operator.EQ, key.valueAt( i ) );
         }
 
-        return add( new ConditionExpression( this, prepend, new GroupCondition( AND, conditions ) ) );
+        return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
-    @SuppressWarnings ("rawtypes" )
     protected GroupExpression newForeignKeyCondition( String prepend, Key key )
     {
         final int keySize = key.size();
@@ -174,7 +159,7 @@ public class GroupExpression extends PrependedCondition
             conditions[i] = new OperatorCondition( foreign.getForeignColumn(), Operator.EQ, key.valueAt( i ) );
         }
 
-        return add( new ConditionExpression( this, prepend, new GroupCondition( AND, conditions ) ) );
+        return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
     protected GroupExpression newColumnsBindExpression( String prepend, Column<?>... columns )
@@ -186,12 +171,24 @@ public class GroupExpression extends PrependedCondition
             conditions[i] = getColumnBindCondition( columns[i] );
         }
 
-        return add( new ConditionExpression( this, prepend, new GroupCondition( AND, conditions ) ) );
+        return add( prepend, new GroupCondition( AND, conditions ) );
+    }
+
+    protected GroupExpression newColumnsForeignBindExpression( String prepend, ForeignColumn<?>... columns )
+    {
+        Condition[] conditions = new Condition[columns.length];
+
+        for (int i = 0; i < columns.length; i++)
+        {
+            conditions[i] = getColumnForeignBindCondition( columns[i] );
+        }
+
+        return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
     protected GroupExpression newColumnBindExpression( String prepend, Column<?> column )
     {
-        return add( new ConditionExpression( this, prepend, getColumnBindCondition( column ) ) );
+        return add( prepend, getColumnBindCondition( column ) );
     }
 
     protected Condition getColumnBindCondition( Column<?> c )
@@ -199,9 +196,19 @@ public class GroupExpression extends PrependedCondition
         return new LiteralCondition( getColumnBind( c ) );
     }
 
+    protected Condition getColumnForeignBindCondition( ForeignColumn<?> c )
+    {
+        return new LiteralCondition( getColumnForeignBind( c ) );
+    }
+
     protected String getColumnBind( Column<?> c )
     {
         return c.getQuotedName() + " = ?" + c.getName();
+    }
+
+    protected String getColumnForeignBind( ForeignColumn<?> c )
+    {
+        return c.getQuotedName() + " = ?" + c.getForeignColumn().getName();
     }
     
     
@@ -240,6 +247,11 @@ public class GroupExpression extends PrependedCondition
     public GroupExpression whereKeyBind( Table table )
     {
         return newColumnsBindExpression( AND, table.getKeyColumns() );
+    }
+    
+    public GroupExpression whereForeignKeyBind( ForeignColumn<?> ... columns )
+    {
+        return newColumnsForeignBindExpression( AND, columns );
     }
 
     public GroupExpression whereColumnBind( Column<?>... columns )
@@ -288,6 +300,11 @@ public class GroupExpression extends PrependedCondition
     {
         return newColumnsBindExpression( AND, table.getKeyColumns() );
     }
+    
+    public GroupExpression andForeignKeyBind( ForeignColumn<?> ... columns )
+    {
+        return newColumnsForeignBindExpression( AND, columns );
+    }
 
     public GroupExpression andColumnBind( Column<?>... columns )
     {
@@ -334,6 +351,11 @@ public class GroupExpression extends PrependedCondition
     public GroupExpression andNotKeyBind( Table table )
     {
         return newColumnsBindExpression( AND_NOT, table.getKeyColumns() );
+    }
+    
+    public GroupExpression andNotForeignKeyBind( ForeignColumn<?> ... columns )
+    {
+        return newColumnsForeignBindExpression( AND_NOT, columns );
     }
 
     public GroupExpression andNotColumnBind( Column<?>... columns )
@@ -382,6 +404,11 @@ public class GroupExpression extends PrependedCondition
     {
         return newColumnsBindExpression( OR, table.getKeyColumns() );
     }
+    
+    public GroupExpression orForeignKeyBind( ForeignColumn<?> ... columns )
+    {
+        return newColumnsForeignBindExpression( OR, columns );
+    }
 
     public GroupExpression orColumnBind( Column<?>... columns )
     {
@@ -427,6 +454,11 @@ public class GroupExpression extends PrependedCondition
     public GroupExpression orNotKeyBind( Table table )
     {
         return newColumnsBindExpression( OR_NOT, table.getKeyColumns() );
+    }
+    
+    public GroupExpression orNotForeignKeyBind( ForeignColumn<?> ... columns )
+    {
+        return newColumnsForeignBindExpression( OR_NOT, columns );
     }
 
     public GroupExpression orNotColumnBind( Column<?>... columns )

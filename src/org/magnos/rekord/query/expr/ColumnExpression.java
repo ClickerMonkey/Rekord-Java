@@ -34,19 +34,19 @@ public class ColumnExpression<T> extends Expression<T>
 	@Override
 	public GroupExpression between( T min, T max )
 	{
-		return setAndGet( new BetweenCondition<T>( column, min, max ) );
+		return addAndGet( new BetweenCondition<T>( column, min, max ) );
 	}
 
 	@Override
 	public GroupExpression in( T ... values )
 	{
-		return setAndGet( new InCondition<T>( column, false, values ) );
+		return addAndGet( new InCondition<T>( column, false, values ) );
 	}
 
 	@Override
 	public GroupExpression notIn( T ... values )
 	{
-		return setAndGet( new InCondition<T>( column, true, values ) );
+		return addAndGet( new InCondition<T>( column, true, values ) );
 	}
 
 	@Override

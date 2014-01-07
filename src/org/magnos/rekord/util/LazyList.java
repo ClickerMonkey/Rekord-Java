@@ -7,16 +7,17 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.query.SelectQuery;
+import org.magnos.rekord.query.Query;
 
 public class LazyList<T extends Model> extends AbstractList<T>
 {
 
-	protected final Factory<SelectQuery<T>> queryFactory;
+	protected final Factory<Query<T>> queryFactory;
 	protected final int fetchSize;
 	protected int size = -1;
 	protected BitSet pages;
@@ -26,7 +27,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 	protected Set<T> set;
 	protected ArrayList<T> list;
 	
-	public LazyList(Factory<SelectQuery<T>> queryFactory, int fetchSize)
+	public LazyList(Factory<Query<T>> queryFactory, int fetchSize)
 	{
 		this.queryFactory = queryFactory;
 		this.fetchSize = fetchSize;
@@ -51,7 +52,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 	{
 		if (size == -1)
 		{
-			SelectQuery<T> query = queryFactory.create();
+		    Query<T> query = queryFactory.create();
 			
 			if (query != null)
 			{
@@ -90,7 +91,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 			return;
 		}
 		
-		SelectQuery<T> query = queryFactory.create();
+		Query<T> query = queryFactory.create();
 		
 		if (query != null)
 		{
@@ -98,9 +99,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 			
 			try
 			{
-				query.offset( (long)offset );
-				query.limit( (long)fetchSize );
-				ArrayList<T> pageModels = query.list( false );
+				List<T> pageModels = query.list( offset, fetchSize, false );
 				
 				for (int i = 0; i < pageModels.size(); i++)
 				{
@@ -161,7 +160,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 		
 		if (size == -1)
 		{
-			SelectQuery<T> query = queryFactory.create();
+		    Query<T> query = queryFactory.create();
 			
 			if (query != null)
 			{

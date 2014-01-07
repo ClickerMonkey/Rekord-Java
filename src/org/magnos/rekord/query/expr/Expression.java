@@ -12,7 +12,6 @@ public abstract class Expression<T>
 
 	public final GroupExpression group;
 	public final String prepend;
-	public Condition condition;
 
 	public Expression( GroupExpression group, String prepend )
 	{
@@ -20,11 +19,9 @@ public abstract class Expression<T>
 		this.prepend = prepend;
 	}
 
-	protected GroupExpression setAndGet( Condition expressionCondition )
+	protected GroupExpression addAndGet( Condition expressionCondition )
 	{
-		this.condition = expressionCondition;
-
-		return group;
+	    return group.add( prepend, expressionCondition );
 	}
 
 	protected abstract Condition newOperationCondition( Operator op, T value );
@@ -34,12 +31,14 @@ public abstract class Expression<T>
 	
 	protected GroupExpression newStringOperation( Operator op, String expression )
 	{
-		return setAndGet( new LiteralCondition( getExpressionString() + op.getSymbol() + expression ) );
+		return addAndGet( new LiteralCondition( getExpressionString() + op.getSymbol() + expression ) );
 	}
+	
+	
 	
 	public GroupExpression eq( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.EQ, value ) );
+		return addAndGet( newOperationCondition( Operator.EQ, value ) );
 	}
 	
 	public GroupExpression eq( Field<T> field )
@@ -47,14 +46,14 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.EQ, field.getQuotedName() );
 	}
 	
-	public GroupExpression eq( String expression )
+	public GroupExpression eqExp( String expression )
 	{
 		return newStringOperation( Operator.EQ, expression );
 	}
 
 	public GroupExpression neq( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.NEQ, value ) );
+		return addAndGet( newOperationCondition( Operator.NEQ, value ) );
 	}
 	
 	public GroupExpression neq( Field<T> field )
@@ -62,14 +61,14 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.NEQ, field.getQuotedName() );
 	}
 	
-	public GroupExpression neq( String expression )
+	public GroupExpression neqExp( String expression )
 	{
 		return newStringOperation( Operator.NEQ, expression );
 	}
 
 	public GroupExpression lt( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.LT, value ) );
+		return addAndGet( newOperationCondition( Operator.LT, value ) );
 	}
 	
 	public GroupExpression lt( Field<T> field )
@@ -77,14 +76,14 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.LT, field.getQuotedName() );
 	}
 	
-	public GroupExpression lt( String expression )
+	public GroupExpression ltExp( String expression )
 	{
 		return newStringOperation( Operator.LT, expression );
 	}
 
 	public GroupExpression gt( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.GT, value ) );
+		return addAndGet( newOperationCondition( Operator.GT, value ) );
 	}
 	
 	public GroupExpression gt( Field<T> field )
@@ -92,14 +91,14 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.GT, field.getQuotedName() );
 	}
 	
-	public GroupExpression gt( String expression )
+	public GroupExpression gtExp( String expression )
 	{
 		return newStringOperation( Operator.GT, expression );
 	}
 
 	public GroupExpression lte( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.LTEQ, value ) );
+		return addAndGet( newOperationCondition( Operator.LTEQ, value ) );
 	}
 	
 	public GroupExpression lte( Field<T> field )
@@ -107,14 +106,14 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.LTEQ, field.getQuotedName() );
 	}
 	
-	public GroupExpression lte( String expression )
+	public GroupExpression lteExp( String expression )
 	{
 		return newStringOperation( Operator.LTEQ, expression );
 	}
 
 	public GroupExpression gte( T value )
 	{
-		return setAndGet( newOperationCondition( Operator.GTEQ, value ) );
+		return addAndGet( newOperationCondition( Operator.GTEQ, value ) );
 	}
 	
 	public GroupExpression gte( Field<T> field )
@@ -122,19 +121,19 @@ public abstract class Expression<T>
 		return newStringOperation( Operator.GTEQ, field.getQuotedName() );
 	}
 	
-	public GroupExpression gte( String expression )
+	public GroupExpression gteExp( String expression )
 	{
 		return newStringOperation( Operator.GTEQ, expression );
 	}
 
 	public GroupExpression isNull()
 	{
-		return setAndGet( new LiteralCondition( getExpressionString() + " IS NULL " ) );
+		return addAndGet( new LiteralCondition( getExpressionString() + " IS NULL " ) );
 	}
 
 	public GroupExpression isNotNull()
 	{
-		return setAndGet( new LiteralCondition( getExpressionString() + " IS NOT NULL " ) );
+		return addAndGet( new LiteralCondition( getExpressionString() + " IS NOT NULL " ) );
 	}
 
 	public abstract GroupExpression between( T min, T max );

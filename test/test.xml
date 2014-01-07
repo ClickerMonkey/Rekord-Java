@@ -48,6 +48,12 @@
             <query name="update-state"><![CDATA[
                 UPDATE "user" SET "state" = ?new_state WHERE "id" = ?id
             ]]></query>
+            <query name="by-name"><![CDATA[
+                SELECT #id, #name, #created_timestamp, #state, #commentable_id FROM "user" WHERE "name" = ?name
+            ]]></query>
+            <query name="by-id"><![CDATA[
+                SELECT #id, #name, #created_timestamp, #state, #commentable_id FROM "user" WHERE "id" = ?id
+            ]]></query>
         </native-queries>
         <history table="user_history" timestamp="user_history_timestamp" columns="id, name" />
     </table>

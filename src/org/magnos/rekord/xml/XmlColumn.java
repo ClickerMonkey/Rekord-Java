@@ -47,7 +47,7 @@ class XmlColumn extends XmlField
     	}
     	else
     	{
-    		defaultValue = convert.convertFrom( defaultValue );
+    		defaultValue = convert.fromDatabase( defaultValue );
     	}
     	
         field = new Column( name, sqlType, type, flags, in, out, defaultValue, convert );

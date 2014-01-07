@@ -10,9 +10,9 @@ public interface Converter<I, O>
 
     public void setName( String name );
 
-    public O convertFrom( I in );
+    public O fromDatabase( I in );
 
-    public I convertTo( O out );
+    public I toDatabase( O out );
 
     public void configure( Map<String, String> attributes ) throws Exception;
 }

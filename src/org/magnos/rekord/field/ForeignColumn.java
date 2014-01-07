@@ -14,8 +14,8 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.InsertQuery;
-import org.magnos.rekord.query.UpdateQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.SqlUtil;
 
 
@@ -43,7 +43,7 @@ public class ForeignColumn<T> extends Column<T>
 	}
 
 	@Override
-	public void prepareInsert(InsertQuery query)
+	public void prepareInsert(ModelInsertQuery query)
 	{
 		query.addColumn( quotedName, out );
 	}
@@ -141,7 +141,7 @@ public class ForeignColumn<T> extends Column<T>
 			final Converter<Object, T> converter = field.getConverter();
 			
 			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
-			value = converter.convertFrom( databaseValue );
+			value = converter.fromDatabase( databaseValue );
 		}
 		
 		@Override
@@ -150,7 +150,7 @@ public class ForeignColumn<T> extends Column<T>
 			final Type<Object> type = field.getType();
 			final Converter<Object, T> converter = field.getConverter();
 			
-			type.toPreparedStatement( preparedStatement, converter.convertTo( value ), paramIndex );
+			type.toPreparedStatement( preparedStatement, converter.toDatabase( value ), paramIndex );
 			
 			return paramIndex + 1;
 		}
@@ -162,7 +162,7 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void prepareDynamicInsert(InsertQuery query)
+		public void prepareDynamicInsert(ModelInsertQuery query)
 		{
 			query.addColumn( field.getQuotedName(), field.getOut() );
 		}
@@ -180,9 +180,9 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void prepareDynamicUpdate( UpdateQuery query )
+		public void prepareDynamicUpdate( ModelUpdateQuery query )
 		{
-			query.addSet( field, field.getOut() );
+			query.set( field );
 		}
 
 		@Override

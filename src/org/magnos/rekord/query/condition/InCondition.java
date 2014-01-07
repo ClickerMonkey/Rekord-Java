@@ -63,7 +63,7 @@ public class InCondition<T> implements Condition
 	{
 		for (int i = 0; i < values.length; i++)
 		{
-			type.toPreparedStatement( stmt, converter.convertTo( values[i] ), paramIndex++ );
+			type.toPreparedStatement( stmt, converter.toDatabase( values[i] ), paramIndex++ );
 		}
 		
 		return paramIndex;

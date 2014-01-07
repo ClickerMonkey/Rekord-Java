@@ -183,6 +183,7 @@ public class Rekord
 	    addType( TypeByte.INSTANCE, Byte.class, byte.class );
 	    addType( TypeShort.INSTANCE, Short.class, short.class );
 	    addType( TypeInteger.INSTANCE, Integer.class, int.class );
+	    addType( TypeLong.INSTANCE, Long.class, long.class );
 	    addType( TypeString.INSTANCE, Character.class, char.class, String.class );
 	    addType( TypeByteArray.INSTANCE, byte[].class );
 	    addType( TypeBoolean.INSTANCE, Boolean.class, boolean.class );

@@ -9,13 +9,13 @@ public class EnumOrdinalConverter<T extends Enum<T>> extends AbstractConverter<N
     protected T[] enumConstants;
 
     @Override
-    public T convertFrom( Number in )
+    public T fromDatabase( Number in )
     {
         return (in == null ? null : enumConstants[in.intValue()]);
     }
 
     @Override
-    public Number convertTo( T out )
+    public Number toDatabase( T out )
     {
         return (out == null ? null : out.ordinal());
     }

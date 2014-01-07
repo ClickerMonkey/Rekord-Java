@@ -8,6 +8,7 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToMany;
 import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
 
@@ -39,10 +40,12 @@ public class User extends Model
 		public static final View 				SHORT_NAME		 	= TABLE.getView( "short-name" );
 	}
 	
-	public static class Query
+	public static class Queries
 	{
 	    public static final QueryTemplate<User>   CREATED_BEFORE      = TABLE.getQuery( "created-before" );
 	    public static final QueryTemplate<User>   UPDATE_STATE        = TABLE.getQuery( "update-state" );
+	    public static final QueryTemplate<User>   BY_ID               = TABLE.getQuery( "by-id" );
+	    public static final QueryTemplate<User>   BY_NAME             = TABLE.getQuery( "by-name" );
 	}
 	
 	public User()
@@ -67,17 +70,22 @@ public class User extends Model
 	
 	public static List<User> byName(View view, String name) throws SQLException
 	{
-		return new SelectQuery<User>( TABLE ).select( view ).by( NAME, name ).list();
+	    return Queries.BY_NAME.create().bind( "name", name ).list( view );
 	}
 	
 	public static User byId(View view, long id) throws SQLException
 	{
-		return new SelectQuery<User>( TABLE ).select( view ).by( ID, id ).first();
+	    return Queries.BY_ID.create().bind( "id", id ).first( view );
 	}
 	
 	public static List<User> all(View view) throws SQLException
 	{
-		return new SelectQuery<User>( TABLE ).select( view ).list();
+	    SelectQuery<User> select = new SelectQuery<User>( TABLE );
+        select.select( view );
+        
+        Query<User> query = select.newQuery();
+        
+		return query.list();
 	}
 	
 }

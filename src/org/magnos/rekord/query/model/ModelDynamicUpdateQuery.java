@@ -1,23 +1,23 @@
-package org.magnos.rekord.query;
+package org.magnos.rekord.query.model;
 
 import java.sql.SQLException;
 
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 
-public class FixedUpdateQuery extends UpdateQuery
+public class ModelDynamicUpdateQuery extends ModelUpdateQuery
 {
 	
-	public FixedUpdateQuery(Table table)
+	public ModelDynamicUpdateQuery(Table table)
 	{
 		super( table );
-		
-		prepareFixed();
 	}
 	
 	public boolean execute( Model model ) throws SQLException
 	{
 		preSave( model );
+		
+		prepareDynamic( model );
 		
 		return updateModel( model );
 	}

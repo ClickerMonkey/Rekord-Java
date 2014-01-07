@@ -1,11 +1,8 @@
 package org.magnos.rekord;
 
 import java.io.FileInputStream;
-import java.sql.Timestamp;
-import java.util.List;
 
 import org.junit.Test;
-import org.magnos.rekord.query.Query;
 import org.magnos.rekord.xml.XmlLoader;
 
 public class TestRekord
@@ -23,10 +20,10 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-//		User u = User.byId( User.Views.SHORT_NAME, 1L );
-//		System.out.println( u.getName() );
-//		u.delete();
-//		u.save();
+		User u = User.byId( User.Views.SHORT_NAME, 2L );
+		System.out.println( u.getName() );
+		u.delete();
+		u.save();
 		
 //		User u = User.byId( User.Views.ALL, 1L );
 //		System.out.println( u.getState() );
@@ -45,8 +42,8 @@ public class TestRekord
 //		System.out.println( u.getCommentsBy() );
 //		System.out.println( u );
 		
-/* NativeQuery */
-		Query<User> nq = User.Query.CREATED_BEFORE.create();
+/* NativeQuery * /
+		Query<User> nq = User.Queries.CREATED_BEFORE.create();
 		nq.bind( "date", new Timestamp( System.currentTimeMillis() ) );
 		
 		System.out.println( nq.getReadableQuery() );
@@ -62,13 +59,12 @@ public class TestRekord
         
         trans.start();
         
-        Query<User> us = User.Query.UPDATE_STATE.create();
+        Query<User> us = User.Queries.UPDATE_STATE.create();
         us.bind( u );
         us.bind( "new_state", "R" );
         us.executeUpdate();
 /**/
         
-		
 		trans.end( false );
 		trans.close();
 	}

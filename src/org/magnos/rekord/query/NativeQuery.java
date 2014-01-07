@@ -20,8 +20,12 @@ public class NativeQuery
 
 	public static QueryTemplate<Model> parse( Table table, String nativeQuery, View view )
 	{
+	    return parse( table, nativeQuery, view, new ArrayList<Field<?>>() );
+	}
+	
+	public static QueryTemplate<Model> parse( Table table, String nativeQuery, View view, List<Field<?>> selectList )
+	{
 		List<QueryBind> bindList = new ArrayList<QueryBind>();
-		List<Field<?>> selectList = new ArrayList<Field<?>>();
 
 		StringBuilder queryBuilder = new StringBuilder();
 		Matcher matcher = TOKEN_PATTERN.matcher( nativeQuery );
@@ -39,7 +43,7 @@ public class NativeQuery
 			switch (indicator)
 			{
 			case '?':
-				bindList.add( new QueryBind( tokenName, bindList.size(), column, matcher.start(), matcher.end() ) );
+				bindList.add( new QueryBind( tokenName, bindList.size(), column, null, matcher.start(), matcher.end() ) );
 				tokenReplacement = "?";
 				break;
 			case '#':

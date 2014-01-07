@@ -1,5 +1,5 @@
 
-package org.magnos.rekord.query;
+package org.magnos.rekord.query.model;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +14,7 @@ import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 
 
-public abstract class InsertQuery
+public abstract class ModelInsertQuery
 {
 
 	protected Table table;
@@ -23,7 +23,7 @@ public abstract class InsertQuery
 	protected StringBuilder values = new StringBuilder();
 	protected StringBuilder returnings = new StringBuilder();
 
-	public InsertQuery( Table table )
+	public ModelInsertQuery( Table table )
 	{
 		this.table = table;
 	}

@@ -52,7 +52,7 @@ class XmlForeignColumn extends XmlColumn
     	}
     	else
     	{
-    		defaultValue = convert.convertFrom( defaultValue );
+    		defaultValue = convert.fromDatabase( defaultValue );
     	}
     	
         field = new ForeignColumn( name, sqlType, type, in, out, defaultValue, convert );

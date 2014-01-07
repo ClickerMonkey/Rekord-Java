@@ -11,13 +11,16 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.View;
+import org.magnos.rekord.util.StringRange;
 
 
 public class QueryTemplate<M extends Model> implements Factory<Query<M>>
 {
 	
 	private static final Pattern SELECTION_PATTERN = Pattern.compile( "SELECT (.*?) FROM.*", Pattern.CASE_INSENSITIVE );
-
+	private static final Pattern LIMIT_PATTERN = Pattern.compile( "LIMIT (\\d+)", Pattern.CASE_INSENSITIVE );
+	private static final Pattern OFFSET_PATTERN = Pattern.compile( "OFFSET (\\d+)", Pattern.CASE_INSENSITIVE );
+	
     protected final Table table;
     protected final String query;
     protected final View view;
@@ -27,8 +30,9 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     
     protected final Field<?>[] select;
     
-    protected final int selectStart;
-    protected final int selectEnd;
+    protected final StringRange selectRange;
+    protected final StringRange limitRange;
+    protected final StringRange offsetRange;
     
     public QueryTemplate( Table table, String query, View view, QueryBind[] binds, Field<?>[] select )
     {
@@ -38,6 +42,9 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
         this.binds = binds;
         this.bindMap = new HashMap<String, QueryBind>();
         this.select = select;
+        this.selectRange = getPatternRange( SELECTION_PATTERN, query );
+        this.limitRange = getPatternRange( LIMIT_PATTERN, query );
+        this.offsetRange = getPatternRange( OFFSET_PATTERN, query );
         
         for (QueryBind bind : binds)
         {
@@ -45,16 +52,6 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
         	{
         		bindMap.put( bind.name, bind );
         	}
-        }
-        
-        Matcher matcher = SELECTION_PATTERN.matcher( query );
-        
-        if (matcher.matches()) {
-       		this.selectStart = matcher.start( 1 );
-       		this.selectEnd = matcher.end( 1 );
-        } else {
-        	this.selectStart = -1;
-        	this.selectEnd = -1;
         }
     }
 
@@ -76,25 +73,33 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     
     public String getQuery(String alternativeSelection)
     {
-    	String alternativeQuery = query;
-    	
-    	if (selectStart != -1 && selectEnd != -1)
-    	{
-    		alternativeQuery = query.substring( 0, selectStart ) + alternativeSelection + query.substring( selectEnd );
-    	}
-    	
-    	return alternativeQuery;
+    	return selectRange.replace( query, alternativeSelection );
     }
-
-    public int getSelectStart()
-	{
-		return selectStart;
-	}
-
-	public int getSelectEnd()
-	{
-		return selectEnd;
-	}
+    
+    public String getQueryPage(int offset, int limit)
+    {
+        String alternativeQuery = query;
+        
+        if (offsetRange.exists())
+        {
+            alternativeQuery = offsetRange.replace( alternativeQuery, String.valueOf( offset ) );
+        }
+        else
+        {
+            alternativeQuery += " OFFSET " + offset;
+        }
+        
+        if (limitRange.exists())
+        {
+            alternativeQuery = limitRange.replace( alternativeQuery, String.valueOf( limit ) );
+        }
+        else
+        {
+            alternativeQuery += " LIMIT " + limit;
+        }
+        
+        return alternativeQuery;
+    }
 
 	public View getView()
     {
@@ -133,4 +138,19 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     	return binds.length;
     }
     
+    private static StringRange getPatternRange( Pattern pattern, String text )
+    {
+        StringRange range = new StringRange();
+        
+        Matcher matcher = pattern.matcher( text );
+        
+        if (matcher.matches())
+        {
+            range.start = matcher.start( 1 );
+            range.end = matcher.end( 1 );
+        }
+        
+        return range;
+    }
+
 }

@@ -1,5 +1,5 @@
 
-package org.magnos.rekord.query;
+package org.magnos.rekord.query.model;
 
 import java.sql.SQLException;
 
@@ -9,10 +9,10 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 
 
-public class DynamicInsertQuery extends InsertQuery
+public class ModelDynamicInsertQuery extends ModelInsertQuery
 {
 
-	public DynamicInsertQuery( Table table )
+	public ModelDynamicInsertQuery( Table table )
 	{
 		super( table );
 	}

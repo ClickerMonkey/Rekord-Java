@@ -1,6 +1,5 @@
-package org.magnos.rekord.query;
+package org.magnos.rekord.query.model;
 
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
@@ -13,44 +12,49 @@ import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.condition.Condition;
-import org.magnos.rekord.query.condition.Conditions;
+import org.magnos.rekord.query.expr.GroupExpression;
 import org.magnos.rekord.util.SqlUtil;
 
-public abstract class UpdateQuery
+public abstract class ModelUpdateQuery
 {
 	
 	protected Table table;
-	protected String queryFormat;
 	protected Condition condition;
-	protected String queryHistory;
-	protected String queryString;
-	protected StringBuilder query;
+	protected Query<Model> queryHistory;
+    protected String queryFormat;
+	protected QueryTemplate<Model> queryTemplate;
+	protected StringBuilder querySet;
 	
-	public UpdateQuery(Table table)
+	public ModelUpdateQuery(Table table)
 	{
 		this.table = table;
-		this.query = new StringBuilder();
-		this.condition = Conditions.where( table.getKeyColumns() );
+		this.querySet = new StringBuilder();
+		this.condition = new GroupExpression().whereKeyBind( table );
 		this.queryFormat = buildUpdate( table, condition );
 		this.queryHistory = buildHistoryInsert( table, condition );
 	}
 	
 	protected void prepareFixed()
 	{
-		query.setLength( 0 );
+		querySet.setLength( 0 );
 		
 		for (Field<?> f : table.getFields())
 		{
 			f.prepareUpdate( this );
 		}
 
-		queryString = String.format( queryFormat, query );
+        String queryString = String.format( queryFormat, querySet );
+        
+		queryTemplate = NativeQuery.parse( table, queryString, null );
 	}
 	
 	protected void prepareDynamic(Model model)
 	{
-		query.setLength( 0 );
+		querySet.setLength( 0 );
 		
 		for (Value<?> v : model.getValues())
 		{
@@ -59,41 +63,30 @@ public abstract class UpdateQuery
 				v.prepareDynamicUpdate( this );
 			}
 		}
-		
-		queryString = String.format( queryFormat, query );
+
+        String queryString = String.format( queryFormat, querySet );
+        
+        queryTemplate = NativeQuery.parse( table, queryString, null );
 	}
 	
-	public void addSet(Column<?> column)
+	public void set(Column<?> column)
 	{
-		addSet( column.getQuotedName(), column.getOut() );
-	}
-	
-	public void addSet(Column<?> column, String value)
-	{
-		addSet( column.getQuotedName(), value );
-	}
-	
-	public void addSet(String column, String value)
-	{
-		if (query.length() > 0)
-		{
-			query.append( "," );
-		}
-		
-		query.append( column );
-		query.append( " = " );
-		query.append( value );
+	    if (querySet.length() > 0)
+        {
+            querySet.append( "," );
+        }
+	    
+	    querySet.append( column.getQuotedName() );
+	    querySet.append( " = " );
+	    querySet.append( column.getOutForBind() );
 	}
 	
 	protected void saveHistory(Model model) throws SQLException
 	{
 		if (queryHistory != null)
 		{
-			Transaction trans = Rekord.getTransaction();
-			PreparedStatement stmt = trans.prepare( queryHistory );
-			Conditions.whereBind( condition, table.getKeyColumns(), model.getValues() );
-			condition.toPreparedstatement( stmt, 1 );
-			stmt.executeUpdate();
+		    queryHistory.bind( model );
+		    queryHistory.executeUpdate();
 			
 			Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
 		}
@@ -115,31 +108,20 @@ public abstract class UpdateQuery
 		
 		boolean recordsUpdated = false;
 		
-		if (query.length() > 0)
+		if (querySet.length() > 0)
 		{
-			Rekord.log( Logging.UPDATES, "%s -> %s", queryString, model );
+		    Query<Model> query = queryTemplate.create();
+		    
+			Rekord.log( Logging.UPDATES, "%s -> %s", queryTemplate.getQuery(), model );
 			
 			saveHistory( model );
 
-			Transaction trans = Rekord.getTransaction();
-			PreparedStatement stmt = trans.prepare( queryString );
-			int paramIndex = 1;
-		
-			for (Value<?> v : values)
-			{
-				if (v.hasChanged())
-				{
-					paramIndex = v.toUpdate( stmt, paramIndex );
-				}
-			}
-			
-			Conditions.whereBind( condition, table.getKeyColumns(), values );
-			paramIndex = condition.toPreparedstatement( stmt, paramIndex );
-			
-			recordsUpdated = stmt.executeUpdate() > 0;
+			query.bind( model );
+			recordsUpdated = query.executeUpdate() > 0;
 			
 			if (recordsUpdated)
 			{
+			    Transaction trans = Rekord.getTransaction();
 				trans.cache( model );
 			}
 			
@@ -172,7 +154,7 @@ public abstract class UpdateQuery
 		return queryFormatBuilder.toString();
 	}
 	
-	private static String buildHistoryInsert(Table table, Condition condition)
+	private static Query<Model> buildHistoryInsert(Table table, Condition condition)
 	{
 		if (!table.hasHistory()) 
 		{
@@ -196,7 +178,7 @@ public abstract class UpdateQuery
 		queryHistoryBuilder.append( " WHERE " );
 		condition.toQuery( queryHistoryBuilder );
 		
-		return queryHistoryBuilder.toString();
+		return NativeQuery.parse( table, queryHistoryBuilder.toString(), null ).create();
 	}
 	
 }
