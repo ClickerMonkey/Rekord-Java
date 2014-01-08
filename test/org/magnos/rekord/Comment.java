@@ -25,8 +25,8 @@ public class Comment extends Model
 	
 	public static class Views
 	{
-		public static final View 				ALL 			= TABLE.getView( "all" );
-		public static final View				ID				= TABLE.getView( "id" );
+		public static final LoadProfile 				ALL 			= TABLE.getLoadProfile( "all" );
+		public static final LoadProfile				ID				= TABLE.getLoadProfile( "id" );
 	}
 
 	public Comment()

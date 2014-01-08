@@ -1,6 +1,6 @@
 package org.magnos.rekord.field;
 
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
@@ -26,7 +26,7 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldView fieldView)
+	public String getSelectionExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}

@@ -10,7 +10,7 @@ import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.util.StringRange;
 
 
@@ -23,7 +23,7 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
 	
     protected final Table table;
     protected final String query;
-    protected final View view;
+    protected final LoadProfile loadProfile;
     
     protected final QueryBind[] binds;
     protected final Map<String, QueryBind> bindMap;
@@ -34,11 +34,11 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     protected final StringRange limitRange;
     protected final StringRange offsetRange;
     
-    public QueryTemplate( Table table, String query, View view, QueryBind[] binds, Field<?>[] select )
+    public QueryTemplate( Table table, String query, LoadProfile loadProfile, QueryBind[] binds, Field<?>[] select )
     {
         this.table = table;
         this.query = query;
-        this.view = view;
+        this.loadProfile = loadProfile;
         this.binds = binds;
         this.bindMap = new HashMap<String, QueryBind>();
         this.select = select;
@@ -101,14 +101,14 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
         return alternativeQuery;
     }
 
-	public View getView()
+	public LoadProfile getLoadProfile()
     {
-        return view;
+        return loadProfile;
     }
 	
-	public boolean hasView()
+	public boolean hasLoadProfile()
 	{
-		return (view != null);
+		return (loadProfile != null);
 	}
 
     public Field<?>[] getSelection()

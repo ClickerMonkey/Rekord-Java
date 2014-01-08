@@ -70,7 +70,7 @@ public class Model implements Serializable
 		return hasKey() ? table.getDelete().execute( this ) : false;
 	}
 
-	public boolean load( View view ) throws SQLException
+	public boolean load( LoadProfile loadProfile ) throws SQLException
 	{
 		if (!hasKey())
 		{
@@ -79,15 +79,15 @@ public class Model implements Serializable
 
 		SelectQuery<Model> select = new SelectQuery<Model>( this );
 
-		for (Field<?> f : view.getFields())
+		for (Field<?> f : loadProfile.getFields())
 		{
 			if (!valueOf( f ).hasValue() && f.isSelectable())
 			{
-			    select.select( f, f.getSelectionExpression( view.getFieldView( f ) ) );
+			    select.select( f, f.getSelectionExpression( loadProfile.getFieldLoad( f ) ) );
 			}
 		}
 
-		select.setView( view );
+		select.setLoadProfile( loadProfile );
 		
         Query<Model> query = select.newQuery();
 		
@@ -113,11 +113,11 @@ public class Model implements Serializable
 				results.close();
 			}
 			
-			Rekord.log( Logging.LOADING, "loaded view %s for %s", view.getName(), this );
+			Rekord.log( Logging.LOADING, "loaded profile %s for %s", loadProfile.getName(), this );
 		}
 		else
 		{
-			Rekord.log( Logging.LOADING, "loading view %s had no affect for %s", view.getName(), this );
+			Rekord.log( Logging.LOADING, "loading profile %s had no affect for %s", loadProfile.getName(), this );
 		}
 
 		query.postSelect( this );

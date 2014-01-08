@@ -49,11 +49,11 @@ public class Table
     protected ModelUpdateQuery update;
     protected ModelDeleteQuery delete;
     protected Map<String, Field<?>> fieldMap;
-    protected View[] views;
-    protected Map<String, View> viewMap;
+    protected LoadProfile[] loadProfiles;
+    protected Map<String, LoadProfile> loadProfileMap;
     protected HistoryTable history;
-    protected View viewAll;
-    protected View viewId;
+    protected LoadProfile loadProfileAll;
+    protected LoadProfile loadProfileId;
     protected Map<String, QueryTemplate<?>> queries;
     protected Listener<Model>[][] listeners;
 
@@ -74,7 +74,7 @@ public class Table
         this.flags = flags;
         this.index = Rekord.newTable( this );
         this.fieldMap = new HashMap<String, Field<?>>();
-        this.viewMap = new HashMap<String, View>();
+        this.loadProfileMap = new HashMap<String, LoadProfile>();
         this.queries = new HashMap<String, QueryTemplate<?>>();
         this.keyColumns = id;
         this.fields = existingFields;
@@ -95,17 +95,17 @@ public class Table
         delete = new ModelDeleteQuery( this );
     }
 
-    public void setViews( View... newViews )
+    public void setLoadProfiles( LoadProfile... newLoadProfiles )
     {
-        views = newViews;
+        loadProfiles = newLoadProfiles;
 
-        for (View v : views)
+        for (LoadProfile v : loadProfiles)
         {
-            viewMap.put( v.getName(), v );
+            loadProfileMap.put( v.getName(), v );
         }
 
-        viewAll = viewMap.get( "all" );
-        viewId = viewMap.get( "id" );
+        loadProfileAll = loadProfileMap.get( "all" );
+        loadProfileId = loadProfileMap.get( "id" );
     }
     
     public void addListener(Listener<Model> listener, ListenerEvent e)
@@ -151,9 +151,9 @@ public class Table
         }
     }
 
-    public Table addNativeQuery( String name, String query, String viewName )
+    public Table addNativeQuery( String name, String query, String loadProfileName )
     {
-    	queries.put( name, NativeQuery.parse( this, query, getView( viewName ) ) );
+    	queries.put( name, NativeQuery.parse( this, query, getLoadProfile( loadProfileName ) ) );
     	
     	return this;
     }
@@ -265,9 +265,9 @@ public class Table
         return (F)fieldMap.get( name );
     }
 
-    public View getView( String name )
+    public LoadProfile getLoadProfile( String name )
     {
-        return viewMap.get( name );
+        return loadProfileMap.get( name );
     }
 
     public <T extends Model> QueryTemplate<T> getQuery( String name )
@@ -290,14 +290,14 @@ public class Table
         return (history != null);
     }
 
-    public View getViewAll()
+    public LoadProfile getLoadProfileAll()
     {
-        return viewAll;
+        return loadProfileAll;
     }
 
-    public View getViewId()
+    public LoadProfile getLoadProfileId()
     {
-        return viewId;
+        return loadProfileId;
     }
 
     public int getFlags()
@@ -361,11 +361,11 @@ public class Table
         }
         sb.append( "]" );
 
-        sb.append( ", views=[" );
-        for (int i = 0; i < views.length; i++)
+        sb.append( ", loads=[" );
+        for (int i = 0; i < loadProfiles.length; i++)
         {
             if (i > 0) sb.append( ", " );
-            sb.append( views[i] );
+            sb.append( loadProfiles[i] );
         }
         sb.append( "]" );
 

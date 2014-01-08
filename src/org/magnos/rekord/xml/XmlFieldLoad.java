@@ -1,7 +1,7 @@
 package org.magnos.rekord.xml;
 
-class XmlFieldView
+class XmlFieldLoad
 {
-	XmlView view;
+	XmlLoadProfile loadProfile;
 	int limitNumber;
 }

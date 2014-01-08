@@ -19,7 +19,7 @@ public interface Value<T>
 	public boolean hasChanged();
 	public void clearChanges();
 	
-	public void load(FieldView fieldView) throws SQLException;
+	public void load(FieldLoad fieldLoad) throws SQLException;
 
 	public void prepareDynamicInsert(ModelInsertQuery query);
 	public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
@@ -28,8 +28,8 @@ public interface Value<T>
 	public void prepareDynamicUpdate(ModelUpdateQuery query);
 	public int toUpdate(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
 	
-	public void fromSelect(ResultSet results, FieldView fieldView) throws SQLException;
-	public void postSelect(Model model, FieldView fieldView) throws SQLException;
+	public void fromSelect(ResultSet results, FieldLoad fieldLoad) throws SQLException;
+	public void postSelect(Model model, FieldLoad fieldLoad) throws SQLException;
 	
 	public void fromResultSet(ResultSet results) throws SQLException;
 	public int toPreparedStatement(PreparedStatement preparedStatement, int paramIndex) throws SQLException;

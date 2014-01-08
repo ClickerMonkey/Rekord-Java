@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
-import org.magnos.rekord.View;
+import org.magnos.rekord.FieldLoad;
+import org.magnos.rekord.LoadProfile;
 
 public class Selection
 {
@@ -39,7 +39,7 @@ public class Selection
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectionExpression( FieldView.DEFAULT );
+				String se = f.getSelectionExpression( FieldLoad.DEFAULT );
 				
 				if (se != null)
 				{
@@ -59,18 +59,18 @@ public class Selection
 		return new Selection( expression, selected );
 	}
 	
-	public static Selection fromView(View view)
+	public static Selection fromLoadProfile(LoadProfile load)
 	{
 		StringBuilder expressionBuilder = new StringBuilder();
 		List<Field<?>> selectedList = new ArrayList<Field<?>>();
 		
-		for (Field<?> f : view.getFields())
+		for (Field<?> f : load.getFields())
 		{
 			if (f.isSelectable())
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectionExpression( view.getFieldView( f ) );
+				String se = f.getSelectionExpression( load.getFieldLoad( f ) );
 				
 				if (se != null)
 				{

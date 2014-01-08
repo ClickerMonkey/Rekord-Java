@@ -10,7 +10,7 @@ abstract class XmlLoadable
     abstract void validate(XmlTable table, Map<String, XmlTable> tableMap);
     void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters) {}
     void instantiateTableImplementation() {}
-    void instantiateViewImplementation() {}
+    void instantiateLoadProfileImplementation() {}
     void initializeTable() {}
     void relateFieldReferences() {}
     void finishTable() throws Exception {}

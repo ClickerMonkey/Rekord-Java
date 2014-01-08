@@ -5,5 +5,5 @@ public class XmlNativeQuery
 {
     String name;
     String query;
-    String view;
+    String loadProfile;
 }

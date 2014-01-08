@@ -6,25 +6,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
-import org.magnos.rekord.View;
+import org.magnos.rekord.FieldLoad;
+import org.magnos.rekord.LoadProfile;
 
-class XmlView extends XmlLoadable
+class XmlLoadProfile extends XmlLoadable
 {
     static final Pattern VIEW_NAME_PATTERN = Pattern.compile( "^([^\\[\\(]+)(|\\(([\\d]+)\\))(|\\[([^\\]]+)\\])$" );
     
     String name;
     String[] fieldNames;
-    XmlFieldView[] fieldViews;
+    XmlFieldLoad[] fieldLoads;
 
     XmlField[] fields;
-    View view;
+    LoadProfile loadProfile;
 
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
     {
         fields = new XmlField[fieldNames.length];
-        fieldViews = new XmlFieldView[table.fieldMap.size()];
+        fieldLoads = new XmlFieldLoad[table.fieldMap.size()];
 
         for (int i = 0; i < fieldNames.length; i++)
         {
@@ -34,63 +34,63 @@ class XmlView extends XmlLoadable
             
             if (!matcher.matches())
             {
-            	throw new RuntimeException( "field name must be in the format of 'field(limit)[sub-view]' where (limit) and [sub-view] are optional" );
+            	throw new RuntimeException( "field name must be in the format of 'field(limit)[sub-load]' where (limit) and [sub-load] are optional" );
             }
             
             String fieldName = matcher.group( 1 );
             String limitNumber = matcher.group( 3 );
-            String viewName = matcher.group( 5 );
+            String loadName = matcher.group( 5 );
 
             XmlField f = table.fieldMap.get( fieldName );
 
             if (f == null)
             {
-                throw new RuntimeException( "field " + fieldName + " for view " + name + " was not found on table " + table.name );
+                throw new RuntimeException( "field " + fieldName + " for load " + name + " was not found on table " + table.name );
             }
 
             fields[i] = f;
             
-            if (limitNumber != null || viewName != null)
+            if (limitNumber != null || loadName != null)
             {
-            	fieldViews[i] = new XmlFieldView();
+            	fieldLoads[i] = new XmlFieldLoad();
             	
-            	if (viewName != null && f.relatedTable != null) {
-            		fieldViews[i].view = f.relatedTable.viewMap.get( viewName );	
+            	if (loadName != null && f.relatedTable != null) {
+            		fieldLoads[i].loadProfile = f.relatedTable.loadMap.get( loadName );	
             	}
             	 
-            	fieldViews[i].limitNumber = limitNumber == null ? -1 : Integer.parseInt( limitNumber );
+            	fieldLoads[i].limitNumber = limitNumber == null ? -1 : Integer.parseInt( limitNumber );
             }
         }
     }
 
     @Override
-    public void instantiateViewImplementation()
+    public void instantiateLoadProfileImplementation()
     {
     	Field<?>[] fieldArray = XmlLoader.getFields( fields );
     	
-    	FieldView[] fieldViewArray = new FieldView[ fieldViews.length ];
+    	FieldLoad[] fieldLoadArray = new FieldLoad[ fieldLoads.length ];
     	
     	for (int i = 0; i < fieldArray.length; i++)
     	{
-    		fieldViewArray[i] = new FieldView();
+    		fieldLoadArray[i] = new FieldLoad();
     	}
     	
-        view = new View( name, fieldArray, fieldViewArray );
+        loadProfile = new LoadProfile( name, fieldArray, fieldLoadArray );
     }
 
     @Override
     public void relateFieldReferences()
     {
-    	for (int i = 0; i < fieldViews.length; i++)
+    	for (int i = 0; i < fieldLoads.length; i++)
     	{
-    		XmlFieldView xfv = fieldViews[i];
-    		FieldView fv = view.getFieldViews()[i];
+    		XmlFieldLoad xfv = fieldLoads[i];
+    		FieldLoad fv = loadProfile.getFieldLoads()[i];
     		
     		if (xfv != null)
     		{
-    			if (xfv.view != null)
+    			if (xfv.loadProfile != null)
     			{
-    				fv.setView( xfv.view.view );
+    				fv.setLoadProfile( xfv.loadProfile.loadProfile );
     			}
     			
     			fv.setLimit( xfv.limitNumber );

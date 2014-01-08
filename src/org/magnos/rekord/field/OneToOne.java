@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
@@ -16,7 +16,7 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.model.ModelInsertQuery;
 import org.magnos.rekord.query.model.ModelUpdateQuery;
@@ -26,17 +26,17 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 
 	protected Table joinTable;
 	protected ForeignColumn<?>[] joinColumns;
-	protected View joinView;
+	protected LoadProfile joinLoad;
 	
 	public OneToOne( String name, int flags )
 	{
 		super( name, flags );
 	}
 	
-	public void setJoin( Table joinTable, View joinView, ForeignColumn<?>[] joinColumns )
+	public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignColumn<?>[] joinColumns )
 	{
 		this.joinTable = joinTable;
-		this.joinView = joinView;
+		this.joinLoad = joinLoad;
 		this.joinColumns = joinColumns;
 	}
 
@@ -47,7 +47,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldView fieldView)
+	public String getSelectionExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}
@@ -75,9 +75,9 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		return joinTable;
 	}
 	
-	public View getJoinView()
+	public LoadProfile getJoinLoad()
 	{
-		return joinView;
+		return joinLoad;
 	}
 
 	public ForeignColumn<?>[] getJoinColumns()
@@ -90,7 +90,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
     {
         StringBuilder sb = beginToString();
         sb.append( ", join=" ).append( joinTable.getName() );
-        sb.append( "[" ).append( joinView.getName() ).append( "]" );
+        sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
         sb.append( ", join-key={" );
         for (int i = 0; i < joinColumns.length; i++) {
             if (i > 0) sb.append( ", " );
@@ -150,7 +150,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 			{
 				try
 				{
-					loadFromKey( FieldView.DEFAULT );	
+					loadFromKey( FieldLoad.DEFAULT );	
 				}
 				catch (SQLException e)
 				{
@@ -200,7 +200,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		}
 
 		@Override
-		public void load( FieldView fieldView ) throws SQLException
+		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
@@ -236,17 +236,17 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		}
 		
 		@Override
-		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
+		public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
 		
 		@Override
-		public void postSelect(Model model, FieldView fieldView) throws SQLException
+		public void postSelect(Model model, FieldLoad fieldLoad) throws SQLException
 		{
 			if (!field.is(LAZY) && getKey().exists())
 			{
-				loadFromKey( fieldView );
+				loadFromKey( fieldLoad );
 			}
 		}
 		
@@ -301,25 +301,25 @@ public class OneToOne<T extends Model> extends AbstractField<T>
             
         }
 		
-		private void loadFromKey( FieldView fieldView ) throws SQLException
+		private void loadFromKey( FieldLoad fieldLoad ) throws SQLException
 		{
 			Key key = getKey();
 			Transaction trans = Rekord.getTransaction();
 			value = trans.getCached( field.getJoinTable(), key );
 			
-			View view = fieldView.getView( field.getJoinView() );
+			LoadProfile load = fieldLoad.getLoadProfile( field.getJoinLoad() );
 			
 			if (value == null)
 			{
 			    SelectQuery<T> select = new SelectQuery<T>( field.getJoinTable() );
-			    select.select( view );
+			    select.select( load );
 			    select.whereForeignKey( key );
 
 			    value = select.newQuery().first();
 			}
 			else
 			{
-				value.load( view );
+				value.load( load );
 				
 				Rekord.log( Logging.CACHING, "one-to-one from-cache: %s", value );
 			}

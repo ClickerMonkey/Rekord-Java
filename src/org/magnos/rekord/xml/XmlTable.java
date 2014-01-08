@@ -16,7 +16,7 @@ import org.magnos.rekord.Listener;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.field.Column;
 
 class XmlTable extends XmlLoadable
@@ -28,7 +28,7 @@ class XmlTable extends XmlLoadable
     boolean transactionCached;
     boolean applicationCached;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
-    Map<String, XmlView> viewMap = new LinkedHashMap<String, XmlView>();
+    Map<String, XmlLoadProfile> loadMap = new LinkedHashMap<String, XmlLoadProfile>();
     List<XmlNativeQuery> nativeQueries = new ArrayList<XmlNativeQuery>();
     List<XmlListener> listeners = new ArrayList<XmlListener>();
     
@@ -55,13 +55,13 @@ class XmlTable extends XmlLoadable
         }
         
         for (XmlField f : fieldMap.values()) f.validate( table, tableMap );
-        for (XmlView v : viewMap.values()) v.validate( table, tableMap );
+        for (XmlLoadProfile v : loadMap.values()) v.validate( table, tableMap );
         
         for (XmlNativeQuery nq : nativeQueries)
         {
-            if (nq.view != null && !viewMap.containsKey( nq.view ))
+            if (nq.loadProfile != null && !loadMap.containsKey( nq.loadProfile ))
             {
-                throw new RuntimeException( "Native query " + nq.name + " has view " + nq.view + " specified but it was not found in table " + table.name );
+                throw new RuntimeException( "Native query " + nq.name + " has load profile " + nq.loadProfile + " specified but it was not found in table " + table.name );
             }
         }
     }
@@ -90,9 +90,9 @@ class XmlTable extends XmlLoadable
     }
     
     @Override
-    public void instantiateViewImplementation()
+    public void instantiateLoadProfileImplementation()
     {
-        for (XmlView v : viewMap.values()) v.instantiateViewImplementation();
+        for (XmlLoadProfile v : loadMap.values()) v.instantiateLoadProfileImplementation();
     }
     
     @Override
@@ -112,27 +112,27 @@ class XmlTable extends XmlLoadable
     @Override
     public void relateFieldReferences()
     {
-        for (XmlView v : viewMap.values()) v.relateFieldReferences();
+        for (XmlLoadProfile v : loadMap.values()) v.relateFieldReferences();
         for (XmlField f : fieldMap.values()) f.relateFieldReferences();
     }
     
     @Override
     public void finishTable() throws Exception
     {
-        Collection<XmlView> vc = viewMap.values();
-        XmlView[] xmlViews = vc.toArray( new XmlView[ vc.size() ] );
-        View[] views = new View[ vc.size() ];
+        Collection<XmlLoadProfile> vc = loadMap.values();
+        XmlLoadProfile[] xmlLoadProfiles = vc.toArray( new XmlLoadProfile[ vc.size() ] );
+        LoadProfile[] loadProfiles = new LoadProfile[ vc.size() ];
         
-        for (int i = 0; i < views.length; i++)
+        for (int i = 0; i < loadProfiles.length; i++)
         {
-            views[i] = xmlViews[i].view;
+            loadProfiles[i] = xmlLoadProfiles[i].loadProfile;
         }
         
-        table.setViews( views );
+        table.setLoadProfiles( loadProfiles );
         
         for (XmlNativeQuery nq : nativeQueries)
         {
-            table.addNativeQuery( nq.name, nq.query, nq.view );
+            table.addNativeQuery( nq.name, nq.query, nq.loadProfile );
         }
         
         for (XmlListener xl : listeners)

@@ -30,7 +30,7 @@ public interface Field<T>
 	public Value<T> newValue(Model model);
 	
 	public boolean isSelectable();
-	public String getSelectionExpression(FieldView fieldView);
+	public String getSelectionExpression(FieldLoad fieldLoad);
 	
 	public void prepareInsert(ModelInsertQuery query);
 	public void prepareUpdate(ModelUpdateQuery query);

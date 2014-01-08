@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
@@ -22,7 +22,7 @@ import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.field.Column;
 
 
@@ -336,17 +336,17 @@ public class Query<M extends Model>
 
     public M first() throws SQLException
     {
-        return first( template.getQuery(), template.getSelection(), template.getView(), true );
+        return first( template.getQuery(), template.getSelection(), template.getLoadProfile(), true );
     }
     
-    public M first( View view ) throws SQLException
+    public M first( LoadProfile loadProfile ) throws SQLException
     {
-        Selection s = view.getSelection();
+        Selection s = loadProfile.getSelection();
         
-        return first( template.getQuery( s.getExpression() ), s.getFields(), view, true );
+        return first( template.getQuery( s.getExpression() ), s.getFields(), loadProfile, true );
     }
     
-    public M first(String queryString, Field<?>[] fields, View view, boolean postSelect) throws SQLException
+    public M first(String queryString, Field<?>[] fields, LoadProfile loadProfile, boolean postSelect) throws SQLException
     {
         M first = null;
 
@@ -361,7 +361,7 @@ public class Query<M extends Model>
         {
             if (results.next())
             {
-                first = fromResultSet( trans, results, fields, view );
+                first = fromResultSet( trans, results, fields, loadProfile );
             }
         }
         finally
@@ -371,13 +371,13 @@ public class Query<M extends Model>
         
         if (postSelect && first != null)
         {
-            postSelect( first, fields, view );
+            postSelect( first, fields, loadProfile );
         }
 
         return first;
     }
 
-    protected <C extends Collection<M>> C select( String queryString, Field<?>[] fields, View view, boolean postSelect, C out ) throws SQLException
+    protected <C extends Collection<M>> C select( String queryString, Field<?>[] fields, LoadProfile loadProfile, boolean postSelect, C out ) throws SQLException
     {
         Transaction trans = Rekord.getTransaction();
         PreparedStatement stmt = prepare( trans, queryString );
@@ -388,7 +388,7 @@ public class Query<M extends Model>
         {
             while (results.next())
             {
-                M model = fromResultSet( trans, results, fields, view );
+                M model = fromResultSet( trans, results, fields, loadProfile );
 
                 out.add( model );
             }
@@ -400,7 +400,7 @@ public class Query<M extends Model>
 
         if (postSelect)
         {
-            postSelect( out, fields, view );
+            postSelect( out, fields, loadProfile );
         }
 
         return out;
@@ -408,14 +408,14 @@ public class Query<M extends Model>
 
     public <C extends Collection<M>> C select( C out ) throws SQLException
     {
-        return select( template.getQuery(), template.getSelection(), template.getView(), true, out );
+        return select( template.getQuery(), template.getSelection(), template.getLoadProfile(), true, out );
     }
 
-    public <C extends Collection<M>> C select( View view, C out ) throws SQLException
+    public <C extends Collection<M>> C select( LoadProfile loadProfile, C out ) throws SQLException
     {
-        Selection s = view.getSelection();
+        Selection s = loadProfile.getSelection();
 
-        return select( template.getQuery( s.getExpression() ), s.getFields(), view, true, out );
+        return select( template.getQuery( s.getExpression() ), s.getFields(), loadProfile, true, out );
     }
 
     public List<M> list() throws SQLException
@@ -423,14 +423,14 @@ public class Query<M extends Model>
         return select( new ArrayList<M>() );
     }
 
-    public List<M> list( View view ) throws SQLException
+    public List<M> list( LoadProfile loadProfile ) throws SQLException
     {
-        return select( view, new ArrayList<M>() );
+        return select( loadProfile, new ArrayList<M>() );
     }
 
     public List<M> list( int offset, int limit, boolean postSelect ) throws SQLException
     {
-        return select( template.getQueryPage( offset, limit ), template.getSelection(), template.getView(), postSelect, new ArrayList<M>() );
+        return select( template.getQueryPage( offset, limit ), template.getSelection(), template.getLoadProfile(), postSelect, new ArrayList<M>() );
     }
 
     public Set<M> set() throws SQLException
@@ -438,17 +438,17 @@ public class Query<M extends Model>
         return select( new HashSet<M>() );
     }
     
-    public Set<M> set( View view ) throws SQLException
+    public Set<M> set( LoadProfile loadProfile ) throws SQLException
     {
-        return select( view, new HashSet<M>() );
+        return select( loadProfile, new HashSet<M>() );
     }
 
     public M fromResultSet( Transaction trans, ResultSet results ) throws SQLException
     {
-        return fromResultSet( trans, results, template.getSelection(), template.getView() );
+        return fromResultSet( trans, results, template.getSelection(), template.getLoadProfile() );
     }
 
-    public M fromResultSet( Transaction trans, ResultSet results, Field<?>[] fields, View view ) throws SQLException
+    public M fromResultSet( Transaction trans, ResultSet results, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
         final Table table = template.getTable();
         final Key key = table.keyFromResults( results );
@@ -459,7 +459,7 @@ public class Query<M extends Model>
         {
             model = table.newModel();
 
-            populate( results, model, fields, view );
+            populate( results, model, fields, loadProfile );
 
             if (trans.cache( model ))
             {
@@ -470,7 +470,7 @@ public class Query<M extends Model>
         {
             Rekord.log( Logging.CACHING, "from-cache: %s", model );
 
-            merge( results, model, fields, view );
+            merge( results, model, fields, loadProfile );
         }
 
         table.notifyListeners( model, ListenerEvent.POST_SELECT );
@@ -480,35 +480,35 @@ public class Query<M extends Model>
 
     public void populate( ResultSet results, Model model ) throws SQLException
     {
-        populate( results, model, template.getSelection(), template.getView() );
+        populate( results, model, template.getSelection(), template.getLoadProfile() );
     }
 
-    public void populate( ResultSet results, Model model, Field<?>[] fields, View view ) throws SQLException
+    public void populate( ResultSet results, Model model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
-        if (view != null)
+        if (loadProfile != null)
         {
             for (Field<?> f : fields)
             {
-                model.valueOf( f ).fromSelect( results, view.getFieldView( f ) );
+                model.valueOf( f ).fromSelect( results, loadProfile.getFieldLoad( f ) );
             }
         }
         else
         {
             for (Field<?> f : fields)
             {
-                model.valueOf( f ).fromSelect( results, FieldView.DEFAULT );
+                model.valueOf( f ).fromSelect( results, FieldLoad.DEFAULT );
             }
         }
     }
 
     public void merge( ResultSet results, Model model ) throws SQLException
     {
-        merge( results, model, template.getSelection(), template.getView() );
+        merge( results, model, template.getSelection(), template.getLoadProfile() );
     }
 
-    public void merge( ResultSet results, Model model, Field<?>[] fields, View view ) throws SQLException
+    public void merge( ResultSet results, Model model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
-        if (view != null)
+        if (loadProfile != null)
         {
             for (Field<?> f : fields)
             {
@@ -516,7 +516,7 @@ public class Query<M extends Model>
 
                 if (!value.hasValue())
                 {
-                    value.fromSelect( results, view.getFieldView( f ) );
+                    value.fromSelect( results, loadProfile.getFieldLoad( f ) );
                 }
             }
         }
@@ -528,7 +528,7 @@ public class Query<M extends Model>
 
                 if (!value.hasValue())
                 {
-                    value.fromSelect( results, FieldView.DEFAULT );
+                    value.fromSelect( results, FieldLoad.DEFAULT );
                 }
             }
         }
@@ -536,57 +536,57 @@ public class Query<M extends Model>
 
     public void postSelect( Collection<M> collection ) throws SQLException
     {
-        postSelect( collection, template.getSelection(), template.getView() );
+        postSelect( collection, template.getSelection(), template.getLoadProfile() );
     }
 
-    public void postSelect( Collection<M> collection, Field<?>[] fields, View view ) throws SQLException
+    public void postSelect( Collection<M> collection, Field<?>[] fields, LoadProfile load ) throws SQLException
     {
-        if (view != null)
+        if (load != null)
         {
             for (M model : collection)
             {
-                postSelectViewful( model, fields, view );
+                postSelectLoadful( model, fields, load );
             }
         }
         else
         {
             for (M model : collection)
             {
-                postSelectViewless( model, fields );
+                postSelectLoadless( model, fields );
             }
         }
     }
 
     public void postSelect( M model ) throws SQLException
     {
-        postSelect( model, template.getSelection(), template.getView() );
+        postSelect( model, template.getSelection(), template.getLoadProfile() );
     }
 
-    public void postSelect( M model, Field<?>[] fields, View view ) throws SQLException
+    public void postSelect( M model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
-        if (view != null)
+        if (loadProfile != null)
         {
-            postSelectViewful( model, fields, view );
+            postSelectLoadful( model, fields, loadProfile );
         }
         else
         {
-            postSelectViewless( model, fields );
+            postSelectLoadless( model, fields );
         }
     }
 
-    private void postSelectViewless( M model, Field<?>[] fields ) throws SQLException
+    private void postSelectLoadless( M model, Field<?>[] fields ) throws SQLException
     {
         for (Field<?> f : template.getSelection())
         {
-            model.valueOf( f ).postSelect( model, FieldView.DEFAULT );
+            model.valueOf( f ).postSelect( model, FieldLoad.DEFAULT );
         }
     }
 
-    private void postSelectViewful( M model, Field<?>[] fields, View view ) throws SQLException
+    private void postSelectLoadful( M model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
         for (Field<?> f : fields)
         {
-            model.valueOf( f ).postSelect( model, view.getFieldView( f ) );
+            model.valueOf( f ).postSelect( model, loadProfile.getFieldLoad( f ) );
         }
     }
 

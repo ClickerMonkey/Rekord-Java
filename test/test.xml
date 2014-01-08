@@ -33,16 +33,16 @@
             <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
             <column name="state" type="CHAR" converter="user-state" default-value="U" />
             <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
-            <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-view="all" join-key="commentable_id" />
-            <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-view="basic" join-key="user_id" />
+            <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-load="all" join-key="commentable_id" />
+            <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-load="basic" join-key="user_id" />
         </fields>
-        <views>
-            <view name="without-comments" fields="id, name, created_timestamp, commentable_id" />
-            <view name="for-link" fields="id, name" />
-            <view name="short-name" fields="id, name(3)" />
-        </views>
+        <load-profiles>
+            <load-profile name="without-comments" fields="id, name, created_timestamp, commentable_id" />
+            <load-profile name="for-link" fields="id, name" />
+            <load-profile name="short-name" fields="id, name(3)" />
+        </load-profiles>
         <native-queries>
-            <query name="created-before" view="for-link"><![CDATA[
+            <query name="created-before" load="for-link"><![CDATA[
                 SELECT #id, #name FROM "user" WHERE "created_timestamp" < ?date
             ]]></query>
             <query name="update-state"><![CDATA[
@@ -65,11 +65,11 @@
             <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
             <foreign-column name="user_id" type="BIGINT" foreign-table="user" foreign-column="id" />
             <many-to-one name="commentable" join-table="commentable" join-key="commentable_id" />
-            <many-to-one name="user" join-table="user" join-view="for-link" join-key="user_id" />
+            <many-to-one name="user" join-table="user" join-load="for-link" join-key="user_id" />
         </fields>
-        <views>
-            <view name="basic" fields="id, text, user_id, user[for-link]" />
-        </views>
+        <load-profiles>
+            <load-profile name="basic" fields="id, text, user_id, user[for-link]" />
+        </load-profiles>
     </table>
     
     <table name="commentable" key="id">
@@ -77,7 +77,7 @@
             <column name="id" type="BIGINT" generated="true" read-only="true" />
             <column name="count" type="INTEGER" generated="true" default-value="42" />
             <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
-            <one-to-many name="comments" lazy="true" join-table="comment" join-view="all" join-key="commentable_id" />
+            <one-to-many name="comments" lazy="true" join-table="comment" join-load="all" join-key="commentable_id" />
         </fields>        
     </table>
     

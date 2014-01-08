@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.field.Column;
 
 
@@ -18,12 +18,12 @@ public class NativeQuery
 
 	public static final Pattern TOKEN_PATTERN = Pattern.compile( "(#[\\w_][\\w_\\d\\$]*|\\?[\\w_][\\w_\\d\\$]*)" );
 
-	public static QueryTemplate<Model> parse( Table table, String nativeQuery, View view )
+	public static QueryTemplate<Model> parse( Table table, String nativeQuery, LoadProfile loadProfile )
 	{
-	    return parse( table, nativeQuery, view, new ArrayList<Field<?>>() );
+	    return parse( table, nativeQuery, loadProfile, new ArrayList<Field<?>>() );
 	}
 	
-	public static QueryTemplate<Model> parse( Table table, String nativeQuery, View view, List<Field<?>> selectList )
+	public static QueryTemplate<Model> parse( Table table, String nativeQuery, LoadProfile loadProfile, List<Field<?>> selectList )
 	{
 		List<QueryBind> bindList = new ArrayList<QueryBind>();
 
@@ -70,7 +70,7 @@ public class NativeQuery
 		QueryBind[] bindArray = bindList.toArray( new QueryBind[bindList.size()] );
 		Field<?>[] selectArray = selectList.toArray( new Field[selectList.size()] );
 
-		return new QueryTemplate<Model>( table, query, view, bindArray, selectArray );
+		return new QueryTemplate<Model>( table, query, loadProfile, bindArray, selectArray );
 	}
 
 }

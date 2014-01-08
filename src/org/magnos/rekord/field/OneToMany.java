@@ -11,11 +11,11 @@ import java.util.Set;
 
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
@@ -31,7 +31,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	protected final boolean cascadeSave;
 	protected Table joinTable;
 	protected ForeignColumn<?>[] joinColumns;
-	protected View joinView;
+	protected LoadProfile joinLoad;
 	
 	public OneToMany( String name, int flags, int fetchSize, boolean cascadeDelete, boolean cascadeSave )
 	{
@@ -42,10 +42,10 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		this.cascadeSave = cascadeSave;
 	}
 	
-	public void setJoin( Table joinTable, View joinView, ForeignColumn<?> ... joinColumns )
+	public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignColumn<?> ... joinColumns )
 	{
 		this.joinTable = joinTable;
-		this.joinView = joinView;
+		this.joinLoad = joinLoad;
 		this.joinColumns = joinColumns;
 	}
 
@@ -56,7 +56,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldView fieldView)
+	public String getSelectionExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}
@@ -84,9 +84,9 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		return joinTable;
 	}
 	
-	public View getJoinView()
+	public LoadProfile getJoinLoad()
 	{
-		return joinView;
+		return joinLoad;
 	}
 
 	public ForeignColumn<?>[] getJoinColumns()
@@ -116,7 +116,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
         sb.append( ", fetch-size=" ).append( fetchSize );
         sb.append( ", cascade-delete=" ).append( cascadeDelete );
         sb.append( ", join=" ).append( joinTable.getName() );
-        sb.append( "[" ).append( joinView.getName() ).append( "]" );
+        sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
         sb.append( ", join-key={" );
         for (int i = 0; i < joinColumns.length; i++) {
             if (i > 0) sb.append( ", " );
@@ -191,7 +191,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void load( FieldView fieldView ) throws SQLException
+		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
@@ -227,13 +227,13 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
+		public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
 
 		@Override
-		public void postSelect(Model model, FieldView fieldView) throws SQLException
+		public void postSelect(Model model, FieldLoad fieldLoad) throws SQLException
 		{
 			
 		}
@@ -296,7 +296,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
         {
             if (field.isCascadeDelete())
             {
-                select.select( field.getJoinTable().getViewId() );
+                select.select( field.getJoinTable().getLoadProfileId() );
                 
                 queryTemplate = select.newTemplate();
                 
@@ -347,21 +347,21 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 			}
 		}
 
-		private void updateQuery(View parentView)
+		private void updateQuery(LoadProfile parentLoad)
 		{
-		    View fieldView = null;
+		    LoadProfile fieldLoad = null;
 		    
-		    if (parentView != null)
+		    if (parentLoad != null)
 		    {
-		        fieldView = parentView.getFieldView( field, select.getView() );    
+		        fieldLoad = parentLoad.getFieldLoad( field, select.getLoadProfile() );    
 		    }
 		    
-		    if (fieldView == null)
+		    if (fieldLoad == null)
 		    {
-		        fieldView = field.getJoinView();
+		        fieldLoad = field.getJoinLoad();
 		    }
 		    
-		    select.select( fieldView );
+		    select.select( fieldLoad );
 		    
 		    queryTemplate = select.newTemplate();
 		}

@@ -33,11 +33,11 @@ public class User extends Model
 	
 	public static class Views
 	{
-		public static final View 				ALL 				= TABLE.getView( "all" );
-		public static final View				ID					= TABLE.getView( "id" );
-		public static final View 				WITHOUT_COMMENTS 	= TABLE.getView( "without-comments" );
-		public static final View 				FOR_LINK		 	= TABLE.getView( "for-link" );
-		public static final View 				SHORT_NAME		 	= TABLE.getView( "short-name" );
+		public static final LoadProfile 				ALL 				= TABLE.getLoadProfile( "all" );
+		public static final LoadProfile				ID					= TABLE.getLoadProfile( "id" );
+		public static final LoadProfile 				WITHOUT_COMMENTS 	= TABLE.getLoadProfile( "without-comments" );
+		public static final LoadProfile 				FOR_LINK		 	= TABLE.getLoadProfile( "for-link" );
+		public static final LoadProfile 				SHORT_NAME		 	= TABLE.getLoadProfile( "short-name" );
 	}
 	
 	public static class Queries
@@ -68,20 +68,20 @@ public class User extends Model
 	public void setComments(List<Comment> x)	{ getCommentable().setComments( x ); }
 	public List<Comment> getCommentsBy()		{ return get( COMMENTS_BY ); }
 	
-	public static List<User> byName(View view, String name) throws SQLException
+	public static List<User> byName(LoadProfile load, String name) throws SQLException
 	{
-	    return Queries.BY_NAME.create().bind( "name", name ).list( view );
+	    return Queries.BY_NAME.create().bind( "name", name ).list( load );
 	}
 	
-	public static User byId(View view, long id) throws SQLException
+	public static User byId(LoadProfile load, long id) throws SQLException
 	{
-	    return Queries.BY_ID.create().bind( "id", id ).first( view );
+	    return Queries.BY_ID.create().bind( "id", id ).first( load );
 	}
 	
-	public static List<User> all(View view) throws SQLException
+	public static List<User> all(LoadProfile load) throws SQLException
 	{
 	    SelectQuery<User> select = new SelectQuery<User>( TABLE );
-        select.select( view );
+        select.select( load );
         
         Query<User> query = select.newQuery();
         

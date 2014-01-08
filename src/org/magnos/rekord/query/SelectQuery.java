@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Order;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.View;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.expr.GroupExpression;
 
@@ -22,7 +22,7 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	protected StringBuilder selecting;
 	protected StringBuilder ordering;
 	protected List<Field<?>> selectFields;
-	protected View view;
+	protected LoadProfile loadProfile;
 	protected Long offset;
 	protected Long limit;
 
@@ -103,9 +103,9 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	}
 	
 	
-	public SelectQuery<M> select( View selectView )
+	public SelectQuery<M> select( LoadProfile selectLoad )
 	{
-	    Selection s = selectView.getSelection();
+	    Selection s = selectLoad.getSelection();
 	    
 	    selecting.append( s.getExpression() );
 	    
@@ -114,7 +114,7 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	        selectFields.add( f );    
 	    }
 	    
-	    view = selectView;
+	    loadProfile = selectLoad;
 	    
 	    return this;
 	}
@@ -136,24 +136,24 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	    return this;
 	}
 	
-	public View getView()
+	public LoadProfile getLoadProfile()
 	{
-		return view;
+		return loadProfile;
 	}
 	
-	public void setView( View view )
+	public void setLoadProfile( LoadProfile loadProfile )
 	{
-		this.view = view;
+		this.loadProfile = loadProfile;
 	}
 	
 	public int getFieldLimit(Field<?> f)
 	{
-		if (view == null)
+		if (loadProfile == null)
 		{
 			return -1;
 		}
 		
-		FieldView fv = view.getFieldView( f );
+		FieldLoad fv = loadProfile.getFieldLoad( f );
 		
 		return (fv == null ? -1 : fv.getLimit());
 	}
@@ -187,7 +187,7 @@ public class SelectQuery<M extends Model> extends GroupExpression
             query.append( " OFFSET " ).append( offset );
         }
         
-        return (QueryTemplate<M>) NativeQuery.parse( table, query.toString(), view, selectFields );
+        return (QueryTemplate<M>) NativeQuery.parse( table, query.toString(), loadProfile, selectFields );
 	}
 	
 	public Query<M> newQuery()

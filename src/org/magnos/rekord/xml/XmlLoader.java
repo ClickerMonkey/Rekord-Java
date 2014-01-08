@@ -43,9 +43,9 @@ public class XmlLoader
 	private static final String TAG_CLASSES = "classes";
 	private static final String TAG_TABLE = "table";
 	private static final String TAG_FIELDS = "fields";
-	private static final String TAG_VIEWS = "views";
+	private static final String TAG_LOAD_PROFILES = "load-profiles";
 	private static final String TAG_HISTORY = "history";
-	private static final String TAG_VIEW = "view";
+	private static final String TAG_LOAD_PROFILE = "load-profile";
 	private static final String TAG_COLUMN = "column";
 	private static final String TAG_FOREIGN_COLUMN = "foreign-column";
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
@@ -151,7 +151,7 @@ public class XmlLoader
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
 		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
 		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
-		for (XmlTable t : tableMap.values()) t.instantiateViewImplementation();
+		for (XmlTable t : tableMap.values()) t.instantiateLoadProfileImplementation();
 		for (XmlTable t : tableMap.values()) t.initializeTable();
 		for (XmlTable t : tableMap.values()) t.relateFieldReferences();
 		for (XmlTable t : tableMap.values()) t.finishTable();
@@ -363,9 +363,9 @@ public class XmlLoader
 			{
 				loadFields( e, table );
 			}
-			else if (tag.equals( TAG_VIEWS ))
+			else if (tag.equals( TAG_LOAD_PROFILES ))
 			{
-				loadViews( e, table );
+				loadLoadProfiles( e, table );
 			}
 			else if (tag.equals( TAG_HISTORY ))
 			{
@@ -385,25 +385,25 @@ public class XmlLoader
 			}
 		}
 		
-		if (!table.viewMap.containsKey( "all" ))
+		if (!table.loadMap.containsKey( "all" ))
 		{
 			List<String> fieldNames = new ArrayList<String>();
 			for (XmlField fn : table.fieldMap.values()) {
 				fieldNames.add( fn.name );
 			}
 			
-			XmlView view = new XmlView();
-			view.name = "all";
-			view.fieldNames = fieldNames.toArray( new String[ fieldNames.size() ] );
-			table.viewMap.put( view.name, view );
+			XmlLoadProfile loadProfile = new XmlLoadProfile();
+			loadProfile.name = "all";
+			loadProfile.fieldNames = fieldNames.toArray( new String[ fieldNames.size() ] );
+			table.loadMap.put( loadProfile.name, loadProfile );
 		}
 		
-		if (!table.viewMap.containsKey( "id" ))
+		if (!table.loadMap.containsKey( "id" ))
 		{
-			XmlView view = new XmlView();
-			view.name = "id";
-			view.fieldNames = table.keyNames;
-			table.viewMap.put( view.name, view );
+			XmlLoadProfile loadProfile = new XmlLoadProfile();
+			loadProfile.name = "id";
+			loadProfile.fieldNames = table.keyNames;
+			table.loadMap.put( loadProfile.name, loadProfile );
 		}
 		
 		return table;
@@ -450,7 +450,7 @@ public class XmlLoader
 				XmlOneToOne c = new XmlOneToOne();
 				c.joinTableName = getAttribute( e, "join-table", null, true );
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
-				c.joinViewName = getAttribute( e, "join-view", "all", true );
+				c.joinLoadName = getAttribute( e, "join-load", "all", true );
 				field = c;
 				otherFlags = Field.MODEL;
 			}
@@ -459,7 +459,7 @@ public class XmlLoader
 				XmlManyToOne c = new XmlManyToOne();
 				c.joinTableName = getAttribute( e, "join-table", null, true );
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
-				c.joinViewName = getAttribute( e, "join-view", "all", true );
+				c.joinLoadName = getAttribute( e, "join-load", "all", true );
 				field = c;
 				otherFlags = Field.MODEL;
 			}
@@ -468,7 +468,7 @@ public class XmlLoader
 				XmlOneToMany c = new XmlOneToMany();
 				c.joinTableName = getAttribute( e, "join-table", null, true );
 				c.joinKeyNames = split( getAttribute( e, "join-key", null, true ) );
-				c.joinViewName = getAttribute( e, "join-view", "all", true );
+				c.joinLoadName = getAttribute( e, "join-load", "all", true );
 				c.fetchSizeString = getAttribute( e, "fetch-size", "128", true );
 				c.cascadeDelete = TypeBoolean.parse( getAttribute( e, "cascade-delete", "true", true ), "cascade-delete of field " + fieldName + " in table " + table.name );
 				c.cascadeSave = TypeBoolean.parse( getAttribute( e, "cascade-save", "true", true ), "cascade-save of field " + fieldName + " in table " + table.name );
@@ -507,24 +507,24 @@ public class XmlLoader
 		);
 	}
 	
-	private void loadViews( Element views, XmlTable table )
+	private void loadLoadProfiles( Element loadProfiles, XmlTable table )
 	{
-		XmlIterator<Element> nodes = new XmlIterator<Element>( views );
+		XmlIterator<Element> nodes = new XmlIterator<Element>( loadProfiles );
 		
 		for (Element e : nodes)
 		{
 			String tag = e.getTagName().toLowerCase();
 			
-			if (tag.equals( TAG_VIEW ))
+			if (tag.equals( TAG_LOAD_PROFILE ))
 			{
-				XmlView v = new XmlView();
+				XmlLoadProfile v = new XmlLoadProfile();
 				v.name = getAttribute( e, "name", null, true );
 				v.fieldNames = split( getAttribute( e, "fields", null, true ) );
-				table.viewMap.put( v.name, v );
+				table.loadMap.put( v.name, v );
 			}
 			else
 			{
-				unexpectedTag( views, e );
+				unexpectedTag( loadProfiles, e );
 			}
 		}
 	}
@@ -549,7 +549,7 @@ public class XmlLoader
 	        {
 	            XmlNativeQuery nq = new XmlNativeQuery();
 	            nq.name = getAttribute( e, "name", null, true );
-	            nq.view = getAttribute( e, "view", null, false );
+	            nq.loadProfile = getAttribute( e, "load", null, false );
 	            nq.query = e.getTextContent().trim();
 	            table.nativeQueries.add( nq );
 	        }

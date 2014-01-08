@@ -11,7 +11,7 @@ class XmlOneToMany extends XmlField
 {
 
     String joinTableName;
-    String joinViewName;
+    String joinLoadName;
     String[] joinKeyNames;
     String fetchSizeString;
     boolean cascadeDelete;
@@ -20,7 +20,7 @@ class XmlOneToMany extends XmlField
     int fetchSize;
     XmlTable joinTable;
     XmlField[] joinKey;
-    XmlView view;
+    XmlLoadProfile loadProfile;
 
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
@@ -34,11 +34,11 @@ class XmlOneToMany extends XmlField
 
         joinKey = XmlLoader.getFields( joinTable, joinKeyNames, "join-key value %s specified for field %s was not found", name );
 
-        view = joinTable.viewMap.get( joinViewName );
+        loadProfile = joinTable.loadMap.get( joinLoadName );
 
-        if (view == null)
+        if (loadProfile == null)
         {
-            throw new RuntimeException( "join-view " + joinViewName + " specified for field " + name + " was not found" );
+            throw new RuntimeException( "join-load " + joinLoadName + " specified for field " + name + " was not found" );
         }
 
         relatedTable = joinTable;
@@ -71,7 +71,7 @@ class XmlOneToMany extends XmlField
     {
         OneToMany f = (OneToMany)field;
         ForeignColumn<?>[] fcs = XmlLoader.getFields( joinKey );
-        f.setJoin( joinTable.table, view.view, fcs );
+        f.setJoin( joinTable.table, loadProfile.loadProfile, fcs );
     }
     
 }

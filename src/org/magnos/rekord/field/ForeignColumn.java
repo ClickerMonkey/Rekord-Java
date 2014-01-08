@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
-import org.magnos.rekord.FieldView;
+import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
@@ -37,7 +37,7 @@ public class ForeignColumn<T> extends Column<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldView fieldView)
+	public String getSelectionExpression(FieldLoad fieldLoad)
 	{
 		return getSelectionExpression();
 	}
@@ -156,7 +156,7 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void load( FieldView fieldView ) throws SQLException
+		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
@@ -192,13 +192,13 @@ public class ForeignColumn<T> extends Column<T>
 		}
 
 		@Override
-		public void fromSelect( ResultSet results, FieldView fieldView ) throws SQLException
+		public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
 		{
 			fromResultSet( results );
 		}
 
 		@Override
-		public void postSelect(Model model, FieldView fieldView) throws SQLException
+		public void postSelect(Model model, FieldLoad fieldLoad) throws SQLException
 		{
 			
 		}
