@@ -1,6 +1,7 @@
 
 package org.magnos.rekord.xml;
 
+import java.sql.Types;
 import java.util.Map;
 
 import org.magnos.rekord.Converter;
@@ -14,6 +15,7 @@ class XmlColumn extends XmlField
 {
 
     Integer sqlType;
+    String typeName;
     String in;
     String out;
     Type<?> type;
@@ -25,12 +27,12 @@ class XmlColumn extends XmlField
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap )
     {
-        if (sqlType == null)
+        if (sqlType == null && typeName == null)
         {
             throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
         }
         
-        type = Rekord.getType( sqlType );
+        type = sqlType != null ? Rekord.getType( sqlType ) : Rekord.getType( typeName );
         
         defaultValue = type.fromString( defaultValueString );
     }
@@ -48,6 +50,11 @@ class XmlColumn extends XmlField
     	else
     	{
     		defaultValue = convert.fromDatabase( defaultValue );
+    	}
+    	
+    	if (sqlType == null)
+    	{
+    	    sqlType = Types.OTHER;
     	}
     	
         field = new Column( name, sqlType, type, flags, in, out, defaultValue, convert );

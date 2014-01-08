@@ -42,13 +42,6 @@ import org.magnos.rekord.type.TypeXml;
 import org.magnos.rekord.util.ModelCache;
 import org.w3c.dom.Document;
 
-
-/**
- * 
- * Query.group( COLUMN ); Query.group( expression ); Query.having( COLUMN,
- * CONDITION, value ); Query.having( expression );
- * 
- */
 public class Rekord
 {
 
@@ -59,7 +52,8 @@ public class Rekord
 	private static Factory<Transaction> transactionFactory;
 	private static ThreadLocal<Transaction> transactionLocal = new ThreadLocal<Transaction>();
 	
-	private static HashMap<Class<?>, Type<?>> typeMap = new HashMap<Class<?>, Type<?>>();
+	private static HashMap<Class<?>, Type<?>> typeClassMap = new HashMap<Class<?>, Type<?>>();
+	private static HashMap<String, Type<?>> typeNameMap = new HashMap<String, Type<?>>();
 	
 	private static BitSet logging = new BitSet();
 	private static PrintStream loggingStream = System.out;
@@ -204,7 +198,34 @@ public class Rekord
 	    addType( TypeXml.INSTANCE, Document.class );
 	    addType( TypeClob.INSTANCE, Clob.class );
 	    addType( TypeBlob.INSTANCE, Blob.class );
+
+        addType( TypeByte.INSTANCE, "tinyint" );
+        addType( TypeShort.INSTANCE, "smallint" );
+        addType( TypeLong.INSTANCE, "bigint" );
+	    addType( TypeString.INSTANCE, "text", "varchar", "varying character", "longnvarchar", "nchar", "nvarchar" );
+	    addType( TypeByteArray.INSTANCE, "binary", "varbinary", "longvarbinary" );
+	    addType( TypeBoolean.INSTANCE, "bit" );
+        addType( TypeDecimal.INSTANCE, "decimal", "numeric" );
+        addType( TypeFloat.INSTANCE, "real" );	    
+	    addType( TypeXml.INSTANCE, "xml" );
 	}
+    
+    public static void addType( Type<?> type, Class<?> ... classes )
+    {
+        for (Class<?> c : classes)
+        {
+            typeClassMap.put( c, type );
+            typeNameMap.put( c.getSimpleName().toLowerCase(), type );
+        }
+    }
+    
+    public static void addType( Type<?> type, String ... names )
+    {
+        for (String n : names)
+        {
+            typeNameMap.put( n.toLowerCase(), type );
+        }
+    }
 	
 	public static Type<?> getType(int sqlType)
     {
@@ -266,24 +287,23 @@ public class Rekord
         }
     }
     
-    public static void addType( Type<?> type, Class<?> ... classes )
-    {
-        for (Class<?> c : classes)
-        {
-            typeMap.put( c, type );
-        }
-    }
-    
     public static Type<?> getType( Class<?> clazz )
     {
-        Type<?> t = typeMap.get( clazz );
+        Type<?> t = typeClassMap.get( clazz );
+        
+        return (t == null ? TypeObject.INSTANCE : t);
+    }
+    
+    public static Type<?> getType( String name )
+    {
+        Type<?> t = typeNameMap.get( name.toLowerCase() );
         
         return (t == null ? TypeObject.INSTANCE : t);
     }
     
     public static <T> Type<T> getTypeForObject( T o )
     {
-    	return (Type<T>)(o == null ? TypeObject.INSTANCE : getType( o.getClass() ));
+        return (Type<T>)(o == null ? TypeObject.INSTANCE : getType( o.getClass() ));
     }
 
 }

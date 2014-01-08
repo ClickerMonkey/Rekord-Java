@@ -344,7 +344,7 @@ public class XmlLoader
 
             String name = getAttribute( e, "name", null, true );
             
-            Map<String, String> attributes = getAttribues( e );
+            Map<String, String> attributes = getAttributes( e );
             attributes.remove( "name" );
             
             Converter<?, ?> converter = xcc.newInstance();
@@ -440,7 +440,8 @@ public class XmlLoader
 			if (tag.equals( TAG_COLUMN ))
 			{
 				XmlColumn c = new XmlColumn();
-				c.sqlType = SqlUtil.getSqlType( getAttribute( e, "type", null, true ) );
+				c.sqlType = SqlUtil.getSqlType( getAttribute( e, "sql-type", null, false ) );
+				c.typeName = getAttribute( e, "type", null, false );
 				c.in = getAttribute( e, "in", "?", true );
 				c.out = getAttribute( e, "out", "?", true );
 				c.defaultValueString = getAttribute( e, "default-value", null, false );
@@ -450,7 +451,8 @@ public class XmlLoader
 			else if (tag.equals( TAG_FOREIGN_COLUMN ))
 			{
 				XmlForeignColumn c = new XmlForeignColumn();
-				c.sqlType = SqlUtil.getSqlType( getAttribute( e, "type", null, true ) );
+				c.sqlType = SqlUtil.getSqlType( getAttribute( e, "sql-type", null, false ) );
+				c.typeName = getAttribute( e, "type", null, false );
 				c.in = getAttribute( e, "in", "?", true );
                 c.out = getAttribute( e, "out", "?", true );
                 c.defaultValueString = getAttribute( e, "default-value", null, false );
@@ -611,7 +613,7 @@ public class XmlLoader
 	    		XmlListener xl = new XmlListener();
 	    		xl.listener = xlc.newInstance();
 	    		xl.listenerClass = xlc;
-	    		xl.attributes = getAttribues( e );
+	    		xl.attributes = getAttributes( e );
 	    		
 	    		table.listeners.add( xl );
 	    	}
@@ -622,7 +624,7 @@ public class XmlLoader
 	    }
 	}
 	
-	private Map<String, String> getAttribues(Element e)
+	private Map<String, String> getAttributes(Element e)
 	{
 		Map<String, String> attributes = new HashMap<String, String>();
 		

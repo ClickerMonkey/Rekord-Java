@@ -28,11 +28,11 @@
     
     <table name="user" key="id">
         <fields>
-            <column name="id" type="BIGINT" generated="true" read-only="true" />
-            <column name="name" type="VARCHAR" />
-            <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
-            <column name="state" type="CHAR" converter="user-state" default-value="U" />
-            <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
+            <column name="id" type="long" generated="true" read-only="true" />
+            <column name="name" type="string" />
+            <column name="created_timestamp" type="timestamp" generated="true" read-only="true" />
+            <column name="state" type="string" converter="user-state" default-value="U" />
+            <foreign-column name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
             <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-load="all" join-key="commentable_id" />
             <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-load="basic" join-key="user_id" />
         </fields>
@@ -60,10 +60,10 @@
     
     <table name="comment" key="id">
         <fields>
-            <column name="id" type="BIGINT" generated="true" read-only="true" />
-            <column name="text" type="VARCHAR" />
-            <foreign-column name="commentable_id" type="BIGINT" foreign-table="commentable" foreign-column="id" />
-            <foreign-column name="user_id" type="BIGINT" foreign-table="user" foreign-column="id" />
+            <column name="id" type="long" generated="true" read-only="true" />
+            <column name="text" type="string" />
+            <foreign-column name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
+            <foreign-column name="user_id" type="long" foreign-table="user" foreign-column="id" />
             <many-to-one name="commentable" join-table="commentable" join-key="commentable_id" />
             <many-to-one name="user" join-table="user" join-load="for-link" join-key="user_id" />
         </fields>
@@ -74,9 +74,9 @@
     
     <table name="commentable" key="id">
         <fields>
-            <column name="id" type="BIGINT" generated="true" read-only="true" />
-            <column name="count" type="INTEGER" generated="true" default-value="42" />
-            <column name="created_timestamp" type="TIMESTAMP" generated="true" read-only="true" />
+            <column name="id" type="long" generated="true" read-only="true" />
+            <column name="count" type="int" generated="true" default-value="42" />
+            <column name="created_timestamp" type="timestamp" generated="true" read-only="true" />
             <one-to-many name="comments" lazy="true" join-table="comment" join-load="all" join-key="commentable_id" />
         </fields>        
     </table>

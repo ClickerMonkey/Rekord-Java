@@ -1,6 +1,7 @@
 
 package org.magnos.rekord.xml;
 
+import java.sql.Types;
 import java.util.Map;
 
 import org.magnos.rekord.Converter;
@@ -53,6 +54,11 @@ class XmlForeignColumn extends XmlColumn
     	else
     	{
     		defaultValue = convert.fromDatabase( defaultValue );
+    	}
+    	
+    	if (sqlType == null)
+    	{
+    	    sqlType = Types.OTHER;
     	}
     	
         field = new ForeignColumn( name, sqlType, type, in, out, defaultValue, convert );
