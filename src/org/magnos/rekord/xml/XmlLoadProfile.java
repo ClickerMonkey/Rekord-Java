@@ -64,7 +64,7 @@ class XmlLoadProfile extends XmlLoadable
     }
 
     @Override
-    public void instantiateLoadProfileImplementation()
+    public void instantiateProfileImplementation()
     {
     	Field<?>[] fieldArray = XmlLoader.getFields( fields );
     	

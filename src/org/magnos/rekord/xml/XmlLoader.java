@@ -43,9 +43,11 @@ public class XmlLoader
 	private static final String TAG_CLASSES = "classes";
 	private static final String TAG_TABLE = "table";
 	private static final String TAG_FIELDS = "fields";
-	private static final String TAG_LOAD_PROFILES = "load-profiles";
+    private static final String TAG_LOAD_PROFILES = "load-profiles";
+    private static final String TAG_LOAD_PROFILE = "load-profile";
+    private static final String TAG_SAVE_PROFILES = "save-profiles";
+    private static final String TAG_SAVE_PROFILE = "save-profile";
 	private static final String TAG_HISTORY = "history";
-	private static final String TAG_LOAD_PROFILE = "load-profile";
 	private static final String TAG_COLUMN = "column";
 	private static final String TAG_FOREIGN_COLUMN = "foreign-column";
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
@@ -151,7 +153,7 @@ public class XmlLoader
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
 		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
 		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
-		for (XmlTable t : tableMap.values()) t.instantiateLoadProfileImplementation();
+		for (XmlTable t : tableMap.values()) t.instantiateProfileImplementation();
 		for (XmlTable t : tableMap.values()) t.initializeTable();
 		for (XmlTable t : tableMap.values()) t.relateFieldReferences();
 		for (XmlTable t : tableMap.values()) t.finishTable();
@@ -363,10 +365,14 @@ public class XmlLoader
 			{
 				loadFields( e, table );
 			}
-			else if (tag.equals( TAG_LOAD_PROFILES ))
-			{
-				loadLoadProfiles( e, table );
-			}
+            else if (tag.equals( TAG_LOAD_PROFILES ))
+            {
+                loadLoadProfiles( e, table );
+            }
+            else if (tag.equals( TAG_SAVE_PROFILES ))
+            {
+                loadSaveProfiles( e, table );
+            }
 			else if (tag.equals( TAG_HISTORY ))
 			{
 				loadHistory( e, table );
@@ -506,28 +512,50 @@ public class XmlLoader
 			(TypeBoolean.parse( hasDefault, "has-default" + messagePostfix) ? Field.HAS_DEFAULT : 0)
 		);
 	}
-	
-	private void loadLoadProfiles( Element loadProfiles, XmlTable table )
-	{
-		XmlIterator<Element> nodes = new XmlIterator<Element>( loadProfiles );
-		
-		for (Element e : nodes)
-		{
-			String tag = e.getTagName().toLowerCase();
-			
-			if (tag.equals( TAG_LOAD_PROFILE ))
-			{
-				XmlLoadProfile v = new XmlLoadProfile();
-				v.name = getAttribute( e, "name", null, true );
-				v.fieldNames = split( getAttribute( e, "fields", null, true ) );
-				table.loadMap.put( v.name, v );
-			}
-			else
-			{
-				unexpectedTag( loadProfiles, e );
-			}
-		}
-	}
+    
+    private void loadLoadProfiles( Element loadProfiles, XmlTable table )
+    {
+        XmlIterator<Element> nodes = new XmlIterator<Element>( loadProfiles );
+        
+        for (Element e : nodes)
+        {
+            String tag = e.getTagName().toLowerCase();
+            
+            if (tag.equals( TAG_LOAD_PROFILE ))
+            {
+                XmlLoadProfile v = new XmlLoadProfile();
+                v.name = getAttribute( e, "name", null, true );
+                v.fieldNames = split( getAttribute( e, "fields", null, true ) );
+                table.loadMap.put( v.name, v );
+            }
+            else
+            {
+                unexpectedTag( loadProfiles, e );
+            }
+        }
+    }
+    
+    private void loadSaveProfiles( Element saveProfiles, XmlTable table )
+    {
+        XmlIterator<Element> nodes = new XmlIterator<Element>( saveProfiles );
+        
+        for (Element e : nodes)
+        {
+            String tag = e.getTagName().toLowerCase();
+            
+            if (tag.equals( TAG_SAVE_PROFILE ))
+            {
+                XmlSaveProfile v = new XmlSaveProfile();
+                v.name = getAttribute( e, "name", null, true );
+                v.fieldNames = split( getAttribute( e, "fields", null, true ) );
+                table.saveMap.put( v.name, v );
+            }
+            else
+            {
+                unexpectedTag( saveProfiles, e );
+            }
+        }
+    }
 	
 	private void loadHistory( Element history, XmlTable table )
 	{

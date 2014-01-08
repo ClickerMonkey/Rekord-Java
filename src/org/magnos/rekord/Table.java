@@ -51,6 +51,8 @@ public class Table
     protected Map<String, Field<?>> fieldMap;
     protected LoadProfile[] loadProfiles;
     protected Map<String, LoadProfile> loadProfileMap;
+    protected SaveProfile[] saveProfiles;
+    protected Map<String, SaveProfile> saveProfileMap;
     protected HistoryTable history;
     protected LoadProfile loadProfileAll;
     protected LoadProfile loadProfileId;
@@ -75,6 +77,7 @@ public class Table
         this.index = Rekord.newTable( this );
         this.fieldMap = new HashMap<String, Field<?>>();
         this.loadProfileMap = new HashMap<String, LoadProfile>();
+        this.saveProfileMap = new HashMap<String, SaveProfile>();
         this.queries = new HashMap<String, QueryTemplate<?>>();
         this.keyColumns = id;
         this.fields = existingFields;
@@ -106,6 +109,16 @@ public class Table
 
         loadProfileAll = loadProfileMap.get( "all" );
         loadProfileId = loadProfileMap.get( "id" );
+    }
+
+    public void setSaveProfiles( SaveProfile... newSaveProfiles )
+    {
+        saveProfiles = newSaveProfiles;
+
+        for (SaveProfile v : saveProfiles)
+        {
+            saveProfileMap.put( v.getName(), v );
+        }
     }
     
     public void addListener(Listener<Model> listener, ListenerEvent e)
@@ -268,6 +281,11 @@ public class Table
     public LoadProfile getLoadProfile( String name )
     {
         return loadProfileMap.get( name );
+    }
+    
+    public SaveProfile getSaveProfile( String name )
+    {
+        return saveProfileMap.get( name );
     }
 
     public <T extends Model> QueryTemplate<T> getQuery( String name )

@@ -14,9 +14,10 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.Listener;
 import org.magnos.rekord.ListenerEvent;
-import org.magnos.rekord.Model;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.LoadProfile;
+import org.magnos.rekord.Model;
+import org.magnos.rekord.SaveProfile;
+import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
 
 class XmlTable extends XmlLoadable
@@ -29,6 +30,7 @@ class XmlTable extends XmlLoadable
     boolean applicationCached;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlLoadProfile> loadMap = new LinkedHashMap<String, XmlLoadProfile>();
+    Map<String, XmlSaveProfile> saveMap = new LinkedHashMap<String, XmlSaveProfile>();
     List<XmlNativeQuery> nativeQueries = new ArrayList<XmlNativeQuery>();
     List<XmlListener> listeners = new ArrayList<XmlListener>();
     
@@ -56,6 +58,7 @@ class XmlTable extends XmlLoadable
         
         for (XmlField f : fieldMap.values()) f.validate( table, tableMap );
         for (XmlLoadProfile v : loadMap.values()) v.validate( table, tableMap );
+        for (XmlSaveProfile v : saveMap.values()) v.validate( table, tableMap );
         
         for (XmlNativeQuery nq : nativeQueries)
         {
@@ -90,9 +93,10 @@ class XmlTable extends XmlLoadable
     }
     
     @Override
-    public void instantiateLoadProfileImplementation()
+    public void instantiateProfileImplementation()
     {
-        for (XmlLoadProfile v : loadMap.values()) v.instantiateLoadProfileImplementation();
+        for (XmlLoadProfile v : loadMap.values()) v.instantiateProfileImplementation();
+        for (XmlSaveProfile v : saveMap.values()) v.instantiateProfileImplementation();
     }
     
     @Override
@@ -113,6 +117,7 @@ class XmlTable extends XmlLoadable
     public void relateFieldReferences()
     {
         for (XmlLoadProfile v : loadMap.values()) v.relateFieldReferences();
+        for (XmlSaveProfile v : saveMap.values()) v.relateFieldReferences();
         for (XmlField f : fieldMap.values()) f.relateFieldReferences();
     }
     
@@ -129,6 +134,17 @@ class XmlTable extends XmlLoadable
         }
         
         table.setLoadProfiles( loadProfiles );
+        
+        Collection<XmlSaveProfile> sc = saveMap.values();
+        XmlSaveProfile[] xmlSaveProfiles = sc.toArray( new XmlSaveProfile[ sc.size() ] );
+        SaveProfile[] saveProfiles = new SaveProfile[ sc.size() ];
+        
+        for (int i = 0; i < saveProfiles.length; i++)
+        {
+            saveProfiles[i] = xmlSaveProfiles[i].saveProfile;
+        }
+        
+        table.setSaveProfiles( saveProfiles );
         
         for (XmlNativeQuery nq : nativeQueries)
         {
