@@ -13,5 +13,5 @@ abstract class XmlLoadable
     void instantiateViewImplementation() {}
     void initializeTable() {}
     void relateFieldReferences() {}
-    void finishTable() {}
+    void finishTable() throws Exception {}
 }

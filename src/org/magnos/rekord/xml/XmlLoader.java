@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
-import org.magnos.rekord.Listener;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Rekord;
@@ -339,7 +338,6 @@ public class XmlLoader
             attributes.remove( "name" );
             
             Converter<?, ?> converter = xcc.newInstance();
-            converter.setName( name );
             converter.configure( attributes );
             converterMap.put( name, converter );
         }
@@ -574,13 +572,10 @@ public class XmlLoader
 	    	
 	    	if (xlc != null)
 	    	{
-	    		Listener<?> listener = xlc.newInstance();
-	    		Map<String, String> attributes = getAttribues( e );
-	    		listener.configure( attributes );
-	    		
 	    		XmlListener xl = new XmlListener();
-	    		xl.listener = listener;
+	    		xl.listener = xlc.newInstance();
 	    		xl.listenerClass = xlc;
+	    		xl.attributes = getAttribues( e );
 	    		
 	    		table.listeners.add( xl );
 	    	}

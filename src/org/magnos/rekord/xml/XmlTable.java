@@ -117,7 +117,7 @@ class XmlTable extends XmlLoadable
     }
     
     @Override
-    public void finishTable()
+    public void finishTable() throws Exception
     {
         Collection<XmlView> vc = viewMap.values();
         XmlView[] xmlViews = vc.toArray( new XmlView[ vc.size() ] );
@@ -137,6 +137,8 @@ class XmlTable extends XmlLoadable
         
         for (XmlListener xl : listeners)
         {
+        	xl.listener.configure( table, xl.attributes );
+        	
         	for (ListenerEvent le : xl.listenerClass.listenerEvents)
         	{
         		table.addListener( (Listener<Model>)xl.listener, le );

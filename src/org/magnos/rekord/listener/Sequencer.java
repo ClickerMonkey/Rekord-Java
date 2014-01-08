@@ -18,13 +18,11 @@ public class Sequencer implements Listener<Model>
 	
 	public String sequenceName;
 	public String columnName;
+	public Column<?> column;
 
 	@Override
 	public void onEvent( Model model, ListenerEvent e ) throws SQLException
 	{
-		final Table table = model.getTable();
-		final Column<?> column = table.getField( columnName );
-		
 		final Transaction trans = Rekord.getTransaction();
 		
 		PreparedStatement stmt = trans.prepare( "SELECT nextval('" + sequenceName + "') AS " + columnName );
@@ -41,10 +39,11 @@ public class Sequencer implements Listener<Model>
 	}
 	
 	@Override
-	public void configure( Map<String, String> attributes ) throws Exception
+	public void configure( Table table, Map<String, String> attributes ) throws Exception
 	{
 		sequenceName = attributes.get( "sequence" );
 		columnName = attributes.get( "column" );
+		column = table.getField( columnName );
 	}
 
 }
