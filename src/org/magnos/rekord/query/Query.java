@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,14 +14,15 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Key;
 import org.magnos.rekord.ListenerEvent;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
+import org.magnos.rekord.Order;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.field.Column;
 
 
@@ -35,12 +35,27 @@ public class Query<M extends Model>
     protected final QueryTemplate<M> template;
     protected final Object[] values;
     protected final Type<Object>[] types;
+    protected LoadProfile loadProfile;
+    protected Field<?>[] selectFields;
+    protected String selectExpression;
+    protected StringBuilder orderBy;
+    protected Integer offset;
+    protected Integer limit;
+    protected LockMode lock;
+    protected boolean postSelect;
 
     public Query( QueryTemplate<M> template )
     {
         this.template = template;
         this.values = new Object[template.getBindCount()];
         this.types = new Type[template.getBindCount()];
+        this.loadProfile = template.getLoadProfile();
+        this.selectFields = template.getSelectFields();
+        this.selectExpression = template.getSelectExpression();
+        this.orderBy = new StringBuilder();
+        this.offset = null;
+        this.limit = null;
+        this.lock = LockMode.NONE;
     }
 
     public QueryTemplate<M> getTemplate()
@@ -53,51 +68,211 @@ public class Query<M extends Model>
         return values;
     }
 
-    public String getReadableQuery()
-    {
-        StringBuilder readable = new StringBuilder();
-        String query = template.getQuery();
-
-        int paramIndex = 0;
-
-        for (int i = 0; i < values.length; i++)
-        {
-            Object value = values[i];
-            boolean quotable = (value instanceof String || value instanceof Date || value instanceof byte[]);
-            int next = query.indexOf( '?', paramIndex );
-
-            readable.append( query, paramIndex, next );
-
-            if (quotable)
-            {
-                readable.append( "'" );
-            }
-
-            readable.append( types[i].toString( values[i] ) );
-
-            if (quotable)
-            {
-                readable.append( "'" );
-            }
-
-            paramIndex = next + 1;
-        }
-
-        readable.append( query, paramIndex, query.length() );
-
-        return readable.toString();
-    }
-
     public Type<Object>[] getTypes()
     {
         return types;
+    }
+    
+    public Field<?>[] getSelectFields()
+    {
+        return selectFields;
+    }
+    
+    protected void ensureSelect()
+    {
+        if (!template.isSelect())
+        {
+            throw new RuntimeException( "This action can only be done on SELECT statements" );
+        }
+    }
+    
+    public Query<M> withSelectFields( Field<?> ... selection )
+    {
+        ensureSelect();
+        
+        this.selectFields = selection;
+        
+        return this;
+    }
+
+    public String getSelectExpression()
+    {
+        return selectExpression;
+    }
+    
+    public Query<M> withSelectExpression( String selectExpression )
+    {
+        ensureSelect();
+        
+        this.selectExpression = selectExpression;
+        
+        return this;
+    }
+    
+    public StringBuilder getOrderBy()
+    {
+        return orderBy;
+    }
+    
+    public Query<M> withOrderBy( StringBuilder orderBy )
+    {
+        ensureSelect();
+        
+        this.orderBy = orderBy;
+        
+        return this;
+    }
+    
+    public Query<M> orderBy( Column<?> column )
+    {
+        return orderBy( column.getQuotedName() );
+    }
+    
+    public Query<M> orderBy( Column<?> column, Order order )
+    {
+        return orderBy( column.getQuotedName() + " " + order.name() );
+    }
+    
+    public Query<M> orderBy( String expression )
+    {
+        ensureSelect();
+        
+        if ( orderBy.length() > 0 )
+        {
+            orderBy.append( ", " );
+        }
+        
+        orderBy.append( expression );
+        
+        return this;
+    }
+
+    public Integer getOffset()
+    {
+        return offset;
+    }
+    
+    public Query<M> withOffset( Integer offset )
+    {
+        ensureSelect();
+        
+        this.offset = offset;
+        
+        return this;
+    }
+
+    public Integer getLimit()
+    {
+        return limit;
+    }
+    
+    public Query<M> withLimit( Integer limit )
+    {
+        ensureSelect();
+        
+        this.limit = limit;
+        
+        return this;
+    }
+
+    public LockMode getLock()
+    {
+        return lock;
+    }
+
+    public Query<M> withLock( LockMode lock )
+    {
+        ensureSelect();
+        
+        this.lock = lock;
+        
+        return this;
+    }
+    
+    public Query<M> withLoad( LoadProfile loadProfile )
+    {
+        ensureSelect();
+        
+        Selection s = loadProfile.getSelection();
+        
+        this.selectExpression = s.getExpression();
+        this.selectFields = s.getFields();
+        this.loadProfile = loadProfile;
+        
+        return this;
+    }
+    
+    public boolean isPostSelect()
+    {
+        return postSelect;
+    }
+    
+    public Query<M> withPostSelect( boolean postSelect )
+    {
+        ensureSelect();
+        
+        this.postSelect = postSelect;
+        
+        return this;
+    }
+    
+    protected String getSelectQuery( boolean withRestrictions )
+    {
+        StringBuilder select = new StringBuilder();
+        
+        select.append( template.getQuery( selectExpression ) );
+        
+        if (withRestrictions)
+        {
+            if (orderBy.length() > 0)
+            {
+                select.append( " ORDER BY " );
+                select.append( orderBy );
+            }
+            
+            if (limit != null)
+            {
+                select.append( " LIMIT " );
+                select.append( limit );
+            }
+            
+            if (offset != null)
+            {
+                select.append( " OFFSET " );
+                select.append( offset );
+            }
+        }
+        
+        switch (lock)
+        {
+        case NONE:
+            break;
+        case EXCLUSIVE:
+            select.append( " FOR UPDATE" );
+            break;
+        case SHARE:
+            select.append( " FOR KEY SHARE" );
+            break;
+        }
+        
+        return select.toString();
+    }
+    
+    public String getFinalQuery( boolean withRestrictions )
+    {
+        if (template.isSelect())
+        {
+            return getSelectQuery( withRestrictions );
+        }
+        
+        return template.getQuery();
     }
 
     protected PreparedStatement prepare( Transaction trans, String query ) throws SQLException
     {
         if (Rekord.isLogging( Logging.HUMAN_READABLE_QUERY ))
         {
-            Rekord.log( getHumanReadable() );
+            Rekord.log( getReadableQuery( query ) );
         }
         
         PreparedStatement stmt = trans.prepare( query );
@@ -113,6 +288,7 @@ public class Query<M extends Model>
     private ResultSet getResultsFromQuery( String query ) throws SQLException
     {
         Transaction trans = Rekord.getTransaction();
+        
         PreparedStatement stmt = prepare( trans, query );
 
         return stmt.executeQuery();
@@ -120,22 +296,53 @@ public class Query<M extends Model>
 
     public ResultSet getResults() throws SQLException
     {
-        return getResultsFromQuery( template.getQuery() );
+        return getResultsFromQuery( getFinalQuery( true ) );
     }
 
-    public ResultSet getResults( String alternativeSelection ) throws SQLException
+    public ResultSet getResults( boolean withRestrictions ) throws SQLException
     {
-        return getResultsFromQuery( template.getQuery( alternativeSelection ) );
+        return getResultsFromQuery( getFinalQuery( withRestrictions ) );
     }
-
-    public Query<M> clear()
+    
+    public Query<M> reset()
+    {
+        return resetSelection().resetRestrictions().resetPostSelect().resetBinds();
+    }
+    
+    public Query<M> resetSelection()
+    {
+        loadProfile = template.getLoadProfile();
+        selectExpression = template.getSelectExpression();
+        selectFields = template.getSelectFields();
+        
+        return this;
+    }
+    
+    public Query<M> resetRestrictions()
+    {
+        orderBy.setLength( 0 );
+        offset = null;
+        limit = null;
+        lock = LockMode.NONE;
+        
+        return this;
+    }
+    
+    public Query<M> resetPostSelect()
+    {
+        postSelect = true;
+        
+        return this;
+    }
+    
+    public Query<M> resetBinds()
     {
         for (int i = 0; i < values.length; i++)
         {
             types[i] = null;
             values[i] = null;
         }
-
+        
         return this;
     }
 
@@ -144,6 +351,15 @@ public class Query<M extends Model>
         int i = template.indexOf( variableName );
         values[i] = value;
         types[i] = Rekord.getTypeForObject( value );
+
+        return this;
+    }
+
+    public <T> Query<M> bind( String variableName, Column<T> forColumn, T value )
+    {
+        int i = template.indexOf( variableName );
+        values[i] = forColumn.getConverter().toDatabase( value );
+        types[i] = forColumn.getType();
 
         return this;
     }
@@ -266,8 +482,13 @@ public class Query<M extends Model>
 
         Transaction trans = Rekord.getTransaction();
 
-        PreparedStatement stmt = prepare( trans, template.getQuery( expression ) );
+        String currentExpression = selectExpression;
+        selectExpression = expression;
+        
+        PreparedStatement stmt = prepare( trans, getSelectQuery( true ) );
         stmt.setFetchSize( 1 );
+        
+        selectExpression = currentExpression;
 
         ResultSet results = stmt.executeQuery();
 
@@ -295,8 +516,13 @@ public class Query<M extends Model>
     {
         Transaction trans = Rekord.getTransaction();
 
-        PreparedStatement stmt = prepare( trans, template.getQuery( expression ) );
+        String currentExpression = selectExpression;
+        selectExpression = expression;
+        
+        PreparedStatement stmt = prepare( trans, getSelectQuery( true ) );
 
+        selectExpression = currentExpression;
+        
         ResultSet results = stmt.executeQuery();
 
         try
@@ -314,19 +540,14 @@ public class Query<M extends Model>
         return out;
     }
 
-    public <T> List<T> list( String expression, Type<T> type ) throws SQLException
-    {
-        return select( expression, type, new ArrayList<T>() );
-    }
-
-    public <T> Set<T> set( String expression, Type<T> type ) throws SQLException
-    {
-        return select( expression, type, new HashSet<T>() );
-    }
-
     public <T, C extends Collection<T>> C select( Column<T> column, C out ) throws SQLException
     {
         return select( column.getQuotedName(), (Type<T>)column.getType(), out );
+    }
+
+    public <T> List<T> list( String expression, Type<T> type ) throws SQLException
+    {
+        return select( expression, type, new ArrayList<T>() );
     }
 
     public <T> List<T> list( Column<T> column ) throws SQLException
@@ -334,39 +555,32 @@ public class Query<M extends Model>
         return select( column.getQuotedName(), (Type<T>)column.getType(), new ArrayList<T>() );
     }
 
+    public <T> Set<T> set( String expression, Type<T> type ) throws SQLException
+    {
+        return select( expression, type, new HashSet<T>() );
+    }
+
     public <T> Set<T> set( Column<T> column ) throws SQLException
     {
         return select( column.getQuotedName(), (Type<T>)column.getType(), new HashSet<T>() );
     }
-
+    
     public M first() throws SQLException
-    {
-        return first( template.getQuery(), template.getSelection(), template.getLoadProfile(), true );
-    }
-    
-    public M first( LoadProfile loadProfile ) throws SQLException
-    {
-        Selection s = loadProfile.getSelection();
-        
-        return first( template.getQuery( s.getExpression() ), s.getFields(), loadProfile, true );
-    }
-    
-    public M first(String queryString, Field<?>[] fields, LoadProfile loadProfile, boolean postSelect) throws SQLException
     {
         M first = null;
 
         Transaction trans = Rekord.getTransaction();
 
-        PreparedStatement stmt = prepare( trans, queryString );
+        PreparedStatement stmt = prepare( trans, getSelectQuery( true ) );
         stmt.setFetchSize( 1 );
-
+        
         ResultSet results = stmt.executeQuery();
 
         try
         {
             if (results.next())
             {
-                first = fromResultSet( trans, results, fields, loadProfile );
+                first = fromResultSet( trans, results );
             }
         }
         finally
@@ -376,16 +590,16 @@ public class Query<M extends Model>
         
         if (postSelect && first != null)
         {
-            postSelect( first, fields, loadProfile );
+            postSelect( first );
         }
 
         return first;
     }
 
-    protected <C extends Collection<M>> C select( String queryString, Field<?>[] fields, LoadProfile loadProfile, boolean postSelect, C out ) throws SQLException
+    protected <C extends Collection<M>> C select( C out ) throws SQLException
     {
         Transaction trans = Rekord.getTransaction();
-        PreparedStatement stmt = prepare( trans, queryString );
+        PreparedStatement stmt = prepare( trans, getSelectQuery( true ) );
 
         ResultSet results = stmt.executeQuery();
 
@@ -393,7 +607,7 @@ public class Query<M extends Model>
         {
             while (results.next())
             {
-                M model = fromResultSet( trans, results, fields, loadProfile );
+                M model = fromResultSet( trans, results );
 
                 out.add( model );
             }
@@ -405,22 +619,10 @@ public class Query<M extends Model>
 
         if (postSelect)
         {
-            postSelect( out, fields, loadProfile );
+            postSelect( out );
         }
 
         return out;
-    }
-
-    public <C extends Collection<M>> C select( C out ) throws SQLException
-    {
-        return select( template.getQuery(), template.getSelection(), template.getLoadProfile(), true, out );
-    }
-
-    public <C extends Collection<M>> C select( LoadProfile loadProfile, C out ) throws SQLException
-    {
-        Selection s = loadProfile.getSelection();
-
-        return select( template.getQuery( s.getExpression() ), s.getFields(), loadProfile, true, out );
     }
 
     public List<M> list() throws SQLException
@@ -428,32 +630,12 @@ public class Query<M extends Model>
         return select( new ArrayList<M>() );
     }
 
-    public List<M> list( LoadProfile loadProfile ) throws SQLException
-    {
-        return select( loadProfile, new ArrayList<M>() );
-    }
-
-    public List<M> list( int offset, int limit, boolean postSelect ) throws SQLException
-    {
-        return select( template.getQueryPage( offset, limit ), template.getSelection(), template.getLoadProfile(), postSelect, new ArrayList<M>() );
-    }
-
     public Set<M> set() throws SQLException
     {
         return select( new HashSet<M>() );
     }
     
-    public Set<M> set( LoadProfile loadProfile ) throws SQLException
-    {
-        return select( loadProfile, new HashSet<M>() );
-    }
-
     public M fromResultSet( Transaction trans, ResultSet results ) throws SQLException
-    {
-        return fromResultSet( trans, results, template.getSelection(), template.getLoadProfile() );
-    }
-
-    public M fromResultSet( Transaction trans, ResultSet results, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
     {
         final Table table = template.getTable();
         final Key key = table.keyFromResults( results );
@@ -464,13 +646,13 @@ public class Query<M extends Model>
         {
             model = table.newModel();
 
-            populate( results, model, fields, loadProfile );
+            populate( results, model );
 
             trans.cache( model );
         }
         else
         {
-            merge( results, model, fields, loadProfile );
+            merge( results, model );
         }
 
         table.notifyListeners( model, ListenerEvent.POST_SELECT );
@@ -480,21 +662,16 @@ public class Query<M extends Model>
 
     public void populate( ResultSet results, Model model ) throws SQLException
     {
-        populate( results, model, template.getSelection(), template.getLoadProfile() );
-    }
-
-    public void populate( ResultSet results, Model model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
-    {
         if (loadProfile != null)
         {
-            for (Field<?> f : fields)
+            for (Field<?> f : selectFields)
             {
                 model.valueOf( f ).fromSelect( results, loadProfile.getFieldLoad( f ) );
             }
         }
         else
         {
-            for (Field<?> f : fields)
+            for (Field<?> f : selectFields)
             {
                 model.valueOf( f ).fromSelect( results, FieldLoad.DEFAULT );
             }
@@ -503,14 +680,9 @@ public class Query<M extends Model>
 
     public void merge( ResultSet results, Model model ) throws SQLException
     {
-        merge( results, model, template.getSelection(), template.getLoadProfile() );
-    }
-
-    public void merge( ResultSet results, Model model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
-    {
         if (loadProfile != null)
         {
-            for (Field<?> f : fields)
+            for (Field<?> f : selectFields)
             {
                 Value<?> value = model.valueOf( f );
 
@@ -522,7 +694,7 @@ public class Query<M extends Model>
         }
         else
         {
-            for (Field<?> f : fields)
+            for (Field<?> f : selectFields)
             {
                 Value<?> value = model.valueOf( f );
 
@@ -536,64 +708,58 @@ public class Query<M extends Model>
 
     public void postSelect( Collection<M> collection ) throws SQLException
     {
-        postSelect( collection, template.getSelection(), template.getLoadProfile() );
-    }
-
-    public void postSelect( Collection<M> collection, Field<?>[] fields, LoadProfile load ) throws SQLException
-    {
-        if (load != null)
+        if (loadProfile != null)
         {
             for (M model : collection)
             {
-                postSelectLoadful( model, fields, load );
+                postSelectLoadful( model );
             }
         }
         else
         {
             for (M model : collection)
             {
-                postSelectLoadless( model, fields );
+                postSelectLoadless( model );
             }
         }
     }
 
     public void postSelect( M model ) throws SQLException
     {
-        postSelect( model, template.getSelection(), template.getLoadProfile() );
-    }
-
-    public void postSelect( M model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
-    {
         if (loadProfile != null)
         {
-            postSelectLoadful( model, fields, loadProfile );
+            postSelectLoadful( model );
         }
         else
         {
-            postSelectLoadless( model, fields );
+            postSelectLoadless( model );
         }
     }
 
-    private void postSelectLoadless( M model, Field<?>[] fields ) throws SQLException
+    private void postSelectLoadless( M model ) throws SQLException
     {
-        for (Field<?> f : template.getSelection())
+        for (Field<?> f : selectFields)
         {
             model.valueOf( f ).postSelect( model, FieldLoad.DEFAULT );
         }
     }
 
-    private void postSelectLoadful( M model, Field<?>[] fields, LoadProfile loadProfile ) throws SQLException
+    private void postSelectLoadful( M model ) throws SQLException
     {
-        for (Field<?> f : fields)
+        for (Field<?> f : selectFields)
         {
             model.valueOf( f ).postSelect( model, loadProfile.getFieldLoad( f ) );
         }
     }
     
-    public String getHumanReadable()
+    public String getReadableQuery()
+    {
+        return getReadableQuery( getFinalQuery( true ) );
+    }
+    
+    public String getReadableQuery( String query )
     {
         StringBuilder readable = new StringBuilder();
-        String query = template.getQuery();
         
         int start = 0;
         int end = query.indexOf( '?' );
@@ -621,7 +787,7 @@ public class Query<M extends Model>
     @Override
     public String toString()
     {
-        return getHumanReadable();
+        return getReadableQuery();
     }
     
 }

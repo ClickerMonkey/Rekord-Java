@@ -12,15 +12,14 @@ import java.util.Set;
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.LoadProfile;
+import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.LazyList;
 
 public class OneToMany<T extends Model> extends AbstractField<List<T>>
@@ -56,22 +55,28 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}
-	
-	@Override
-	public void prepareInsert( ModelInsertQuery query )
-	{
-		
-	}
-	
-	@Override
-	public void prepareUpdate( ModelUpdateQuery query )
-	{
-		
-	}
+    
+    @Override
+    public InsertAction getInsertAction()
+    {
+        return InsertAction.NONE;
+    }
+
+    @Override
+    public boolean isUpdatable()
+    {
+        return false;
+    }
+
+    @Override
+    public String getSaveExpression()
+    {
+        return null;
+    }
 	
 	@Override
 	public Value<List<T>> newValue(Model model)
@@ -152,6 +157,11 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		@Override
 		public Query<T> create()
 		{
+		    if (!model.hasKey())
+		    {
+		        return null;
+		    }
+		    
 		    Query<T> query = queryTemplate.create();
 		    
 		    query.bind( model );
@@ -190,40 +200,52 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 			changed = false;
 		}
 
+        @Override
+        public String getName()
+        {
+            return field.getName();
+        }
+
+        @Override
+        public String getQuotedName()
+        {
+            return field.getQuotedName();
+        }
+
+        @Override
+        public boolean isSelectable()
+        {
+            return false;
+        }
+
+        @Override
+        public String getSelectExpression( FieldLoad fieldLoad )
+        {
+            return null;
+        }
+
+        @Override
+        public InsertAction getInsertAction()
+        {
+            return InsertAction.NONE;
+        }
+
+        @Override
+        public boolean isUpdatable()
+        {
+            return false;
+        }
+        
+        @Override
+        public String getSaveExpression()
+        {
+            return null;
+        }
+
 		@Override
 		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
-		}
-
-		@Override
-		public void prepareDynamicInsert( ModelInsertQuery query )
-		{
-			
-		}
-
-		@Override
-		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			return paramIndex;
-		}
-
-		@Override
-		public void fromInsertReturning( ResultSet results ) throws SQLException
-		{
-			
-		}
-
-		@Override
-		public void prepareDynamicUpdate( ModelUpdateQuery query )
-		{
-			
-		}
-
-		@Override
-		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			return paramIndex;
 		}
 
 		@Override
@@ -338,41 +360,41 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 			return field;
 		}
 		
-		private void setModelForeignKey( Model one, Model many )
-		{
-			ForeignColumn<?>[] columns = field.getJoinColumns();
-			
-			for (int i = 0; i < columns.length; i++)
-			{
-				many.set( (Field<Object>)columns[i], one.get( columns[i].getForeignColumn() ) );
-			}
-		}
-
-		private void updateQuery(LoadProfile parentLoad)
-		{
-		    LoadProfile fieldLoad = null;
-		    
-		    if (parentLoad != null)
-		    {
-		        fieldLoad = parentLoad.getFieldLoad( field, select.getLoadProfile() );    
-		    }
-		    
-		    if (fieldLoad == null)
-		    {
-		        fieldLoad = field.getJoinLoad();
-		    }
-		    
-            select.clear();
-		    select.select( fieldLoad );
-		    
-		    queryTemplate = select.newTemplate();
-		}
-		
 		@Override
 		public String toString()
 		{
 			return field.getName() + "=" + (value.hasValue() ? value : "'not loaded'");
 		}
+		
+        private void setModelForeignKey( Model one, Model many )
+        {
+            ForeignColumn<?>[] columns = field.getJoinColumns();
+            
+            for (int i = 0; i < columns.length; i++)
+            {
+                many.set( (Field<Object>)columns[i], one.get( columns[i].getForeignColumn() ) );
+            }
+        }
+
+        private void updateQuery(LoadProfile parentLoad)
+        {
+            LoadProfile fieldLoad = null;
+            
+            if (parentLoad != null)
+            {
+                fieldLoad = parentLoad.getFieldLoad( field, select.getLoadProfile() );    
+            }
+            
+            if (fieldLoad == null)
+            {
+                fieldLoad = field.getJoinLoad();
+            }
+            
+            select.clear();
+            select.select( fieldLoad );
+            
+            queryTemplate = select.newTemplate();
+        }
 	}
 
 }

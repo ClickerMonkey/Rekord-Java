@@ -66,7 +66,7 @@ public abstract class AbstractField<T> implements Field<T>
     @Override
     public boolean is( int flag )
     {
-        return (flags & flag) == flag;
+        return (flags & flag) != 0;
     }
 
     protected StringBuilder beginToString()

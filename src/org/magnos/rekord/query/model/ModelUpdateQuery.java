@@ -2,7 +2,6 @@ package org.magnos.rekord.query.model;
 
 import java.sql.SQLException;
 
-import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
@@ -11,10 +10,10 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
+import org.magnos.rekord.query.Queryable;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.expr.GroupExpression;
 import org.magnos.rekord.util.SqlUtil;
@@ -38,47 +37,43 @@ public abstract class ModelUpdateQuery
 		this.queryHistory = buildHistoryInsert( table, condition );
 	}
 	
-	protected void prepareFixed()
+	protected void prepare( Queryable[] querable )
 	{
-		querySet.setLength( 0 );
-		
-		for (Field<?> f : table.getFields())
-		{
-			f.prepareUpdate( this );
-		}
-
-        String queryString = String.format( queryFormat, querySet );
+	    querySet.setLength( 0 );
         
-		queryTemplate = NativeQuery.parse( table, queryString, null );
-	}
-	
-	protected void prepareDynamic(Model model)
-	{
-		querySet.setLength( 0 );
-		
-		for (Value<?> v : model.getValues())
-		{
-			if (v.hasChanged())
-			{
-				v.prepareDynamicUpdate( this );
-			}
-		}
+        for (Queryable f : querable)
+        {
+            if (f.isUpdatable())
+            {
+                String updateExpression = f.getSaveExpression();
+                
+                if (updateExpression != null)
+                {
+                    if (querySet.length() > 0)
+                    {
+                        querySet.append( ", " );
+                    }
+                    
+                    querySet.append( f.getQuotedName() );
+                    querySet.append( " = " );
+                    querySet.append( updateExpression );
+                }
+            }
+        }
 
         String queryString = String.format( queryFormat, querySet );
         
         queryTemplate = NativeQuery.parse( table, queryString, null );
 	}
 	
-	public void set(Column<?> column)
+	protected void prepareFixed()
 	{
-	    if (querySet.length() > 0)
-        {
-            querySet.append( "," );
-        }
-	    
-	    querySet.append( column.getQuotedName() );
-	    querySet.append( " = " );
-	    querySet.append( column.getOutForBind() );
+	    prepare( table.getFields() );
+	}
+	
+	protected void prepareDynamic(Model model)
+	{
+	    prepare( model.getValues() );
 	}
 	
 	protected void saveHistory(Model model) throws SQLException

@@ -4,8 +4,7 @@ import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
+import org.magnos.rekord.query.InsertAction;
 
 public class ManyToMany<T extends Model> extends AbstractField<T>
 {
@@ -26,22 +25,28 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}
 	
-	@Override
-	public void prepareInsert( ModelInsertQuery query )
-	{
+    @Override
+    public InsertAction getInsertAction()
+    {
+        return InsertAction.NONE;
+    }
 
-	}
+    @Override
+    public boolean isUpdatable()
+    {
+        return false;
+    }
 
-	@Override
-	public void prepareUpdate( ModelUpdateQuery query )
-	{
-
-	}
+    @Override
+    public String getSaveExpression()
+    {
+        return null;
+    }
 
 	@Override
 	public Value<T> newValue( Model model )

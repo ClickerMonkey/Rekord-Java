@@ -14,357 +14,342 @@ import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.SqlUtil;
 
 
 public class Column<T> extends AbstractField<T>
 {
 
-	protected final int sqlType;
-	protected final Type<Object> type;
-	protected final String in;
-	protected final String out;
-	protected final T defaultValue;
-	protected final Converter<Object, T> converter;
+    protected final int sqlType;
+    protected final Type<Object> type;
+    protected final String in;
+    protected final String out;
+    protected final T defaultValue;
+    protected final Converter<Object, T> converter;
 
-	public Column( String column, int sqlType, Type<Object> type, int flags, String in, String out, T defaultValue, Converter<Object, T> converter )
-	{
-		super( column, flags );
+    public Column( String column, int sqlType, Type<Object> type, int flags, String in, String out, T defaultValue, Converter<Object, T> converter )
+    {
+        super( column, flags );
 
-		this.sqlType = sqlType;
-		this.type = type;
-		this.in = in;
-		this.out = out;
-		this.defaultValue = defaultValue;
-		this.converter = converter;
-	}
-	
-	@Override
-	public boolean isSelectable()
-	{
-		return !is(LAZY);
-	}
-	
-	@Override
-	public String getSelectionExpression(FieldLoad fieldLoad)
-	{
-		int limit = fieldLoad.getLimit();
+        this.sqlType = sqlType;
+        this.type = type;
+        this.in = in;
+        this.out = out;
+        this.defaultValue = defaultValue;
+        this.converter = converter;
+    }
 
-		if (limit == -1)
-		{
-			return getSelectionExpression();
-		}
-		
-		return type.getPartialExpression( getSelectionExpression(), limit, quotedName );	
-	}
+    @Override
+    public boolean isSelectable()
+    {
+        return !is( LAZY );
+    }
 
-	@Override
-	public void prepareInsert( ModelInsertQuery query )
-	{
-		if (is( HAS_DEFAULT ))
-		{
-			query.addReturning( name );
-		}
-		else
-		{
-			query.addColumn( name, out );
-		}
-	}
+    @Override
+    public String getSelectExpression( FieldLoad fieldLoad )
+    {
+        int limit = fieldLoad.getLimit();
 
-	@Override
-	public void prepareUpdate( ModelUpdateQuery query )
-	{
-		if (!is( READ_ONLY ))
-		{
-			query.set( this );
-		}
-	}
+        if (limit == -1)
+        {
+            return getSelectionExpression();
+        }
 
-	@Override
-	public Value<T> newValue( Model model )
-	{
-		return new ColumnValue<T>( this );
-	}
+        return type.getPartialExpression( getSelectionExpression(), limit, quotedName );
+    }
 
-	public String getIn()
-	{
-		return in;
-	}
+    @Override
+    public InsertAction getInsertAction()
+    {
+        return is( HAS_DEFAULT ) ? InsertAction.RETURN : InsertAction.VALUE;
+    }
 
-	public String getOut()
-	{
-		return out;
-	}
-	
-	public String getOutForBind()
-	{
-	    return out.replaceAll( "\\?", "?" + name );
-	}
+    @Override
+    public boolean isUpdatable()
+    {
+        return !is(READ_ONLY);
+    }
 
-	public String getSelectionExpression()
-	{
-		return in.replaceAll( "\\?", quotedName );
-	}
+    @Override
+    public String getSaveExpression()
+    {
+        return getOutForBind();
+    }
 
-	public int getSqlType()
-	{
-		return sqlType;
-	}
+    @Override
+    public Value<T> newValue( Model model )
+    {
+        return new ColumnValue<T>( this );
+    }
 
-	public Type<Object> getType()
-	{
-		return type;
-	}
+    public String getIn()
+    {
+        return in;
+    }
 
-	public T getDefaultValue()
-	{
-		return defaultValue;
-	}
+    public String getOut()
+    {
+        return out;
+    }
 
-	public Converter<Object, T> getConverter()
-	{
-		return converter;
-	}
+    public String getOutForBind()
+    {
+        return out.replaceAll( "\\?", "?" + name );
+    }
 
-	@Override
-	public String toString()
-	{
-		StringBuilder sb = beginToString();
-		sb.append( ", sql-type=" ).append( sqlType );
-		sb.append( ", type=" ).append( type.getClass().getSimpleName() );
-		sb.append( ", in=" ).append( in );
-		sb.append( ", out=" ).append( out );
-		sb.append( ", default-value=" ).append( type.toString( converter.toDatabase( defaultValue ) ) );
-		sb.append( ", converter=" ).append( converter.getClass().getSimpleName() );
-		return endToString( sb );
-	}
+    public String getSelectionExpression()
+    {
+        return in.replaceAll( "\\?", quotedName );
+    }
 
-	private static class ColumnValue<T> implements Value<T>
-	{
-		private final Column<T> field;
-		private boolean changed = false;
-		private boolean partial = false;
-		private boolean defaultValue = false;
-		private T value;
+    public int getSqlType()
+    {
+        return sqlType;
+    }
 
-		public ColumnValue( Column<T> field )
-		{
-			this.field = field;
-			this.value = field.getDefaultValue();
-		}
+    public Type<Object> getType()
+    {
+        return type;
+    }
 
-		@Override
-		public T get( Model model )
-		{
-			if (field.is( LAZY ) && value == null && model.hasKey())
-			{
-				try
-				{
-					Query<Model> query = new SelectQuery<Model>( model ).newQuery();
-					query.bind( model );
-					
-					value = query.first( field );
-					partial = false;
-					defaultValue = false;
-				}
-				catch (SQLException e)
-				{
-					throw new RuntimeException( e );
-				}
-			} 
-			else if (value == null)
-			{
-			    value = field.getDefaultValue();
-			    defaultValue = true; 
-			}
+    public T getDefaultValue()
+    {
+        return defaultValue;
+    }
 
-			return value;
-		}
+    public Converter<Object, T> getConverter()
+    {
+        return converter;
+    }
 
-		@Override
-		public boolean hasValue()
-		{
-			return (value != null);
-		}
+    @Override
+    public String toString()
+    {
+        StringBuilder sb = beginToString();
+        sb.append( ", sql-type=" ).append( sqlType );
+        sb.append( ", type=" ).append( type.getClass().getSimpleName() );
+        sb.append( ", in=" ).append( in );
+        sb.append( ", out=" ).append( out );
+        sb.append( ", default-value=" ).append( type.toString( converter.toDatabase( defaultValue ) ) );
+        sb.append( ", converter=" ).append( converter.getClass().getSimpleName() );
+        return endToString( sb );
+    }
 
-		@Override
-		public void set( Model model, T value )
-		{
-			if (!SqlUtil.equals( this.value, value ))
-			{
-				this.value = value;
-				this.changed = true;
-				this.partial = false;
-				this.defaultValue = false;
-			}
-		}
+    private static class ColumnValue<T> implements Value<T>
+    {
 
-		@Override
-		public boolean hasChanged()
-		{
-			return changed;
-		}
+        private final Column<T> field;
+        private boolean changed = false;
+        private boolean partial = false;
+        private boolean defaultValue = false;
+        private T value;
 
-		@Override
-		public void clearChanges()
-		{
-			changed = false;
-		}
+        public ColumnValue( Column<T> field )
+        {
+            this.field = field;
+        }
 
-		@Override
-		public void fromResultSet( ResultSet results ) throws SQLException
-		{
-			final Type<Object> type = field.getType();
-			final Converter<Object, T> converter = field.getConverter();
+        @Override
+        public T get( Model model )
+        {
+            if (field.is( LAZY ) && value == null && model.hasKey())
+            {
+                try
+                {
+                    Query<Model> query = new SelectQuery<Model>( model ).newQuery();
+                    query.bind( model );
 
-			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
-			value = converter.fromDatabase( databaseValue );
-			defaultValue = false;
-		}
+                    value = query.first( field );
+                    partial = false;
+                    defaultValue = false;
+                }
+                catch (SQLException e)
+                {
+                    throw new RuntimeException( e );
+                }
+            }
+            else if (value == null)
+            {
+                value = field.getDefaultValue();
+                defaultValue = true;
+            }
 
-		@Override
-		public int toPreparedStatement( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			final Type<Object> type = field.getType();
-			final Converter<Object, T> converter = field.getConverter();
+            return value;
+        }
 
-			type.toPreparedStatement( preparedStatement, converter.toDatabase( value ), paramIndex );
+        @Override
+        public boolean hasValue()
+        {
+            return (value != null);
+        }
 
-			return paramIndex + 1;
-		}
+        @Override
+        public void set( Model model, T value )
+        {
+            if (!SqlUtil.equals( this.value, value ))
+            {
+                this.value = value;
+                this.changed = true;
+                this.partial = false;
+                this.defaultValue = false;
+            }
+        }
 
-		@Override
-		public void load( FieldLoad fieldLoad ) throws SQLException
-		{
+        @Override
+        public boolean hasChanged()
+        {
+            return changed;
+        }
 
-		}
+        @Override
+        public void clearChanges()
+        {
+            changed = false;
+        }
 
-		@Override
-		public void prepareDynamicInsert( ModelInsertQuery query )
-		{
-			if (field.is( HAS_DEFAULT ) && defaultValue)
-			{
-				query.addReturning( field.getName() );
-			}
-			else
-			{
-				query.addColumn( field.getQuotedName(), field.getOut() );
-			}
-		}
+        @Override
+        public String getName()
+        {
+            return field.getName();
+        }
+        
+        @Override
+        public String getQuotedName()
+        {
+            return field.getQuotedName();
+        }
 
-		@Override
-		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			if (!field.is( HAS_DEFAULT ) || !defaultValue)
-			{
-				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
-			}
+        @Override
+        public boolean isSelectable()
+        {
+            return field.isSelectable();
+        }
 
-			return paramIndex;
-		}
+        @Override
+        public String getSelectExpression( FieldLoad fieldLoad )
+        {
+            return field.getSelectionExpression();
+        }
 
-		@Override
-		public void fromInsertReturning( ResultSet results ) throws SQLException
-		{
-			if (field.is( HAS_DEFAULT ) && defaultValue)
-			{
-				fromResultSet( results );
-			}
-		}
+        @Override
+        public InsertAction getInsertAction()
+        {
+            return field.is( HAS_DEFAULT ) && defaultValue ? InsertAction.RETURN : InsertAction.VALUE;
+        }
 
-		@Override
-		public void prepareDynamicUpdate( ModelUpdateQuery query )
-		{
-			if (!field.is( READ_ONLY ) && !partial)
-			{
-				query.set( field );
-			}
-		}
+        @Override
+        public boolean isUpdatable()
+        {
+            return !field.is( READ_ONLY ) && !partial && changed;
+        }
 
-		@Override
-		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			if (!field.is( READ_ONLY ) && !partial)
-			{
-				paramIndex = toPreparedStatement( preparedStatement, paramIndex );
-			}
+        @Override
+        public String getSaveExpression()
+        {
+            return field.getSaveExpression();
+        }
+        
+        @Override
+        public void fromResultSet( ResultSet results ) throws SQLException
+        {
+            final Type<Object> type = field.getType();
+            final Converter<Object, T> converter = field.getConverter();
 
-			return paramIndex;
-		}
+            Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
+            value = converter.fromDatabase( databaseValue );
+            defaultValue = false;
+            changed = false;
+        }
 
-		@Override
-		public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
-		{
-			fromResultSet( results );
+        @Override
+        public int toPreparedStatement( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
+        {
+            final Type<Object> type = field.getType();
+            final Converter<Object, T> converter = field.getConverter();
 
-			int limit = fieldLoad.getLimit();
+            type.toPreparedStatement( preparedStatement, converter.toDatabase( value ), paramIndex );
 
-			if (limit != -1)
-			{
-				partial = field.getType().isPartial( value, limit );
-			}
-		}
+            return paramIndex + 1;
+        }
 
-		@Override
-		public void postSelect( Model model, FieldLoad fieldLoad ) throws SQLException
-		{
+        @Override
+        public void load( FieldLoad fieldLoad ) throws SQLException
+        {
 
-		}
+        }
 
-		@Override
-		public void preSave( Model model ) throws SQLException
-		{
-			if (field.is( NON_NULL ) && !field.is( GENERATED ) && value == null)
-			{
-				throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
-			}
-		}
+        @Override
+        public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
+        {
+            fromResultSet( results );
 
-		@Override
-		public void postSave( Model model ) throws SQLException
-		{
+            int limit = fieldLoad.getLimit();
 
-		}
+            if (limit != -1)
+            {
+                partial = field.getType().isPartial( value, limit );
+            }
+        }
 
-		@Override
-		public void preDelete( Model model ) throws SQLException
-		{
+        @Override
+        public void postSelect( Model model, FieldLoad fieldLoad ) throws SQLException
+        {
 
-		}
+        }
 
-		@Override
-		public void postDelete( Model model ) throws SQLException
-		{
+        @Override
+        public void preSave( Model model ) throws SQLException
+        {
+            if (field.is( NON_NULL ) && !field.is( GENERATED ) && value == null)
+            {
+                throw new RuntimeException( "field " + field.getName() + " on type " + model.getTable().getName() + " was null and it cannot be: " + model );
+            }
+        }
 
-		}
+        @Override
+        public void postSave( Model model ) throws SQLException
+        {
 
-		@Override
-		public void serialize( ObjectOutputStream out ) throws IOException
-		{
-			out.writeObject( value );
-		}
+        }
 
-		@Override
-		public void deserialize( ObjectInputStream in ) throws IOException, ClassNotFoundException
-		{
-			value = (T)in.readObject();
-		}
+        @Override
+        public void preDelete( Model model ) throws SQLException
+        {
 
-		@Override
-		public Field<T> getField()
-		{
-			return field;
-		}
+        }
 
-		@Override
-		public String toString()
-		{
-			return field.getName() + "=" + value;
-		}
-	}
+        @Override
+        public void postDelete( Model model ) throws SQLException
+        {
+
+        }
+
+        @Override
+        public void serialize( ObjectOutputStream out ) throws IOException
+        {
+            out.writeObject( value );
+        }
+
+        @Override
+        public void deserialize( ObjectInputStream in ) throws IOException, ClassNotFoundException
+        {
+            value = (T)in.readObject();
+        }
+
+        @Override
+        public Field<T> getField()
+        {
+            return field;
+        }
+
+        @Override
+        public String toString()
+        {
+            return field.getName() + "=" + value;
+        }
+    }
 
 }

@@ -6,11 +6,9 @@ import java.util.List;
 
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
-import org.magnos.rekord.Model;
-import org.magnos.rekord.Order;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.LoadProfile;
-import org.magnos.rekord.field.Column;
+import org.magnos.rekord.Model;
+import org.magnos.rekord.Table;
 import org.magnos.rekord.query.expr.GroupExpression;
 
 
@@ -20,11 +18,8 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	protected Table table;
 	protected String from;
 	protected StringBuilder selecting;
-	protected StringBuilder ordering;
 	protected List<Field<?>> selectFields;
 	protected LoadProfile loadProfile;
-	protected Long offset;
-	protected Long limit;
 
 	public SelectQuery( M model )
 	{
@@ -37,7 +32,6 @@ public class SelectQuery<M extends Model> extends GroupExpression
 		this.table = table;
 		this.from = table.getQuotedName();
 		this.selecting = new StringBuilder();
-		this.ordering = new StringBuilder();
 		this.selectFields = new ArrayList<Field<?>>();
 	}
 	
@@ -47,47 +41,11 @@ public class SelectQuery<M extends Model> extends GroupExpression
 		
 		return this;
 	}
-
-	public SelectQuery<M> orderBy( Column<?> column, Order order )
-	{
-		return orderBy( column.getName(), order );
-	}
-	
-	public SelectQuery<M> orderBy( String expression, Order order )
-	{
-		if (ordering.length() > 0)
-		{
-			ordering.append( ", " );
-		}
-		
-		ordering.append( expression );
-		ordering.append( " " );
-		ordering.append( order );
-		
-		return this;
-	}
-	
-	public SelectQuery<M> limit( Long limit )
-	{
-		this.limit = limit;
-		
-		return this;
-	}
-	
-	public SelectQuery<M> offset( Long offset )
-	{
-		this.offset = offset;
-		
-		return this;
-	}
 	
 	public SelectQuery<M> clear()
 	{
-		this.limit = null;
-		this.offset = null;
 		this.selectFields.clear();
 		this.selecting.setLength( 0 );
-		this.ordering.setLength( 0 );
 		
 		return this;
 	}
@@ -169,21 +127,6 @@ public class SelectQuery<M extends Model> extends GroupExpression
         {
             query.append( " WHERE ");
             toQuery( query );    
-        }
-        
-        if (ordering != null && ordering.length() > 0)
-        {
-            query.append( " ORDER BY " ).append( ordering );
-        }
-        
-        if (limit != null)
-        {
-            query.append( " LIMIT " ).append( limit );
-        }
-        
-        if (offset != null)
-        {
-            query.append( " OFFSET " ).append( offset );
         }
         
         return (QueryTemplate<M>) NativeQuery.parse( table, query.toString(), loadProfile, selectFields );

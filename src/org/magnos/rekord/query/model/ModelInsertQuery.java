@@ -1,23 +1,27 @@
 
 package org.magnos.rekord.query.model;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.magnos.rekord.Field;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.query.InsertAction;
+import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.QueryTemplate;
+import org.magnos.rekord.query.Queryable;
 
 
 public abstract class ModelInsertQuery
 {
 
 	protected Table table;
+	protected QueryTemplate<Model> queryTemplate;
 	protected String query;
 	protected StringBuilder columns = new StringBuilder();
 	protected StringBuilder values = new StringBuilder();
@@ -28,20 +32,35 @@ public abstract class ModelInsertQuery
 		this.table = table;
 	}
 	
+	protected void prepare(Queryable[] queryables)
+	{
+	    for (Queryable q : queryables)
+	    {
+	        InsertAction insertAction = q.getInsertAction();
+	        
+	        switch (insertAction) 
+	        {
+	        case NONE:
+	            break;
+	        case RETURN:
+	            append( returnings, ",", "#" + q.getName() );
+	            break;
+	        case VALUE:
+	            append( columns, ",", q.getQuotedName() );
+	            append( values, ",", q.getSaveExpression() );
+	            break;
+	        }
+	    }
+	}
+	
 	protected void prepareFixed()
 	{
-		for (Field<?> f : table.getFields())
-		{
-			f.prepareInsert( this );
-		}
+	    prepare( table.getFields() );
 	}
 	
 	protected void prepareDynamic(Model model)
 	{
-		for (Value<?> v : model.getValues())
-		{
-			v.prepareDynamicInsert( this );
-		}
+	    prepare( model.getValues() );
 	}
 
 	protected void buildQuery()
@@ -59,7 +78,7 @@ public abstract class ModelInsertQuery
 		}
 		else
 		{
-		    queryBuilder.append( " DEFAULT VALUES " );
+		    queryBuilder.append( "DEFAULT VALUES" );
 		}
 		
 		if (returnings.length() > 0)
@@ -67,18 +86,8 @@ public abstract class ModelInsertQuery
 			queryBuilder.append( " RETURNING " ).append( returnings );
 		}
 
-		this.query = queryBuilder.toString();
-	}
-	
-	public void addColumn( String column, String value )
-	{
-		append( columns, ",", column );
-		append( values, ",", value );
-	}
-
-	public void addReturning( String returning )
-	{
-		append( returnings, ",", returning );
+		query = queryBuilder.toString();
+		queryTemplate = NativeQuery.parse( table, query );
 	}
 
 	private void append( StringBuilder out, String delimiter, String text )
@@ -102,33 +111,25 @@ public abstract class ModelInsertQuery
 			v.preSave( model );
 		}
 
-		Transaction trans = Rekord.getTransaction();
-		PreparedStatement stmt = trans.prepare( query );
-		boolean recordsInserted = false;
+        boolean recordsInserted = false;
+        
+		Query<Model> query = queryTemplate.create();
+		query.bind( model );
 		
-		int paramIndex = 1;
-		for (Value<?> v : values)
-		{
-			paramIndex = v.toInsert( stmt, paramIndex );
-		}
-
 		if (returnings.length() == 0)
 		{
-			recordsInserted = stmt.executeUpdate() > 0;
+			recordsInserted = query.executeUpdate() > 0;
 		}
 		else
 		{
-			ResultSet results = stmt.executeQuery();
+			ResultSet results = query.getResults();
 			
 			try
 			{
 				if (results.next())
 				{
-					for (Value<?> v : values)
-					{
-						v.fromInsertReturning( results );
-					}
-					
+		            query.populate( results, model );
+		            
 					recordsInserted = true;
 				}
 			}
@@ -140,6 +141,7 @@ public abstract class ModelInsertQuery
 
 		if (recordsInserted)
 		{
+		    Transaction trans = Rekord.getTransaction();
 			trans.cache( model );
 		}
 		

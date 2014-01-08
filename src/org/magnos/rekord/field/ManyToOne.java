@@ -16,9 +16,8 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.SelectQuery;
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
 
 public class ManyToOne<T extends Model> extends AbstractField<T>
 {
@@ -46,23 +45,29 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(FieldLoad fieldLoad)
 	{
 		return null;
 	}
+    
+    @Override
+    public InsertAction getInsertAction()
+    {
+        return InsertAction.NONE;
+    }
 
-	@Override
-	public void prepareInsert( ModelInsertQuery query )
-	{
-		
-	}
-	
-	@Override
-	public void prepareUpdate( ModelUpdateQuery query )
-	{
-		
-	}
-	
+    @Override
+    public boolean isUpdatable()
+    {
+        return false;
+    }
+
+    @Override
+    public String getSaveExpression()
+    {
+        return null;
+    }
+
 	@Override
 	public Value<T> newValue(Model model)
 	{
@@ -194,42 +199,54 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 			changed = false;
 		}
 
+        @Override
+        public String getName()
+        {
+            return field.getName();
+        }
+
+        @Override
+        public String getQuotedName()
+        {
+            return field.getQuotedName();
+        }
+
+        @Override
+        public boolean isSelectable()
+        {
+            return field.isSelectable();
+        }
+
+        @Override
+        public String getSelectExpression( FieldLoad fieldLoad )
+        {
+            return null;
+        }
+
+        @Override
+        public InsertAction getInsertAction()
+        {
+            return InsertAction.NONE;
+        }
+
+        @Override
+        public boolean isUpdatable()
+        {
+            return false;
+        }
+        
+        @Override
+        public String getSaveExpression()
+        {
+            return null;
+        }
+
 		@Override
 		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
 		}
 
-		@Override
-		public void prepareDynamicInsert( ModelInsertQuery query )
-		{
-			
-		}
-		
-		@Override
-		public int toInsert( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			return paramIndex;
-		}
-		
-		@Override
-		public void fromInsertReturning( ResultSet results ) throws SQLException
-		{
-			
-		}
-		
-		@Override
-		public void prepareDynamicUpdate( ModelUpdateQuery query )
-		{
-			
-		}
-		
-		@Override
-		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			return paramIndex;
-		}
-		
 		@Override
 		public void fromSelect( ResultSet results, FieldLoad fieldLoad ) throws SQLException
 		{
@@ -280,30 +297,6 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
         {
             
         }
-		
-		private void loadFromKey( FieldLoad fieldLoad ) throws SQLException
-		{
-			Key key = getKey();
-			Transaction trans = Rekord.getTransaction();
-			value = trans.getCached( field.getJoinTable(), key );
-			
-			LoadProfile load = fieldLoad.getLoadProfile( field.getJoinLoad() );
-			
-			if (value == null)
-			{
-			    // TODO test
-			    
-			    SelectQuery<T> select = new SelectQuery<T>( field.getJoinTable() );
-			    select.select( load );
-			    select.whereKey( key );
-			    
-				value = select.newQuery().first();
-			}
-			else
-			{
-				value.load( load );
-			}
-		}
 
 		@Override
 		public void serialize(ObjectOutputStream out) throws IOException
@@ -333,6 +326,35 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		{
 			return field.getName() + "=" + (value != null ? value.getKey() : "null");
 		}
+        
+        private void loadFromKey( FieldLoad fieldLoad ) throws SQLException
+        {
+            Key key = getKey();
+            Transaction trans = Rekord.getTransaction();
+            value = trans.getCached( field.getJoinTable(), key );
+            
+            LoadProfile load = field.getJoinLoad();
+            
+            if (fieldLoad != null)
+            {
+                load = fieldLoad.getLoadProfile( field.getJoinLoad() );
+            }
+            
+            if (value == null)
+            {
+                // TODO test
+                
+                SelectQuery<T> select = new SelectQuery<T>( field.getJoinTable() );
+                select.select( load );
+                select.whereKey( key );
+                
+                value = select.newQuery().first();
+            }
+            else
+            {
+                value.load( load, false );
+            }
+        }
 		
 	}
 

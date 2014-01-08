@@ -20,30 +20,34 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-		User u = User.byId( User.Load.SHORT_NAME, 2L );
-		System.out.println( u.getName() );
-		u.delete();
+//		User u = User.byId( User.Load.SHORT_NAME, 2L );
+//		System.out.println( u.getName() );
+//		u.delete();
 		
-//		User u = User.byId( User.Views.ALL, 1L );
+//		User u = User.byId( User.Load.ALL, 2L );
 //		System.out.println( u.getState() );
 //		u.getCommentsBy().clear();
 //		u.save();
 
-//		User u1 = User.byId( User.Views.ALL, 14L );
+//		User u1 = User.byId( User.Load.ALL, 14L );
 //		System.out.println( u1 );
 		
 //		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();
 		
-//		User u = User.byId( User.Views.ID, 1L );
-//		System.out.println( u );
-//		System.out.println( u.getCommentsBy() );
-//		System.out.println( u );
+		User u = User.byId( User.Load.ID, 2L );
+		System.out.println( u );
+		
+		for (Comment c : u.getCommentsBy()) {
+		    System.out.println( c );
+		}
+		
+		System.out.println( u );
 		
 /* NativeQuery * /
 		Query<User> nq = User.Queries.CREATED_BEFORE.create();
-		nq.bind( "date", new Timestamp( System.currentTimeMillis() ) );
+		nq.bind( "date", User.CREATED_TIMESTAMP, new Timestamp( System.currentTimeMillis() ) );
 		
 		System.out.println( nq.getReadableQuery() );
 		
@@ -60,7 +64,7 @@ public class TestRekord
         
         Query<User> us = User.Queries.UPDATE_STATE.create();
         us.bind( u );
-        us.bind( "new_state", "R" );
+        us.bind( "new_state", User.STATE, UserState.REGISTERED );
         us.executeUpdate();
 /**/
         

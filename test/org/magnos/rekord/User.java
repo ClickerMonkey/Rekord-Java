@@ -70,12 +70,12 @@ public class User extends Model
 	
 	public static List<User> byName(LoadProfile load, String name) throws SQLException
 	{
-	    return Queries.BY_NAME.create().bind( "name", name ).list( load );
+	    return Queries.BY_NAME.create().bind( "name", name ).withLoad( load ).list();
 	}
 	
 	public static User byId(LoadProfile load, long id) throws SQLException
 	{
-	    return Queries.BY_ID.create().bind( "id", id ).first( load );
+	    return Queries.BY_ID.create().bind( "id", id ).withLoad( load ).first();
 	}
 	
 	public static List<User> all(LoadProfile load) throws SQLException

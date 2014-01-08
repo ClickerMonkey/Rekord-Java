@@ -153,8 +153,8 @@ public class XmlLoader
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
 		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
 		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
-		for (XmlTable t : tableMap.values()) t.instantiateProfileImplementation();
 		for (XmlTable t : tableMap.values()) t.initializeTable();
+        for (XmlTable t : tableMap.values()) t.instantiateProfileImplementation();
 		for (XmlTable t : tableMap.values()) t.relateFieldReferences();
 		for (XmlTable t : tableMap.values()) t.finishTable();
 		
@@ -517,7 +517,7 @@ public class XmlLoader
 		return (
 			(TypeBoolean.parse( lazy, "lazy" + messagePostfix ) ? Field.LAZY : 0) |
 			(TypeBoolean.parse( readOnly, "read-only" + messagePostfix ) ? Field.READ_ONLY : 0) |
-			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Field.GENERATED : 0) |
+			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Field.GENERATED | Field.HAS_DEFAULT : 0) |
 			(TypeBoolean.parse( nonNull, "non-null" + messagePostfix ) ? Field.NON_NULL : 0) |
 			(TypeBoolean.parse( hasDefault, "has-default" + messagePostfix) ? Field.HAS_DEFAULT : 0)
 		);

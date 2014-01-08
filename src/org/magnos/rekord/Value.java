@@ -7,10 +7,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
+import org.magnos.rekord.query.Queryable;
 
-public interface Value<T>
+public interface Value<T> extends Queryable
 {
 	public T get(Model model);
 	public boolean hasValue();
@@ -21,13 +20,6 @@ public interface Value<T>
 	
 	public void load(FieldLoad fieldLoad) throws SQLException;
 
-	public void prepareDynamicInsert(ModelInsertQuery query);
-	public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
-	public void fromInsertReturning(ResultSet results) throws SQLException;
-	
-	public void prepareDynamicUpdate(ModelUpdateQuery query);
-	public int toUpdate(PreparedStatement preparedStatement, int paramIndex) throws SQLException;
-	
 	public void fromSelect(ResultSet results, FieldLoad fieldLoad) throws SQLException;
 	public void postSelect(Model model, FieldLoad fieldLoad) throws SQLException;
 	

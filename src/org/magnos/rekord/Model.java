@@ -97,7 +97,7 @@ public class Model implements Serializable
 		return hasKey() ? table.getDelete().execute( this ) : false;
 	}
 
-	public boolean load( LoadProfile loadProfile ) throws SQLException
+	public boolean load( LoadProfile loadProfile, boolean overwriteExisting ) throws SQLException
 	{
 		if (!hasKey())
 		{
@@ -110,7 +110,7 @@ public class Model implements Serializable
 		{
 			if (!valueOf( f ).hasValue() && f.isSelectable())
 			{
-			    select.select( f, f.getSelectionExpression( loadProfile.getFieldLoad( f ) ) );
+			    select.select( f, f.getSelectExpression( loadProfile.getFieldLoad( f ) ) );
 			}
 		}
 
@@ -128,7 +128,14 @@ public class Model implements Serializable
 			{
 				if (results.next())
 				{
-				    query.populate( results, this );
+				    if (overwriteExisting)
+				    {
+				        query.populate( results, this );    
+				    }
+				    else
+				    {
+				        query.merge( results, this );
+				    }
 				}
 				else
 				{

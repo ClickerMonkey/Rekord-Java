@@ -33,4 +33,14 @@ public class StringRange
         return text;
     }
     
+    public String grab(String text)
+    {
+        if (exists())
+        {
+            return text.substring( start, end );
+        }
+        
+        return null;
+    }
+    
 }

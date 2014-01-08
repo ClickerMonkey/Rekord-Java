@@ -14,8 +14,7 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.model.ModelInsertQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
+import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.util.SqlUtil;
 
 
@@ -37,17 +36,29 @@ public class ForeignColumn<T> extends Column<T>
 	}
 	
 	@Override
-	public String getSelectionExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(FieldLoad fieldLoad)
 	{
 		return getSelectionExpression();
 	}
 
-	@Override
-	public void prepareInsert(ModelInsertQuery query)
-	{
-		query.addColumn( quotedName, out );
-	}
-	
+    @Override
+    public InsertAction getInsertAction()
+    {
+        return InsertAction.VALUE;
+    }
+
+    @Override
+    public boolean isUpdatable()
+    {
+        return true;
+    }
+
+    @Override
+    public String getSaveExpression()
+    {
+        return getOutForBind();
+    }
+
 	@Override
 	public Value<T> newValue(Model model)
 	{
@@ -134,6 +145,48 @@ public class ForeignColumn<T> extends Column<T>
 			changed = false;
 		}
 
+        @Override
+        public String getName()
+        {
+            return field.getName();
+        }
+
+        @Override
+        public String getQuotedName()
+        {
+            return field.getQuotedName();
+        }
+
+        @Override
+        public boolean isSelectable()
+        {
+            return field.isSelectable();
+        }
+
+        @Override
+        public String getSelectExpression( FieldLoad fieldLoad )
+        {
+            return field.getSelectionExpression();
+        }
+
+        @Override
+        public InsertAction getInsertAction()
+        {
+            return InsertAction.VALUE;
+        }
+
+        @Override
+        public boolean isUpdatable()
+        {
+            return changed;
+        }
+
+        @Override
+        public String getSaveExpression()
+        {
+            return field.getSaveExpression();
+        }
+		
 		@Override
 		public void fromResultSet( ResultSet results ) throws SQLException
 		{
@@ -142,6 +195,7 @@ public class ForeignColumn<T> extends Column<T>
 			
 			Object databaseValue = type.fromResultSet( results, field.getName(), !field.is( NON_NULL ) );
 			value = converter.fromDatabase( databaseValue );
+            changed = false;
 		}
 		
 		@Override
@@ -159,36 +213,6 @@ public class ForeignColumn<T> extends Column<T>
 		public void load( FieldLoad fieldLoad ) throws SQLException
 		{
 			
-		}
-
-		@Override
-		public void prepareDynamicInsert(ModelInsertQuery query)
-		{
-			query.addColumn( field.getQuotedName(), field.getOut() );
-		}
-		
-		@Override
-		public int toInsert(PreparedStatement preparedStatement, int paramIndex) throws SQLException
-		{
-			return toPreparedStatement( preparedStatement, paramIndex );
-		}
-		
-		@Override
-		public void fromInsertReturning(ResultSet results) throws SQLException
-		{
-			
-		}
-
-		@Override
-		public void prepareDynamicUpdate( ModelUpdateQuery query )
-		{
-			query.set( field );
-		}
-
-		@Override
-		public int toUpdate( PreparedStatement preparedStatement, int paramIndex ) throws SQLException
-		{
-			return toPreparedStatement( preparedStatement, paramIndex );
 		}
 
 		@Override

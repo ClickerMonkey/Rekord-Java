@@ -18,8 +18,6 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
 {
 	
 	private static final Pattern SELECTION_PATTERN = Pattern.compile( "SELECT (.*?) FROM.*", Pattern.CASE_INSENSITIVE );
-	private static final Pattern LIMIT_PATTERN = Pattern.compile( "LIMIT (\\d+)", Pattern.CASE_INSENSITIVE );
-	private static final Pattern OFFSET_PATTERN = Pattern.compile( "OFFSET (\\d+)", Pattern.CASE_INSENSITIVE );
 	
     protected final Table table;
     protected final String query;
@@ -31,8 +29,6 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     protected final Field<?>[] select;
     
     protected final StringRange selectRange;
-    protected final StringRange limitRange;
-    protected final StringRange offsetRange;
     
     public QueryTemplate( Table table, String query, LoadProfile loadProfile, QueryBind[] binds, Field<?>[] select )
     {
@@ -43,8 +39,6 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
         this.bindMap = new HashMap<String, QueryBind>();
         this.select = select;
         this.selectRange = getPatternRange( SELECTION_PATTERN, query );
-        this.limitRange = getPatternRange( LIMIT_PATTERN, query );
-        this.offsetRange = getPatternRange( OFFSET_PATTERN, query );
         
         for (QueryBind bind : binds)
         {
@@ -75,31 +69,6 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
     {
     	return selectRange.replace( query, alternativeSelection );
     }
-    
-    public String getQueryPage(int offset, int limit)
-    {
-        String alternativeQuery = query;
-        
-        if (offsetRange.exists())
-        {
-            alternativeQuery = offsetRange.replace( alternativeQuery, String.valueOf( offset ) );
-        }
-        else
-        {
-            alternativeQuery += " OFFSET " + offset;
-        }
-        
-        if (limitRange.exists())
-        {
-            alternativeQuery = limitRange.replace( alternativeQuery, String.valueOf( limit ) );
-        }
-        else
-        {
-            alternativeQuery += " LIMIT " + limit;
-        }
-        
-        return alternativeQuery;
-    }
 
 	public LoadProfile getLoadProfile()
     {
@@ -111,9 +80,19 @@ public class QueryTemplate<M extends Model> implements Factory<Query<M>>
 		return (loadProfile != null);
 	}
 
-    public Field<?>[] getSelection()
+    public Field<?>[] getSelectFields()
     {
         return select;
+    }
+    
+    public String getSelectExpression()
+    {
+        return selectRange.grab( query );
+    }
+    
+    public boolean isSelect()
+    {
+        return selectRange.exists();
     }
     
     public QueryBind[] getBinds()

@@ -39,7 +39,7 @@ public class Selection
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectionExpression( FieldLoad.DEFAULT );
+				String se = f.getSelectExpression( FieldLoad.DEFAULT );
 				
 				if (se != null)
 				{
@@ -70,7 +70,7 @@ public class Selection
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectionExpression( load.getFieldLoad( f ) );
+				String se = f.getSelectExpression( load.getFieldLoad( f ) );
 				
 				if (se != null)
 				{
