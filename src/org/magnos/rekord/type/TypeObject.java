@@ -55,4 +55,10 @@ public class TypeObject implements Type<Object>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Object value )
+    {
+        return null;
+    }
+
 }

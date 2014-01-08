@@ -170,4 +170,10 @@ public class TypeXml implements Type<Document>
         }
     }
 
+    @Override
+    public String toQueryString( Document value )
+    {
+        return "'" + toString( value ) + "'";
+    }
+
 }

@@ -30,7 +30,9 @@ public class DefaultTransaction implements Transaction
 		
 		for (int i = 0; i < tableCount; i++)
 		{
-			this.modelCache[i] = new ModelCache( Rekord.getTable( i ).is( Table.TRANSACTION_CACHED ) ? new HashMap<Key, Model>() : null );
+		    Table table = Rekord.getTable( i );
+		    
+			this.modelCache[i] = new ModelCache( table.is( Table.TRANSACTION_CACHED ) ? new HashMap<Key, Model>() : null, table.getName() + " (transaction-scope)" );
 		}
 	}
 	
@@ -199,4 +201,12 @@ public class DefaultTransaction implements Transaction
 		return cached;
 	}
 
+	@Override
+	public void purge( Model model )
+	{
+	    Rekord.purge( model );
+	    
+	    modelCache[ model.getTable().getIndex() ].remove( model.getKey() );
+	}
+	
 }

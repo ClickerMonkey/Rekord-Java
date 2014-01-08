@@ -8,6 +8,7 @@ import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
+import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.QueryTemplate;
@@ -44,6 +45,9 @@ public class ModelDeleteQuery
 
 		if (deleted)
 		{
+		    Transaction trans = Rekord.getTransaction();
+		    trans.purge( model );
+		    
 			for (Value<?> v : values)
 			{
 				v.postDelete( model );

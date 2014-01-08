@@ -296,6 +296,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
         {
             if (field.isCascadeDelete())
             {
+                select.clear();
                 select.select( field.getJoinTable().getLoadProfileId() );
                 
                 queryTemplate = select.newTemplate();
@@ -361,6 +362,7 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		        fieldLoad = field.getJoinLoad();
 		    }
 		    
+            select.clear();
 		    select.select( fieldLoad );
 		    
 		    queryTemplate = select.newTemplate();

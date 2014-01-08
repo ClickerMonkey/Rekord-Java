@@ -88,4 +88,10 @@ public class TypeDate implements Type<Date>
         }
     }
 
+    @Override
+    public String toQueryString( Date value )
+    {
+        return "'" + toString( value ) + "'";
+    }
+
 }

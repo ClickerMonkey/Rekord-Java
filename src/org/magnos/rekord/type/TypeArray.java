@@ -56,4 +56,10 @@ public class TypeArray implements Type<Array>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Array value )
+    {
+        return null;
+    }
+
 }

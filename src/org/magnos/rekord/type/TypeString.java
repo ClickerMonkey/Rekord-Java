@@ -55,4 +55,10 @@ public class TypeString implements Type<String>
         return x;
     }
 
+    @Override
+    public String toQueryString( String value )
+    {
+        return "'" + toString( value ) + "'";
+    }
+
 }

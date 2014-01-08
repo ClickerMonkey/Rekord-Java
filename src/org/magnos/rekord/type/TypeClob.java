@@ -56,4 +56,10 @@ public class TypeClob implements Type<Clob>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Clob value )
+    {
+        return null;
+    }
+
 }

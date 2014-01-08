@@ -67,4 +67,10 @@ public class TypeLong implements Type<Long>
         return (x == null ? null : Long.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Long value )
+    {
+        return toString( value );
+    }
+
 }

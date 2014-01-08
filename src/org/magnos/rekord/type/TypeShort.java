@@ -67,4 +67,10 @@ public class TypeShort implements Type<Short>
         return (x == null ? null : Short.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Short value )
+    {
+        return toString( value );
+    }
+
 }

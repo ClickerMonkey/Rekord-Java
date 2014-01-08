@@ -49,16 +49,16 @@ class XmlLoadProfile extends XmlLoadable
             }
 
             fields[i] = f;
+            fieldLoads[i] = new XmlFieldLoad();
             
-            if (limitNumber != null || loadName != null)
+            if (loadName != null && f.relatedTable != null) 
             {
-            	fieldLoads[i] = new XmlFieldLoad();
-            	
-            	if (loadName != null && f.relatedTable != null) {
-            		fieldLoads[i].loadProfile = f.relatedTable.loadMap.get( loadName );	
-            	}
-            	 
-            	fieldLoads[i].limitNumber = limitNumber == null ? -1 : Integer.parseInt( limitNumber );
+                fieldLoads[i].loadProfile = f.relatedTable.loadMap.get( loadName ); 
+            }
+            
+            if (limitNumber != null)            
+            {
+            	fieldLoads[i].limitNumber = Integer.parseInt( limitNumber );
             }
         }
     }
@@ -73,6 +73,7 @@ class XmlLoadProfile extends XmlLoadable
     	for (int i = 0; i < fieldArray.length; i++)
     	{
     		fieldLoadArray[i] = new FieldLoad();
+    		fieldLoadArray[i].setLimit( fieldLoads[i].limitNumber );
     	}
     	
         loadProfile = new LoadProfile( name, fieldArray, fieldLoadArray );
@@ -86,14 +87,9 @@ class XmlLoadProfile extends XmlLoadable
     		XmlFieldLoad xfv = fieldLoads[i];
     		FieldLoad fv = loadProfile.getFieldLoads()[i];
     		
-    		if (xfv != null)
+    		if (xfv != null && xfv.loadProfile != null)
     		{
-    			if (xfv.loadProfile != null)
-    			{
-    				fv.setLoadProfile( xfv.loadProfile.loadProfile );
-    			}
-    			
-    			fv.setLimit( xfv.limitNumber );
+   				fv.setLoadProfile( xfv.loadProfile.loadProfile );
     		}
     	}
     }

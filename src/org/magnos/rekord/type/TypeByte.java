@@ -67,4 +67,10 @@ public class TypeByte implements Type<Byte>
         return (x == null ? null : Byte.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Byte value )
+    {
+        return toString( value );
+    }
+
 }

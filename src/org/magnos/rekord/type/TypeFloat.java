@@ -67,4 +67,10 @@ public class TypeFloat implements Type<Float>
         return (x == null ? null : Float.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Float value )
+    {
+        return toString( value );
+    }
+
 }

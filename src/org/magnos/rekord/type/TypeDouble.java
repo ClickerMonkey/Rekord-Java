@@ -67,4 +67,10 @@ public class TypeDouble implements Type<Double>
         return (x == null ? null : Double.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Double value )
+    {
+        return toString( value );
+    }
+
 }

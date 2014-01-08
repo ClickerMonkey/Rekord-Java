@@ -56,4 +56,10 @@ public class TypeDecimal implements Type<BigDecimal>
         return null;
     }
 
+    @Override
+    public String toQueryString( BigDecimal value )
+    {
+        return toString( value );
+    }
+
 }

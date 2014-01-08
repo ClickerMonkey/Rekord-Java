@@ -6,8 +6,8 @@
         <password>rekord_password</password>
     </data-source>
     
-    <logging enable-mode="false">
-        LOADING, CACHING
+    <logging mode="include">
+        HUMAN_READABLE_QUERY, CACHING
     </logging>
     
     <converter-classes>

@@ -10,13 +10,12 @@ import java.sql.SQLException;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Key;
-import org.magnos.rekord.Logging;
+import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.model.ModelInsertQuery;
 import org.magnos.rekord.query.model.ModelUpdateQuery;
@@ -303,8 +302,6 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 			else
 			{
 				value.load( load );
-				
-				Rekord.log( Logging.CACHING, "many-to-one from-cache: %s", value );
 			}
 		}
 

@@ -80,4 +80,10 @@ public class TypeTime implements Type<Time>
         }
     }
 
+    @Override
+    public String toQueryString( Time value )
+    {
+        return "'" + toString( value ) + "'";
+    }
+
 }

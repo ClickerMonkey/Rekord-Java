@@ -93,4 +93,10 @@ public class TypeBoolean implements Type<Boolean>
         return parse( x, "the given string" );
     }
 
+    @Override
+    public String toQueryString( Boolean value )
+    {
+        return toString( value );
+    }
+
 }

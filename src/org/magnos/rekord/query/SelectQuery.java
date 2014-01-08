@@ -102,7 +102,6 @@ public class SelectQuery<M extends Model> extends GroupExpression
 		return selecting.toString();
 	}
 	
-	
 	public SelectQuery<M> select( LoadProfile selectLoad )
 	{
 	    Selection s = selectLoad.getSelection();

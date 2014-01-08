@@ -67,4 +67,10 @@ public class TypeInteger implements Type<Integer>
         return (x == null ? null : Integer.valueOf( x ));
     }
 
+    @Override
+    public String toQueryString( Integer value )
+    {
+        return toString( value );
+    }
+
 }

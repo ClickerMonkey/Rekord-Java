@@ -95,6 +95,11 @@ public class Query<M extends Model>
 
     protected PreparedStatement prepare( Transaction trans, String query ) throws SQLException
     {
+        if (Rekord.isLogging( Logging.HUMAN_READABLE_QUERY ))
+        {
+            Rekord.log( getHumanReadable() );
+        }
+        
         PreparedStatement stmt = trans.prepare( query );
 
         for (int i = 0; i < values.length; i++)
@@ -461,15 +466,10 @@ public class Query<M extends Model>
 
             populate( results, model, fields, loadProfile );
 
-            if (trans.cache( model ))
-            {
-                Rekord.log( Logging.CACHING, "to-cache: %s", model );
-            }
+            trans.cache( model );
         }
         else
         {
-            Rekord.log( Logging.CACHING, "from-cache: %s", model );
-
             merge( results, model, fields, loadProfile );
         }
 
@@ -589,5 +589,39 @@ public class Query<M extends Model>
             model.valueOf( f ).postSelect( model, loadProfile.getFieldLoad( f ) );
         }
     }
-
+    
+    public String getHumanReadable()
+    {
+        StringBuilder readable = new StringBuilder();
+        String query = template.getQuery();
+        
+        int start = 0;
+        int end = query.indexOf( '?' );
+        int paramIndex = 0;
+        
+        while (end != -1)
+        {
+            readable.append( query.substring( start, end ) );
+            
+            Object value = values[paramIndex];
+            String valueString = value == null ? "NULL" : types[paramIndex].toQueryString( value );
+            
+            readable.append( valueString );
+            
+            paramIndex++;
+            start = end + 1;
+            end = query.indexOf( '?', start );
+        }
+        
+        readable.append( query.substring( start ) );
+        
+        return readable.toString();
+    }
+    
+    @Override
+    public String toString()
+    {
+        return getHumanReadable();
+    }
+    
 }

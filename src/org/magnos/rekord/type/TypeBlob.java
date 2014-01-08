@@ -56,4 +56,10 @@ public class TypeBlob implements Type<Blob>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Blob value )
+    {
+        return null;
+    }
+
 }

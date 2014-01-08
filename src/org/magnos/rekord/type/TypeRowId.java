@@ -56,4 +56,10 @@ public class TypeRowId implements Type<RowId>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( RowId value )
+    {
+        return null;
+    }
+
 }

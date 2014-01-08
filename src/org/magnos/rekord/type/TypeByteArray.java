@@ -110,4 +110,10 @@ public class TypeByteArray implements Type<byte[]>
         throw new RuntimeException( c + " is not a valid hex character!" );
     }
 
+    @Override
+    public String toQueryString( byte[] value )
+    {
+        return "decode('" + toString( value ) + "')";
+    }
+
 }

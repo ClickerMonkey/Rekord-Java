@@ -20,10 +20,9 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-		User u = User.byId( User.Views.SHORT_NAME, 2L );
+		User u = User.byId( User.Load.SHORT_NAME, 2L );
 		System.out.println( u.getName() );
 		u.delete();
-		u.save();
 		
 //		User u = User.byId( User.Views.ALL, 1L );
 //		System.out.println( u.getState() );

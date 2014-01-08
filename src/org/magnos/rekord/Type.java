@@ -21,4 +21,6 @@ public interface Type<T>
     public String toString( T value );
 
     public T fromString( String x );
+    
+    public String toQueryString( T value );
 }

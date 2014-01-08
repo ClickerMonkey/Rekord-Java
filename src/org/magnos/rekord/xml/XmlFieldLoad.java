@@ -3,5 +3,5 @@ package org.magnos.rekord.xml;
 class XmlFieldLoad
 {
 	XmlLoadProfile loadProfile;
-	int limitNumber;
+	int limitNumber = -1;
 }

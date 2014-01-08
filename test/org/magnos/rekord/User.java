@@ -31,13 +31,13 @@ public class User extends Model
 	public static final OneToOne<Commentable> 	COMMENTABLE 		= TABLE.getField( "commentable" );
 	public static final OneToMany<Comment> 		COMMENTS_BY 		= TABLE.getField( "comments_by" );
 	
-	public static class Views
+	public static class Load
 	{
-		public static final LoadProfile 				ALL 				= TABLE.getLoadProfile( "all" );
-		public static final LoadProfile				ID					= TABLE.getLoadProfile( "id" );
-		public static final LoadProfile 				WITHOUT_COMMENTS 	= TABLE.getLoadProfile( "without-comments" );
-		public static final LoadProfile 				FOR_LINK		 	= TABLE.getLoadProfile( "for-link" );
-		public static final LoadProfile 				SHORT_NAME		 	= TABLE.getLoadProfile( "short-name" );
+		public static final LoadProfile 		ALL 				= TABLE.getLoadProfile( "all" );
+		public static final LoadProfile			ID					= TABLE.getLoadProfile( "id" );
+		public static final LoadProfile 		WITHOUT_COMMENTS 	= TABLE.getLoadProfile( "without-comments" );
+		public static final LoadProfile 		FOR_LINK		 	= TABLE.getLoadProfile( "for-link" );
+		public static final LoadProfile 		SHORT_NAME		 	= TABLE.getLoadProfile( "short-name" );
 	}
 	
 	public static class Queries

@@ -72,7 +72,7 @@ public class Rekord
 		tables[index] = table;
 		
 		tableCache = Arrays.copyOf( tableCache, index + 1 );
-		tableCache[index] = new ModelCache( table.is( Table.APPLICATION_CACHED ) ? new ConcurrentHashMap<Key, Model>() : null );
+		tableCache[index] = new ModelCache( table.is( Table.APPLICATION_CACHED ) ? new ConcurrentHashMap<Key, Model>() : null, table.getName() + " (application-scope)" );
 		
 		tableMap.put( table.getName(), table );
 		
@@ -111,6 +111,11 @@ public class Rekord
 		return tableCache[ model.getTable().getIndex() ].put( model );
 	}
 
+	public static void purge(Model model)
+	{
+	    tableCache[ model.getTable().getIndex() ].remove( model.getKey() );
+	}
+	
 	public static int getTableCount()
 	{
 		return tables.length;
@@ -170,7 +175,7 @@ public class Rekord
 	
 	public static void log( String message )
 	{
-		loggingStream.append( message );
+		loggingStream.println( message );
 	}
 	
 	public static void log( String format, Object ... arguments )

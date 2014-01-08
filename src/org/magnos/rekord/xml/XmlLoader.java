@@ -224,9 +224,17 @@ public class XmlLoader
 	
 	private void loadLogging( Element logging )
 	{
-		boolean enableMode = TypeBoolean.parse( getAttribute( logging, "enable-mode", "true", true ), "enable-mode" );
-		
-		if (!enableMode) 
+	    String mode = getAttribute( logging, "mode", "include", true );
+	    
+	    boolean include = mode.equalsIgnoreCase( "include" );
+	    boolean exclude = mode.equalsIgnoreCase( "exclude" );
+	    
+	    if (!include && !exclude)
+	    {
+	        throw new RuntimeException( "The only valid values for logging mode are include and exclude" );
+	    }
+	    
+		if (exclude) 
 		{
 			Rekord.setLogging( true, Logging.ALL );
 		}
@@ -240,7 +248,7 @@ public class XmlLoader
 			actualIndices[i] = indices[i].intValue();
 		}
 		
-		Rekord.setLogging( enableMode, actualIndices );
+		Rekord.setLogging( include, actualIndices );
 	}
 	
 	private void loadClasses( Element classes, Set<String> classSet )

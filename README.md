@@ -6,9 +6,9 @@ An ORM for Java with intelligent loading and caching
 # TODO
 
 #### Features to Implement
-- Validation
-- Initializers
-  - Sequences
+- ~~Validation (through Listeners)~~
+- ~~Initializers~~
+  - ~~Sequences~~
   - Encrypted Fields
   - Salted Encrypted Fields
 - ~~Partial Selection (like the first 100 characters of a text field)~~

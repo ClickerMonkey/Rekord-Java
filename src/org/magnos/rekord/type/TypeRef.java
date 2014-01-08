@@ -56,4 +56,10 @@ public class TypeRef implements Type<Ref>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Ref value )
+    {
+        return null;
+    }
+
 }

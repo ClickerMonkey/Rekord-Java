@@ -56,4 +56,10 @@ public class TypeStruct implements Type<Struct>
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String toQueryString( Struct value )
+    {
+        return null;
+    }
+
 }

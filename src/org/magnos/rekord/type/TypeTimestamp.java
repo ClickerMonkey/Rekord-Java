@@ -80,4 +80,10 @@ public class TypeTimestamp implements Type<Timestamp>
         }
     }
 
+    @Override
+    public String toQueryString( Timestamp value )
+    {
+        return "'" + toString( value ) + "'";
+    }
+
 }
