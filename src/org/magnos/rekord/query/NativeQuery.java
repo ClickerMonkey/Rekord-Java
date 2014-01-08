@@ -18,6 +18,11 @@ public class NativeQuery
 
 	public static final Pattern TOKEN_PATTERN = Pattern.compile( "(#[\\w_][\\w_\\d\\$]*|\\?[\\w_][\\w_\\d\\$]*)" );
 
+	public static QueryTemplate<Model> parse( Table table, String nativeQuery )
+	{
+		return parse( table, nativeQuery, null );
+	}
+	
 	public static QueryTemplate<Model> parse( Table table, String nativeQuery, LoadProfile loadProfile )
 	{
 	    return parse( table, nativeQuery, loadProfile, new ArrayList<Field<?>>() );

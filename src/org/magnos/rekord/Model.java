@@ -54,15 +54,42 @@ public class Model implements Serializable
 	{
 		return hasKey() ? update() : insert();
 	}
+	
+	public boolean save( SaveProfile saveProfile ) throws SQLException
+	{
+		Query<Model> saveQuery = saveProfile.newQuery( hasKey() );
+		
+		saveQuery.bind( this );
+		
+		return saveQuery.executeUpdate() > 0;
+	}
 
 	public boolean insert() throws SQLException
 	{
 		return table.getInsert().execute( this );
 	}
 
+	public boolean insert( SaveProfile saveProfile ) throws SQLException
+	{
+		Query<Model> insertQuery = saveProfile.getInsertTemplate().create();
+		
+		insertQuery.bind( this );
+		
+		return insertQuery.executeUpdate() > 0;
+	}
+	
 	public boolean update() throws SQLException
 	{
 		return table.getUpdate().execute( this );
+	}
+	
+	public boolean update( SaveProfile saveProfile ) throws SQLException
+	{
+		Query<Model> updateQuery = saveProfile.getUpdateTemplate().create();
+		
+		updateQuery.bind( this );
+		
+		return updateQuery.executeUpdate() > 0;
 	}
 
 	public boolean delete() throws SQLException
