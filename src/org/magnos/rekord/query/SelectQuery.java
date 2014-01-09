@@ -60,29 +60,6 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
         return this;
     }
 
-    public boolean hasSelection()
-    {
-        return selecting.length() > 0;
-    }
-
-    public String getSelecting()
-    {
-        return selecting.toString();
-    }
-
-    private void append( StringBuilder sb, String delimiter, String text )
-    {
-        if (text != null && text.length() > 0)
-        {
-            if (sb.length() > 0)
-            {
-                sb.append( delimiter );
-            }
-
-            sb.append( text );
-        }
-    }
-
     public SelectQuery<M> select( LoadProfile selectLoad )
     {
         Selection s = selectLoad.getSelection();
@@ -111,6 +88,16 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
     public SelectQuery<M> select( Column<?> column )
     {
         return select( column, column.getQuotedName() );
+    }
+    
+    public SelectQuery<M> select( Column<?> ... columns )
+    {
+        for (Column<?> c : columns)
+        {
+            select( c, c.getQuotedName() );
+        }
+        
+        return this;
     }
     
     public SelectQuery<M> count()
@@ -143,6 +130,34 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
         return this;
     }
 
+    public boolean hasSelection()
+    {
+        return selecting.length() > 0;
+    }
+
+    public String getSelecting()
+    {
+        return selecting.toString();
+    }
+    
+    public List<Field<?>> getSelectFields()
+    {
+        return selectFields;
+    }
+
+    private void append( StringBuilder sb, String delimiter, String text )
+    {
+        if (text != null && text.length() > 0)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append( delimiter );
+            }
+
+            sb.append( text );
+        }
+    }
+
     public int getFieldLimit( Field<?> f )
     {
         if (loadProfile == null)
@@ -155,7 +170,7 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
         return (fv == null ? -1 : fv.getLimit());
     }
 
-    public QueryTemplate<M> newTemplate()
+    public QueryBuilder toQueryBuilder()
     {
         QueryBuilder qb = new QueryBuilder();
         qb.append( "SELECT " );
@@ -177,8 +192,13 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
             qb.append( " WHERE " );
             toQuery( qb );
         }
-
-        return qb.create( table, loadProfile, selectFields );
+        
+        return qb;
+    }
+    
+    public QueryTemplate<M> newTemplate()
+    {
+        return toQueryBuilder().create( table, loadProfile, selectFields );
     }
 
     public Query<M> create()

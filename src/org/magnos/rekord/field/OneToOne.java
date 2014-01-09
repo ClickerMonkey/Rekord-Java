@@ -278,7 +278,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
 		@Override
 		public void postSave(Model model) throws SQLException
 		{
-			if (value != null && value.hasKey())
+			if (value != null && value.hasKey() && value.hasChanged())
 			{
 				value.update();
 			}

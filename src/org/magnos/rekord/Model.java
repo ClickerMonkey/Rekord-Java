@@ -29,6 +29,19 @@ public class Model implements Serializable
 		this.values = table.newValues( this );
 		this.key = table.keyForModel( this );
 	}
+	
+	public boolean hasChanged()
+	{
+	    for (Value<?> v : values)
+	    {
+	        if (v.hasChanged())
+	        {
+	            return true;
+	        }
+	    }
+	    
+	    return false;
+	}
 
 	public <T> void set( Field<T> field, T value )
 	{

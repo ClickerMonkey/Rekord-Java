@@ -29,19 +29,16 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
     
     public UpdateQuery<M> set( Queryable queryable )
     {
-        if (queryable.isUpdatable())
+        Field<?> f = queryable.getField();
+        
+        if (queryable.isUpdatable() && (f instanceof Column))
         {
-            Field<?> f = queryable.getField();
+            Column<?> c = (Column<?>)f;
             
-            if (f instanceof Column)
-            {
-                Column<?> c = (Column<?>)f;
-                
-                set.pad( ", " );
-                set.append( f.getQuotedName() );
-                set.append( " = " );
-                set.append( f.getName(), queryable.getSaveExpression(), c, null, c.getType() );
-            }
+            set.pad( ", " );
+            set.append( c.getQuotedName() );
+            set.append( " = " );
+            set.append( c.getName(), queryable.getSaveExpression(), c, null, c.getType() );
         }
         
         return this;
@@ -77,10 +74,10 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
         return this;
     }
     
-    public QueryTemplate<M> newTemplate()
+    public QueryBuilder toQueryBuilder()
     {
         QueryBuilder qb = new QueryBuilder();
-        qb.append( " UPDATE " );
+        qb.append( "UPDATE " );
         qb.append( table.getQuotedName() );
         qb.append( " SET " );
         qb.append( set );
@@ -91,7 +88,12 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
             toQuery( qb );
         }
         
-        return qb.create( table );
+        return qb;
+    }
+    
+    public QueryTemplate<M> newTemplate()
+    {
+        return toQueryBuilder().create( table );
     }
     
     @Override
@@ -106,11 +108,6 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
 	    
 	    for (Queryable q : queryables)
 	    {
-	        if (q.isUpdatable())
-	        {
-	            
-	        }
-	        
 	        update.set( q );
 	    }
 	    

@@ -189,6 +189,16 @@ public class Query<M extends Model>
         
         return this;
     }
+    
+    public Query<M> withPage( Integer limit, Integer offset )
+    {
+        ensureSelect();
+        
+        this.limit = limit;
+        this.offset = offset;
+        
+        return this;
+    }
 
     public LockMode getLock()
     {

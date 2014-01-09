@@ -8,7 +8,6 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToMany;
 import org.magnos.rekord.field.OneToOne;
-import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
 
@@ -80,12 +79,7 @@ public class User extends Model
 	
 	public static List<User> all(LoadProfile load) throws SQLException
 	{
-	    SelectQuery<User> select = new SelectQuery<User>( TABLE );
-        select.select( load );
-        
-        Query<User> query = select.create();
-        
-		return query.list();
+	    return new SelectQuery<User>( TABLE ).select( load ).create().list();
 	}
 	
 }

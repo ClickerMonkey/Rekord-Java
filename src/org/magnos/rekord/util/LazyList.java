@@ -99,8 +99,7 @@ public class LazyList<T extends Model> extends AbstractList<T>
 			
 			try
 			{
-			    query.withOffset( offset );
-			    query.withLimit( fetchSize );
+			    query.withPage( fetchSize, offset );
 			    query.withPostSelect( false );
 			    
 				List<T> pageModels = query.list();

@@ -21,30 +21,33 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-		long uid = new SelectQuery<Model>( User.TABLE ).create().withLimit( 1 ).first( User.ID );
+		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 0 ).first( User.ID );
+//		long uid1 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 1 ).first( User.ID );
 		
-//		User u = User.byId( User.Load.SHORT_NAME, uid );
+		User u = User.byId( User.Load.ALL, uid0 );
+		u.setName( "New Name!" );
+		u.save();
+		
+//		User u = User.byId( User.Load.SHORT_NAME, uid0 );
 //		System.out.println( u.getName() );
 //		u.delete();
 		
-//		User u = User.byId( User.Load.ALL, uid );
+//		User u = User.byId( User.Load.ALL, uid1 );
 //		System.out.println( u.getState() );
 //		u.getCommentsBy().clear();
 //		u.save();
 
-//		User u1 = User.byId( User.Load.ALL, uid );
+//		User u1 = User.byId( User.Load.ALL, uid0 );
 //		System.out.println( u1 );
 		
 //		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();
 		
-		User u = User.byId( User.Load.ID, uid );
-		System.out.println( u );
-		for (Comment c : u.getCommentsBy()) {
-		    System.out.println( c );
-		}
-		System.out.println( u );
+//		User u = User.byId( User.Load.ID, uid1 );
+//		System.out.println( u );
+//		System.out.println( u.getCommentsBy() );
+//		System.out.println( u );
 		
 /* NativeQuery * /
 		Query<User> nq = User.Queries.CREATED_BEFORE.create();
