@@ -11,141 +11,105 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryBind;
 import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Queryable;
+import org.magnos.rekord.query.UpdateQuery;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.expr.GroupExpression;
 import org.magnos.rekord.util.SqlUtil;
 
-public abstract class ModelUpdateQuery
+public class ModelUpdateQuery
 {
 	
-	protected Table table;
-	protected Condition condition;
-	protected Query<Model> queryHistory;
-    protected String queryFormat;
+	protected final Table table;
+	protected final Query<Model> queryHistory;
+	protected final boolean dynamic;
 	protected QueryTemplate<Model> queryTemplate;
-	protected StringBuilder querySet;
 	
-	public ModelUpdateQuery(Table table)
+	public ModelUpdateQuery(Table table, boolean dynamic)
 	{
 		this.table = table;
-		this.querySet = new StringBuilder();
-		this.condition = GroupExpression.detached().whereKeyBind( table );
-		this.queryFormat = buildUpdate( table, condition );
-		this.queryHistory = buildHistoryInsert( table, condition );
+		this.dynamic = dynamic;
+		this.queryHistory = buildHistoryInsert( table );
+		
+		if (!dynamic)
+		{
+		    buildQuery( table.getFields() );
+		}
 	}
 	
-	protected void prepare( Queryable[] querable )
+	protected void buildQuery( Queryable[] querables )
 	{
-	    querySet.setLength( 0 );
+	    queryTemplate = UpdateQuery.forFields( table, querables );
+	}
+	
+	public boolean execute( Model model ) throws SQLException
+	{
+	    final Value<?>[] values = model.getValues();
+	    
+	    model.getTable().notifyListeners( model, ListenerEvent.PRE_UPDATE );
         
-        for (Queryable f : querable)
+        for (Value<?> v : values)
         {
-            if (f.isUpdatable())
-            {
-                String updateExpression = f.getSaveExpression();
-                
-                if (updateExpression != null)
-                {
-                    if (querySet.length() > 0)
-                    {
-                        querySet.append( ", " );
-                    }
-                    
-                    querySet.append( f.getQuotedName() );
-                    querySet.append( " = " );
-                    querySet.append( updateExpression );
-                }
-            }
+            v.preSave( model );
         }
-
-        String queryString = String.format( queryFormat, querySet );
         
-        queryTemplate = NativeQuery.parse( table, queryString, null );
-	}
-	
-	protected void saveHistory(Model model) throws SQLException
-	{
-		if (queryHistory != null)
-		{
-		    queryHistory.bind( model );
-		    queryHistory.executeUpdate();
-			
-			Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
-		}
-	}
-	
-	protected void preSave( Model model ) throws SQLException
-	{
-		model.getTable().notifyListeners( model, ListenerEvent.PRE_UPDATE );
+        if (dynamic)
+        {
+            buildQuery( values );
+        }
+	    
+	    Query<Model> query = queryTemplate.create();
 		
-		for (Value<?> v : model.getValues())
-		{
-			v.preSave( model );
-		}
-	}
-	
-	protected boolean updateModel( Model model ) throws SQLException
-	{
-		Value<?>[] values = model.getValues();
+		Rekord.log( Logging.UPDATES, "pre-update: %s -> %s", queryTemplate.getQuery(), model );
 		
-		boolean recordsUpdated = false;
-		
-		if (querySet.length() > 0)
-		{
-		    Query<Model> query = queryTemplate.create();
-		    
-			Rekord.log( Logging.UPDATES, "%s -> %s", queryTemplate.getQuery(), model );
-			
-			saveHistory( model );
+		saveHistory( model );
 
-			query.bind( model );
-			recordsUpdated = query.executeUpdate() > 0;
-			
-			if (recordsUpdated)
-			{
-			    Transaction trans = Rekord.getTransaction();
-				trans.cache( model );
-			}
-			
-			for (Value<?> v : values)
-			{
-				v.clearChanges();
-			}
+		query.bind( model );
+		
+		boolean recordsUpdated = query.executeUpdate() > 0;
+		
+		if (recordsUpdated)
+		{
+		    Transaction trans = Rekord.getTransaction();
+			trans.cache( model );
 		}
 		
 		for (Value<?> v : values)
 		{
+            v.clearChanges();
 			v.postSave( model );
 		}
 		
 		model.getTable().notifyListeners( model, ListenerEvent.POST_UPDATE );
 		
+		Rekord.log( Logging.UPDATES, "post-update: %s -> %s", queryTemplate.getQuery(), model );
+		
 		return recordsUpdated;
 	}
+
+    protected void saveHistory(Model model) throws SQLException
+    {
+        if (queryHistory != null)
+        {
+            queryHistory.bind( model );
+            queryHistory.executeUpdate();
+            
+            Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
+        }
+    }
 	
-	public abstract boolean execute( Model model ) throws SQLException;
-	
-	private static String buildUpdate(Table table, Condition condition) 
-	{
-		QueryBuilder qb = new QueryBuilder();
-		qb.append( "UPDATE ", table.getQuotedName(), " SET %s WHERE " );
-		condition.toQuery( qb );
-		
-		return qb.toString();
-	}
-	
-	private static Query<Model> buildHistoryInsert(Table table, Condition condition)
+	private static Query<Model> buildHistoryInsert(Table table)
 	{
 		if (!table.hasHistory()) 
 		{
 			return null;
 		}
+		
+		Condition condition = GroupExpression.detached().whereKeyBind( table );
 		
 		HistoryTable history = table.getHistory();
 		

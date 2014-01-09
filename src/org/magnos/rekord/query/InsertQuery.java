@@ -40,6 +40,23 @@ public class InsertQuery<M extends Model> extends GroupExpression<InsertQuery<M>
         return this;
     }
     
+    public InsertQuery<M> insert( Queryable queryable )
+    {
+        Field<?> f = queryable.getField();
+        InsertAction action = queryable.getInsertAction();
+        
+        if ( action == InsertAction.RETURN )
+        {
+            returning( f );
+        }
+        else if (f instanceof Column && action == InsertAction.VALUE)
+        {
+            insert( (Column<?>)f );
+        }
+        
+        return this;
+    }
+    
     public <T> InsertQuery<M> insert( Column<T> column )
     {
         columns.pad( ", " );
@@ -111,32 +128,22 @@ public class InsertQuery<M extends Model> extends GroupExpression<InsertQuery<M>
         return newTemplate().create();
     }
     
-	public static QueryTemplate<Model> forFields( Table table, Field<?> ... fields)
+	public static QueryTemplate<Model> forFields( Table table, Queryable ... queryables)
 	{
 	    InsertQuery<Model> insert = new InsertQuery<Model>( table );
 	    
-	    Set<Field<?>> fieldSet = new HashSet<Field<?>>();
+	    Set<Queryable> queryableSet = new HashSet<Queryable>();
 
-	    for (Field<?> f : fields)
+	    for (Queryable q : queryables)
 	    {
-	        fieldSet.add( f );
+	        queryableSet.add( q );
+	        
+	        insert.insert( q );
 	    }
 	    
 	    for (Field<?> f : table.getFields())
 	    {
-	        if (f.is( Field.HAS_DEFAULT ) && !fieldSet.contains( f ))
-	        {
-	            insert.returning( f );
-	        }
-	    }
-	    
-	    for (Field<?> f : fields)
-	    {
-	        if (f instanceof Column)
-	        {
-	            insert.insert( (Column<?>)f );
-	        }
-	        else
+	        if (f.is( Field.HAS_DEFAULT ) && !queryableSet.contains( f ))
 	        {
 	            insert.returning( f );
 	        }

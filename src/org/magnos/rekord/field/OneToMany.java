@@ -77,6 +77,12 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
     {
         return null;
     }
+    
+    @Override
+    public Field<?> getField()
+    {
+        return this;
+    }
 	
 	@Override
 	public Value<List<T>> newValue(Model model)
@@ -199,30 +205,6 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		{
 			changed = false;
 		}
-
-        @Override
-        public String getName()
-        {
-            return field.getName();
-        }
-
-        @Override
-        public String getQuotedName()
-        {
-            return field.getQuotedName();
-        }
-
-        @Override
-        public boolean isSelectable()
-        {
-            return false;
-        }
-
-        @Override
-        public String getSelectExpression( FieldLoad fieldLoad )
-        {
-            return null;
-        }
 
         @Override
         public InsertAction getInsertAction()

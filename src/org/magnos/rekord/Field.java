@@ -15,7 +15,8 @@ public interface Field<T> extends Queryable
     public static final int MODEL_LIST	= 1 << 6;
     
 	public String getName();
-	
+    public String getQuotedName();
+
 	public int getIndex();
 	public void setIndex(int index);
 	
@@ -24,6 +25,9 @@ public interface Field<T> extends Queryable
 	
 	public int getFlags();
 	public boolean is(int flag);
+
+	public boolean isSelectable();
+    public String getSelectExpression(FieldLoad fieldLoad);
 	
 	public Value<T> newValue(Model model);
 }

@@ -34,6 +34,4 @@ public interface Value<T> extends Queryable
 	
 	public void serialize(ObjectOutputStream out) throws IOException;
 	public void deserialize(ObjectInputStream in) throws IOException, ClassNotFoundException;
-	
-	public Field<T> getField();
 }

@@ -67,6 +67,12 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
     {
         return null;
     }
+    
+    @Override
+    public Field<?> getField()
+    {
+        return this;
+    }
 
 	@Override
 	public Value<T> newValue(Model model)
@@ -198,30 +204,6 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
 		{
 			changed = false;
 		}
-
-        @Override
-        public String getName()
-        {
-            return field.getName();
-        }
-
-        @Override
-        public String getQuotedName()
-        {
-            return field.getQuotedName();
-        }
-
-        @Override
-        public boolean isSelectable()
-        {
-            return field.isSelectable();
-        }
-
-        @Override
-        public String getSelectExpression( FieldLoad fieldLoad )
-        {
-            return null;
-        }
 
         @Override
         public InsertAction getInsertAction()

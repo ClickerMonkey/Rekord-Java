@@ -76,13 +76,19 @@ public class Column<T> extends AbstractField<T>
     @Override
     public String getSaveExpression()
     {
-        return getOutForBind();
+        return out;
     }
 
     @Override
     public Value<T> newValue( Model model )
     {
         return new ColumnValue<T>( this );
+    }
+    
+    @Override
+    public Field<?> getField()
+    {
+        return this;
     }
 
     public String getIn()
@@ -93,11 +99,6 @@ public class Column<T> extends AbstractField<T>
     public String getOut()
     {
         return out;
-    }
-
-    public String getOutForBind()
-    {
-        return out.replaceAll( "\\?", "?" + name );
     }
 
     public String getSelectionExpression()
@@ -208,30 +209,6 @@ public class Column<T> extends AbstractField<T>
         public void clearChanges()
         {
             changed = false;
-        }
-
-        @Override
-        public String getName()
-        {
-            return field.getName();
-        }
-        
-        @Override
-        public String getQuotedName()
-        {
-            return field.getQuotedName();
-        }
-
-        @Override
-        public boolean isSelectable()
-        {
-            return field.isSelectable();
-        }
-
-        @Override
-        public String getSelectExpression( FieldLoad fieldLoad )
-        {
-            return field.getSelectionExpression();
         }
 
         @Override

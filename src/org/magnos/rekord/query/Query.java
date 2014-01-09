@@ -88,6 +88,11 @@ public class Query<M extends Model>
         return selectFields;
     }
     
+    public boolean hasSelectFields()
+    {
+        return selectFields != null && selectFields.length > 0;
+    }
+    
     protected void ensureSelect()
     {
         if (!template.isSelect())

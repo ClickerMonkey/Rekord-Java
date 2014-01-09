@@ -1,15 +1,11 @@
 package org.magnos.rekord.query;
 
-import org.magnos.rekord.FieldLoad;
+import org.magnos.rekord.Field;
 
 
 public interface Queryable
 {
-    public String getName();
-    public String getQuotedName();
-    public boolean isSelectable();
-    public String getSelectExpression(FieldLoad fieldLoad);
-    
+    public Field<?> getField();
     public InsertAction getInsertAction();
     public boolean isUpdatable();
     public String getSaveExpression();

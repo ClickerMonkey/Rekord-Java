@@ -56,7 +56,13 @@ public class ForeignColumn<T> extends Column<T>
     @Override
     public String getSaveExpression()
     {
-        return getOutForBind();
+        return out;
+    }
+    
+    @Override
+    public Field<?> getField()
+    {
+        return this;
     }
 
 	@Override
@@ -144,30 +150,6 @@ public class ForeignColumn<T> extends Column<T>
 		{
 			changed = false;
 		}
-
-        @Override
-        public String getName()
-        {
-            return field.getName();
-        }
-
-        @Override
-        public String getQuotedName()
-        {
-            return field.getQuotedName();
-        }
-
-        @Override
-        public boolean isSelectable()
-        {
-            return field.isSelectable();
-        }
-
-        @Override
-        public String getSelectExpression( FieldLoad fieldLoad )
-        {
-            return field.getSelectionExpression();
-        }
 
         @Override
         public InsertAction getInsertAction()

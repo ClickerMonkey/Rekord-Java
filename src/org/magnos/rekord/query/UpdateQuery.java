@@ -27,6 +27,26 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
         return this;
     }
     
+    public UpdateQuery<M> set( Queryable queryable )
+    {
+        if (queryable.isUpdatable())
+        {
+            Field<?> f = queryable.getField();
+            
+            if (f instanceof Column)
+            {
+                Column<?> c = (Column<?>)f;
+                
+                set.pad( ", " );
+                set.append( f.getQuotedName() );
+                set.append( " = " );
+                set.append( f.getName(), queryable.getSaveExpression(), c, null, c.getType() );
+            }
+        }
+        
+        return this;
+    }
+    
     public <T> UpdateQuery<M> set( Column<T> column )
     {
         set.pad( ", " );
@@ -80,20 +100,20 @@ public class UpdateQuery<M extends Model> extends GroupExpression<UpdateQuery<M>
         return newTemplate().create();
     }
 
-	public static QueryTemplate<Model> forFields( Table table, Field<?> ... fields)
+	public static QueryTemplate<Model> forFields( Table table, Queryable ... queryables)
 	{
 	    UpdateQuery<Model> update = new UpdateQuery<Model>( table );
 	    
-		for (int i = 0; i < fields.length; i++)
-		{
-			Field<?> f = fields[i];
-			
-			if (f instanceof Column)
-			{
-			    update.set( (Column<?>)f );
-			}
-		}
-		
+	    for (Queryable q : queryables)
+	    {
+	        if (q.isUpdatable())
+	        {
+	            
+	        }
+	        
+	        update.set( q );
+	    }
+	    
 		update.whereKeyBind( table );
 
 		return update.newTemplate();
