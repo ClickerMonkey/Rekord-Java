@@ -10,6 +10,7 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
@@ -97,12 +98,28 @@ public class ModelUpdateQuery
     {
         if (queryHistory != null)
         {
-            Query<Model> query = queryHistory.create();
+            HistoryTable history = model.getTable().getHistory();
             
-            query.bind( model );
-            query.executeUpdate();
+            boolean insertHistory = false;
             
-            Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
+            for (Column<?> c : history.getHistoryColumns())
+            {
+                if (model.valueOf( c ).isUpdatable())
+                {
+                    insertHistory = true;
+                    break;
+                }
+            }
+            
+            if (insertHistory)
+            {
+                Query<Model> query = queryHistory.create();
+                
+                query.bind( model );
+                query.executeUpdate();
+                
+                Rekord.log( Logging.HISTORY, "history saved: %s -> %s", queryHistory, model );
+            }
         }
     }
 	

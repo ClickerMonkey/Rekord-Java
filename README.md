@@ -38,5 +38,5 @@ An ORM for Java with intelligent loading and caching
 
 #### Other Changes
 - Move all SQL to one place, make Transaction in charge of making all queries
-- Only insert into history if one of the history columns will be updated
+- ~~Only insert into history if one of the history columns will be updated~~
 - Only create and save OneToOne model if the field was selected OR it's an insert
