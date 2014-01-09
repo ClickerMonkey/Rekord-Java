@@ -1,13 +1,10 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import org.magnos.rekord.query.QueryBuilder;
 
 public interface Condition
 {
 	
-	public void toQuery(StringBuilder query);
-	
-	public int toPreparedstatement(PreparedStatement stmt, int paramIndex) throws SQLException;
+	public void toQuery(QueryBuilder query);
 	
 }

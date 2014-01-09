@@ -48,7 +48,7 @@ public class NativeQuery
 			switch (indicator)
 			{
 			case '?':
-				bindList.add( new QueryBind( tokenName, bindList.size(), column, null, matcher.start(), matcher.end() ) );
+				bindList.add( new QueryBind( tokenName, bindList.size(), column, null, null, matcher.start(), matcher.end() ) );
 				tokenReplacement = "?";
 				break;
 			case '#':

@@ -1,25 +1,25 @@
 
 package org.magnos.rekord.query.expr;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.magnos.rekord.Field;
 import org.magnos.rekord.Key;
+import org.magnos.rekord.Model;
 import org.magnos.rekord.Operator;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ManyToOne;
+import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.CustomCondition;
 import org.magnos.rekord.query.condition.GroupCondition;
-import org.magnos.rekord.query.condition.LiteralCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
 import org.magnos.rekord.query.condition.PrependedCondition;
 
-@SuppressWarnings ({ "cast", "rawtypes" } )
+@SuppressWarnings ({ "rawtypes" } )
 public class GroupExpression extends PrependedCondition
 {
 
@@ -49,7 +49,7 @@ public class GroupExpression extends PrependedCondition
         return conditions.size() > 0;
     }
 
-    public void toQuery( StringBuilder query )
+    public void toQuery( QueryBuilder query )
     {
         if ( conditions.isEmpty() )
         {
@@ -62,7 +62,7 @@ public class GroupExpression extends PrependedCondition
         }
         else
         {
-            query.append( "(" );
+            query.appendValuable( "(" );
             
             for (int i = 0; i < conditions.size(); i++)
             {
@@ -70,24 +70,14 @@ public class GroupExpression extends PrependedCondition
                 
                 if (i > 0)
                 {
-                    query.append( pc.prepend );
+                    query.appendValuable( pc.prepend );
                 }
                 
                 pc.toQuery( query );
             }
             
-            query.append( ")" );
+            query.appendValuable( ")" );
         }
-    }
-
-    public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-    {
-        for (PrependedCondition pc : conditions)
-        {
-            paramIndex = pc.toPreparedstatement( stmt, paramIndex );
-        }
-
-        return paramIndex;
     }
 
     protected GroupExpression add( String prepend, Condition condition )
@@ -109,24 +99,6 @@ public class GroupExpression extends PrependedCondition
     protected Expression<Object> newStringExpression( String prepend, String expression )
     {
         return new StringExpression( this, prepend, expression );
-    }
-
-    protected <T> Expression<T> newFieldExpression( String prepend, Field<T> field )
-    {
-        if (field instanceof Column)
-        {
-            return new ColumnExpression<T>( this, prepend, (Column<T>)field );
-        }
-        else if (field.is( Field.MODEL ))
-        {
-            return new ModelExpression( this, prepend, (Column<T>)field );
-        }
-        else if (field.is( Field.MODEL_LIST ))
-        {
-            throw new UnsupportedOperationException();
-        }
-
-        throw new UnsupportedOperationException();
     }
 
     protected GroupExpression newStringExpressionCustom( String prepend, String expression, Object[] values )
@@ -193,25 +165,14 @@ public class GroupExpression extends PrependedCondition
 
     protected Condition getColumnBindCondition( Column<?> c )
     {
-        return new LiteralCondition( getColumnBind( c ) );
+    	return new OperatorCondition( c.getQuotedName(), c, c.getName(), "?", Operator.EQ, null, c.getType(), c.getConverter() ); 
     }
 
     protected Condition getColumnForeignBindCondition( ForeignColumn<?> c )
     {
-        return new LiteralCondition( getColumnForeignBind( c ) );
+    	return new OperatorCondition( c.getQuotedName(), c.getForeignColumn(), c.getForeignColumn().getName(), "?", Operator.EQ, null, c.getType(), c.getConverter() );
     }
 
-    protected String getColumnBind( Column<?> c )
-    {
-        return c.getQuotedName() + " = ?" + c.getName();
-    }
-
-    protected String getColumnForeignBind( ForeignColumn<?> c )
-    {
-        return c.getQuotedName() + " = ?" + c.getForeignColumn().getName();
-    }
-    
-    
 
     public GroupExpression end()
     {
@@ -224,9 +185,19 @@ public class GroupExpression extends PrependedCondition
         return newStringExpression( AND, expression );
     }
 
-    public <T> Expression<T> where( Field<T> field )
+    public <T> ColumnExpression<T> where( Column<T> column )
     {
-        return newFieldExpression( AND, field );
+    	return new ColumnExpression<T>( this, AND, column );
+    }
+    
+    public <M extends Model> ModelExpression<M> where( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<M>( this, AND, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<M> where( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<M>( this, AND, manyToOne, manyToOne.getJoinColumns() );
     }
 
     public GroupExpression where( String expression, Object... values )
@@ -276,9 +247,19 @@ public class GroupExpression extends PrependedCondition
         return newStringExpression( AND, expression );
     }
 
-    public <T> Expression<T> and( Field<T> field )
+    public <T> ColumnExpression<T> and( Column<T> column )
     {
-        return newFieldExpression( AND, field );
+    	return new ColumnExpression<T>( this, AND, column );
+    }
+    
+    public <M extends Model> ModelExpression<M> and( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<M>( this, AND, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<M> and( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<M>( this, AND, manyToOne, manyToOne.getJoinColumns() );
     }
 
     public GroupExpression and( String expression, Object... values )
@@ -328,9 +309,19 @@ public class GroupExpression extends PrependedCondition
         return newStringExpression( AND_NOT, expression );
     }
 
-    public <T> Expression<T> andNot( Field<T> field )
+    public <T> ColumnExpression<T> andNot( Column<T> column )
     {
-        return newFieldExpression( AND_NOT, field );
+    	return new ColumnExpression<T>( this, AND_NOT, column );
+    }
+    
+    public <M extends Model> ModelExpression<M> andNot( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<M>( this, AND_NOT, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<M> andNot( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<M>( this, AND_NOT, manyToOne, manyToOne.getJoinColumns() );
     }
 
     public GroupExpression andNot( String expression, Object... values )
@@ -380,9 +371,19 @@ public class GroupExpression extends PrependedCondition
         return newStringExpression( OR, expression );
     }
 
-    public <T> Expression<T> or( Field<T> field )
+    public <T> ColumnExpression<T> or( Column<T> column )
     {
-        return newFieldExpression( OR, field );
+    	return new ColumnExpression<T>( this, OR, column );
+    }
+    
+    public <M extends Model> ModelExpression<M> or( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<M>( this, OR, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<M> or( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<M>( this, OR, manyToOne, manyToOne.getJoinColumns() );
     }
 
     public GroupExpression or( String expression, Object... values )
@@ -431,9 +432,19 @@ public class GroupExpression extends PrependedCondition
         return newStringExpression( OR_NOT, expression );
     }
 
-    public <T> Expression<T> orNot( Field<T> field )
+    public <T> ColumnExpression<T> orNot( Column<T> column )
     {
-        return newFieldExpression( OR_NOT, field );
+    	return new ColumnExpression<T>( this, OR_NOT, column );
+    }
+    
+    public <M extends Model> ModelExpression<M> orNot( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<M>( this, OR_NOT, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<M> orNot( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<M>( this, OR_NOT, manyToOne, manyToOne.getJoinColumns() );
     }
 
     public GroupExpression orNot( String expression, Object... values )

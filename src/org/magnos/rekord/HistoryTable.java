@@ -2,7 +2,8 @@
 package org.magnos.rekord;
 
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.QueryBind;
+import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Selection;
 import org.magnos.rekord.query.condition.Condition;
@@ -85,36 +86,38 @@ public class HistoryTable
 		
 		Condition where = new GroupExpression().whereKeyBind( table );
 		
-		StringBuilder queryBuilder = new StringBuilder();
-		queryBuilder.append( "SELECT " );
-		queryBuilder.append( selection.getExpression() );
+		QueryBuilder qb = new QueryBuilder();
+		qb.append( "SELECT " );
+		qb.append( selection.getExpression() );
 		
 		if (historyTimestamp != null)
 		{
-			queryBuilder.append( ", " ).append( SqlUtil.namify( historyTimestamp ) );
+			qb.append( ", ", SqlUtil.namify( historyTimestamp ) );
 		}
 		if (historyKey != null)
 		{
-			queryBuilder.append( ", " ).append( SqlUtil.namify( historyKey ) );
+			qb.append( ", ", SqlUtil.namify( historyKey ) );
 		}
 		
-		queryBuilder.append( " FROM " );
-		queryBuilder.append( SqlUtil.namify( history.getHistoryTable() ) );
-		queryBuilder.append( " WHERE " );
-		where.toQuery( queryBuilder );
+		qb.append( " FROM " );
+		qb.append( SqlUtil.namify( history.getHistoryTable() ) );
+		qb.append( " WHERE " );
+		where.toQuery( qb );
 		
 		if (historyTimestamp != null)
 		{
-			queryBuilder.append( " ORDER BY " ).append( SqlUtil.namify( historyTimestamp ) );
+			qb.append( " ORDER BY ", SqlUtil.namify( historyTimestamp ) );
 		}
 		else if (historyKey != null)
 		{
-			queryBuilder.append( " ORDER BY " ).append( SqlUtil.namify( historyKey ) );
+			qb.append( " ORDER BY ", SqlUtil.namify( historyKey ) );
 		}
 		
-		String query = queryBuilder.toString();
+		String query = qb.getQueryString();
+		QueryBind[] binds = qb.getBindsArray();
+		Field<?>[] select = selection.getFields();
 		
-		return NativeQuery.parse( table, query, null );
+		return new QueryTemplate<Model>( table, query, null, binds, select );
 	}
 
 }

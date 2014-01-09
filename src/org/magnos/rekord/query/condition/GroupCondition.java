@@ -1,7 +1,6 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import org.magnos.rekord.query.QueryBuilder;
 
 public class GroupCondition implements Condition
 {
@@ -16,7 +15,7 @@ public class GroupCondition implements Condition
 	}
 
 	@Override
-	public void toQuery( StringBuilder query )
+	public void toQuery( QueryBuilder query )
 	{
 		query.append( "(" );
 		
@@ -31,17 +30,6 @@ public class GroupCondition implements Condition
 		}
 		
 		query.append( ")" );
-	}
-
-	@Override
-	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-	{
-		for (int i = 0; i < conditions.length; i++)
-		{
-			paramIndex = conditions[i].toPreparedstatement( stmt, paramIndex );
-		}
-		
-		return paramIndex;
 	}
 
 }

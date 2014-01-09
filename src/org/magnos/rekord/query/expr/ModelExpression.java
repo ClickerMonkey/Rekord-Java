@@ -6,8 +6,6 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.Operator;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
-import org.magnos.rekord.field.ManyToOne;
-import org.magnos.rekord.field.OneToOne;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.GroupCondition;
 import org.magnos.rekord.query.condition.InCondition;
@@ -20,24 +18,12 @@ public class ModelExpression<M extends Model> extends Expression<M>
 	public final Field<M> field;
 	public final ForeignColumn<?>[] joinColumns;
 
-	public ModelExpression( GroupExpression group, String prepend, Field<M> field )
+	public ModelExpression( GroupExpression group, String prepend, Field<M> field, ForeignColumn<?>[] joinColumns )
 	{
 		super( group, prepend );
 
 		this.field = field;
-
-		if (field instanceof OneToOne)
-		{
-			this.joinColumns = ((OneToOne<M>)field).getJoinColumns();
-		}
-		else if (field instanceof ManyToOne)
-		{
-			this.joinColumns = ((ManyToOne<M>)field).getJoinColumns();
-		}
-		else
-		{
-			this.joinColumns = new ForeignColumn[0];
-		}
+		this.joinColumns = joinColumns;
 	}
 
 	@Override

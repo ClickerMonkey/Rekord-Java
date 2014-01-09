@@ -1,8 +1,11 @@
 package org.magnos.rekord;
 
 import java.io.FileInputStream;
+import java.sql.Timestamp;
 
 import org.junit.Test;
+import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.xml.XmlLoader;
 
 public class TestRekord
@@ -20,11 +23,11 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-//		User u = User.byId( User.Load.SHORT_NAME, 2L );
+//		User u = User.byId( User.Load.SHORT_NAME, 1L );
 //		System.out.println( u.getName() );
 //		u.delete();
 		
-//		User u = User.byId( User.Load.ALL, 2L );
+//		User u = User.byId( User.Load.ALL, 1L );
 //		System.out.println( u.getState() );
 //		u.getCommentsBy().clear();
 //		u.save();
@@ -36,14 +39,14 @@ public class TestRekord
 //		u.setName( "lowercase" );
 //		u.save();
 		
-		User u = User.byId( User.Load.ID, 2L );
-		System.out.println( u );
-		
-		for (Comment c : u.getCommentsBy()) {
-		    System.out.println( c );
-		}
-		
-		System.out.println( u );
+//		User u = User.byId( User.Load.ID, 1L );
+//		System.out.println( u );
+//		
+//		for (Comment c : u.getCommentsBy()) {
+//		    System.out.println( c );
+//		}
+//		
+//		System.out.println( u );
 		
 /* NativeQuery * /
 		Query<User> nq = User.Queries.CREATED_BEFORE.create();
@@ -67,6 +70,17 @@ public class TestRekord
         us.bind( "new_state", User.STATE, UserState.REGISTERED );
         us.executeUpdate();
 /**/
+		
+		SelectQuery<User> select = new SelectQuery<User>( User.TABLE );
+		select.select( User.Load.ALL );
+		select.where( User.COMMENTABLE ).eqExp( "?cid" )
+			  .and( User.NAME ).eq( "pdiffenderfer" )
+			  .and( User.CREATED_TIMESTAMP ).between( new Timestamp( System.currentTimeMillis() - 10000000000L ), new Timestamp( System.currentTimeMillis() ) );
+		
+		Query<User> q = select.newQuery();
+		q.bind( "cid", 1L );
+		
+		System.out.println( q.list() );
         
 		trans.end( false );
 		trans.close();

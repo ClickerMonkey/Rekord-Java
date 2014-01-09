@@ -10,7 +10,7 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.NativeQuery;
+import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.expr.GroupExpression;
@@ -63,13 +63,11 @@ public class ModelDeleteQuery
 	{
 	    Condition where = new GroupExpression().whereKeyBind( table );
         
-        StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append( "DELETE FROM " );
-        queryBuilder.append( table.getQuotedName() );
-        queryBuilder.append( " WHERE " );
-        where.toQuery( queryBuilder );
+	    QueryBuilder qb = new QueryBuilder();
+        qb.append( "DELETE FROM ", table.getQuotedName(), " WHERE " );
+        where.toQuery( qb );
         
-        return NativeQuery.parse( table, queryBuilder.toString(), null );
+        return new QueryTemplate<Model>( table, qb.toString(), null, qb.getBindsArray(), null );
 	}
 
 }

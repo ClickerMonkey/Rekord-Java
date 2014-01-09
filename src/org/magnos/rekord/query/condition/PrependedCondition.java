@@ -1,7 +1,6 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import org.magnos.rekord.query.QueryBuilder;
 
 public class PrependedCondition implements Condition
 {
@@ -16,15 +15,9 @@ public class PrependedCondition implements Condition
 	}
 
 	@Override
-	public void toQuery( StringBuilder query )
+	public void toQuery( QueryBuilder query )
 	{
 		condition.toQuery( query );
-	}
-
-	@Override
-	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-	{
-		return condition.toPreparedstatement( stmt, paramIndex );
 	}
 
 }

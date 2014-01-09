@@ -14,10 +14,8 @@ public class UpdateQuery
 	{
 		Condition where = new GroupExpression().whereKeyBind( table );
 		
-		StringBuilder queryBuilder = new StringBuilder();
-		queryBuilder.append( "UPDATE " );
-		queryBuilder.append( table.getQuotedName() );
-		queryBuilder.append( " SET " );
+		QueryBuilder qb = new QueryBuilder();
+		qb.append( "UPDATE ", table.getQuotedName(), " SET " );
 		
 		int columnsSet = 0;
 		
@@ -29,21 +27,24 @@ public class UpdateQuery
 			{
 				if (columnsSet++ > 0)
 				{
-					queryBuilder.append( ", " );
+					qb.append( ", " );
 				}
 				
 				Column<?> c = (Column<?>) f;
 				
-				queryBuilder.append( c.getQuotedName() );
-				queryBuilder.append( " = ?" );
-				queryBuilder.append( c.getName() );
+				qb.append( c.getQuotedName() );
+				qb.appendValuable( " = ?" + c.getName() );
 			}
 		}
 		
-		queryBuilder.append( " WHERE " );
-		where.toQuery( queryBuilder );
+		qb.append( " WHERE " );
+		where.toQuery( qb );
 		
-		return NativeQuery.parse( table, queryBuilder.toString() );
+		String query = qb.getQueryString();
+		QueryBind[] binds = qb.getBindsArray();
+		Field<?>[] select = new Field[ 0 ];
+		
+		return new QueryTemplate<Model>( table, query, null, binds, select );
 	}
 	
 }

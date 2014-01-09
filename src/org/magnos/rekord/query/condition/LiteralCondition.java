@@ -1,9 +1,7 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.magnos.rekord.Field;
+import org.magnos.rekord.query.QueryBuilder;
 
 public class LiteralCondition implements Condition
 {
@@ -16,17 +14,11 @@ public class LiteralCondition implements Condition
 	}
 	
 	@Override
-	public void toQuery( StringBuilder query )
+	public void toQuery( QueryBuilder query )
 	{
-		query.append( literal );
+		query.appendValuable( literal );
 	}
 
-	@Override
-	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-	{
-		return paramIndex;
-	}
-	
 	public static LiteralCondition forNull(Field<?> field)
 	{
 		return new LiteralCondition( field.getQuotedName() + " IS NULL" );

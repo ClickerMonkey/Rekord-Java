@@ -2,6 +2,7 @@ package org.magnos.rekord.query.model;
 
 import java.sql.SQLException;
 
+import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.Logging;
@@ -12,6 +13,8 @@ import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.QueryBind;
+import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Queryable;
 import org.magnos.rekord.query.condition.Condition;
@@ -140,13 +143,11 @@ public abstract class ModelUpdateQuery
 	
 	private static String buildUpdate(Table table, Condition condition) 
 	{
-		StringBuilder queryFormatBuilder = new StringBuilder();
-		queryFormatBuilder.append( "UPDATE " );
-		queryFormatBuilder.append( table.getQuotedName() );
-		queryFormatBuilder.append( " SET %s WHERE " );
-		condition.toQuery( queryFormatBuilder );
+		QueryBuilder qb = new QueryBuilder();
+		qb.append( "UPDATE ", table.getQuotedName(), " SET %s WHERE " );
+		condition.toQuery( qb );
 		
-		return queryFormatBuilder.toString();
+		return qb.toString();
 	}
 	
 	private static Query<Model> buildHistoryInsert(Table table, Condition condition)
@@ -160,20 +161,18 @@ public abstract class ModelUpdateQuery
 		
 		String columns = SqlUtil.join( ",", history.getHistoryColumns() );
 		
-		StringBuilder queryHistoryBuilder = new StringBuilder();
-		queryHistoryBuilder.append( "INSERT INTO " );
-		queryHistoryBuilder.append( SqlUtil.namify( history.getHistoryTable() ) );
-		queryHistoryBuilder.append( "(" );
-		queryHistoryBuilder.append( columns );
-		queryHistoryBuilder.append( ") " );
-		queryHistoryBuilder.append( "SELECT " );
-		queryHistoryBuilder.append( columns );
-		queryHistoryBuilder.append( " FROM " );
-		queryHistoryBuilder.append( table.getQuotedName() );
-		queryHistoryBuilder.append( " WHERE " );
-		condition.toQuery( queryHistoryBuilder );
+		QueryBuilder qb = new QueryBuilder();
+		qb.append( "INSERT INTO ", SqlUtil.namify( history.getHistoryTable() ) );
+		qb.append( "(", columns, ")" );
+		qb.append( "SELECT ", columns );
+		qb.append( " FROM ", table.getQuotedName(), " WHERE " );
+		condition.toQuery( qb );
 		
-		return NativeQuery.parse( table, queryHistoryBuilder.toString(), null ).create();
+		String query = qb.getQueryString();
+		QueryBind[] binds = qb.getBindsArray();
+		Field<?>[] select = new Field[0];
+		
+		return new QueryTemplate<Model>( table, query, null, binds, select ).create();
 	}
 	
 }

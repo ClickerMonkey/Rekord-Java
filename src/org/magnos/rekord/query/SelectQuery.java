@@ -117,19 +117,23 @@ public class SelectQuery<M extends Model> extends GroupExpression
 	
 	public QueryTemplate<M> newTemplate()
 	{
-	    StringBuilder query = new StringBuilder();
-        query.append( "SELECT " );
-        query.append( selecting );
-        query.append( " FROM " );
-        query.append( from );
-        
+		QueryBuilder qb = new QueryBuilder();
+		qb.append( "SELECT " );
+		qb.append( selecting );
+		qb.append( " FROM " );
+		qb.append( from );
+
         if (hasConditions())
         {
-            query.append( " WHERE ");
-            toQuery( query );    
+            qb.append( " WHERE " );
+            toQuery( qb );    
         }
         
-        return (QueryTemplate<M>) NativeQuery.parse( table, query.toString(), loadProfile, selectFields );
+        String query = qb.getQueryString();
+        QueryBind[] binds = qb.getBindsArray();
+        Field<?>[] select = selectFields.toArray( new Field[ selectFields.size() ] );
+        
+        return new QueryTemplate<M>( table, query, loadProfile, binds, select );
 	}
 	
 	public Query<M> newQuery()

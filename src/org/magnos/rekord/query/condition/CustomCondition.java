@@ -1,10 +1,6 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
-import org.magnos.rekord.Rekord;
-import org.magnos.rekord.Type;
+import org.magnos.rekord.query.QueryBuilder;
 
 public class CustomCondition implements Condition
 {
@@ -19,23 +15,9 @@ public class CustomCondition implements Condition
 	}
 	
 	@Override
-	public void toQuery( StringBuilder query )
+	public void toQuery( QueryBuilder query )
 	{
-		query.append( expression );
-	}
-
-	@Override
-	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-	{
-		for (int i = 0; i < values.length; i++)
-		{
-			Object val = values[i];
-			Type<Object> type = Rekord.getTypeForObject( val );
-			
-			type.toPreparedStatement( stmt, val, paramIndex++ );
-		}
-		
-		return paramIndex;
+		query.appendValuable( expression, values );
 	}
 
 }

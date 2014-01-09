@@ -1,13 +1,11 @@
 package org.magnos.rekord.query.condition;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.QueryBuilder;
 
 public class InCondition<T> implements Condition
 {
@@ -38,9 +36,9 @@ public class InCondition<T> implements Condition
 	}
 	
 	@Override
-	public void toQuery( StringBuilder query )
+	public void toQuery( QueryBuilder query )
 	{
-		query.append( expression );
+		query.appendValuable( expression );
 		
 		if (not)
 		{
@@ -51,22 +49,10 @@ public class InCondition<T> implements Condition
 		
 		for (int i = 0; i < values.length; i++)
 		{
-			if (i > 0) query.append( ',' );
-			query.append( '?' );
+			query.append( "?", null, converter.toDatabase( values[i] ), type );
 		}
 		
 		query.append( ")" );
-	}
-
-	@Override
-	public int toPreparedstatement( PreparedStatement stmt, int paramIndex ) throws SQLException
-	{
-		for (int i = 0; i < values.length; i++)
-		{
-			type.toPreparedStatement( stmt, converter.toDatabase( values[i] ), paramIndex++ );
-		}
-		
-		return paramIndex;
 	}
 
 }

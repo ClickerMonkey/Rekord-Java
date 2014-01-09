@@ -47,8 +47,6 @@ public class Query<M extends Model>
     public Query( QueryTemplate<M> template )
     {
         this.template = template;
-        this.values = new Object[template.getBindCount()];
-        this.types = new Type[template.getBindCount()];
         this.loadProfile = template.getLoadProfile();
         this.selectFields = template.getSelectFields();
         this.selectExpression = template.getSelectExpression();
@@ -56,6 +54,19 @@ public class Query<M extends Model>
         this.offset = null;
         this.limit = null;
         this.lock = LockMode.NONE;
+        
+        final int bindCount = template.getBindCount();
+        
+        this.values = new Object[ bindCount ];
+        this.types = new Type[ bindCount ];
+        
+        for (int i = 0; i < bindCount; i++)
+        {
+        	QueryBind qb = template.getBind( i );
+        	
+        	this.values[i] = qb.defaultValue;
+        	this.types[i] = qb.defaultType;
+        }
     }
 
     public QueryTemplate<M> getTemplate()
