@@ -159,7 +159,7 @@ public class Column<T> extends AbstractField<T>
             {
                 try
                 {
-                    Query<Model> query = new SelectQuery<Model>( model ).newQuery();
+                    Query<Model> query = new SelectQuery<Model>( model ).create();
                     query.bind( model );
 
                     value = query.first( field );

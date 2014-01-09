@@ -83,7 +83,7 @@ public class User extends Model
 	    SelectQuery<User> select = new SelectQuery<User>( TABLE );
         select.select( load );
         
-        Query<User> query = select.newQuery();
+        Query<User> query = select.create();
         
 		return query.list();
 	}

@@ -45,6 +45,12 @@ public class QueryBuilder
 		query.append( x );
 	}
 	
+	public void append( QueryBuilder qb )
+	{
+	    query.append( qb.query );
+	    binds.addAll( qb.binds );
+	}
+	
 	public void append( String ... x )
 	{
 		for (int i = 0; i < x.length; i++)

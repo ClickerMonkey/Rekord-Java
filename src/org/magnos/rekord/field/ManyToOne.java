@@ -348,7 +348,7 @@ public class ManyToOne<T extends Model> extends AbstractField<T>
                 select.select( load );
                 select.whereKey( key );
                 
-                value = select.newQuery().first();
+                value = select.create().first();
             }
             else
             {

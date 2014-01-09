@@ -17,7 +17,6 @@ import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Order;
 import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;

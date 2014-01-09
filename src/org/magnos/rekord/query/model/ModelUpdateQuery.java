@@ -35,7 +35,7 @@ public abstract class ModelUpdateQuery
 	{
 		this.table = table;
 		this.querySet = new StringBuilder();
-		this.condition = new GroupExpression().whereKeyBind( table );
+		this.condition = GroupExpression.detached().whereKeyBind( table );
 		this.queryFormat = buildUpdate( table, condition );
 		this.queryHistory = buildHistoryInsert( table, condition );
 	}

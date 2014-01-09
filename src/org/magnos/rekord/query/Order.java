@@ -1,4 +1,4 @@
-package org.magnos.rekord;
+package org.magnos.rekord.query;
 
 public enum Order
 {

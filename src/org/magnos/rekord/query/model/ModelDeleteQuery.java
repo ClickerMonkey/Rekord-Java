@@ -61,7 +61,7 @@ public class ModelDeleteQuery
 	
 	public static QueryTemplate<Model> createQueryTemplate( Table table )
 	{
-	    Condition where = new GroupExpression().whereKeyBind( table );
+	    Condition where = GroupExpression.detached().whereKeyBind( table );
         
 	    QueryBuilder qb = new QueryBuilder();
         qb.append( "DELETE FROM ", table.getQuotedName(), " WHERE " );

@@ -1,20 +1,20 @@
 package org.magnos.rekord.query.expr;
 
-import org.magnos.rekord.Operator;
+import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.BetweenCondition;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.InCondition;
 import org.magnos.rekord.query.condition.LiteralCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
 
-public class StringExpression extends Expression<Object>
+public class GivenExpression<R> extends Expression<R, Object>
 {
 	
 	public final String expression;
 	
-	public StringExpression(GroupExpression group, String prepend, String expression)
+	public GivenExpression(R returning, GroupExpression<R> group, String prepend, String expression)
 	{
-		super( group, prepend );
+		super( returning, group, prepend );
 		
 		this.expression = expression;
 	}
@@ -32,25 +32,25 @@ public class StringExpression extends Expression<Object>
 	}
 
 	@Override
-	public GroupExpression between( Object min, Object max )
+	public R between( Object min, Object max )
 	{
 		return addAndGet( new BetweenCondition<Object>( expression, min, max ) );
 	}
 
 	@Override
-	public GroupExpression in( Object ... values )
+	public R in( Object ... values )
 	{
 		return addAndGet( new InCondition<Object>( expression, false, values ) );
 	}
 
 	@Override
-	public GroupExpression notIn( Object ... values )
+	public R notIn( Object ... values )
 	{
 		return addAndGet( new InCondition<Object>( expression, true, values ) );
 	}
 
 	@Override
-	public GroupExpression nil()
+	public R nil()
 	{
 		return addAndGet( new LiteralCondition( expression ) );
 	}

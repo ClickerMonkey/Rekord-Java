@@ -116,7 +116,7 @@ public class Model implements Serializable
 
 		select.setLoadProfile( loadProfile );
 		
-        Query<Model> query = select.newQuery();
+        Query<Model> query = select.create();
 		
 		if (select.hasSelection())
 		{

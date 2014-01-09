@@ -84,7 +84,7 @@ public class HistoryTable
 		final String historyKey = history.getHistoryKey();
 		final Selection selection = Selection.fromFields( history.getHistoryColumns() );
 		
-		Condition where = new GroupExpression().whereKeyBind( table );
+		Condition where = GroupExpression.detached().whereKeyBind( table );
 		
 		QueryBuilder qb = new QueryBuilder();
 		qb.append( "SELECT " );

@@ -360,7 +360,7 @@ public class OneToOne<T extends Model> extends AbstractField<T>
                 select.select( load );
                 select.whereForeignKey( key );
 
-                value = select.newQuery().first();
+                value = select.create().first();
             }
             else
             {

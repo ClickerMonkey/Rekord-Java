@@ -12,7 +12,7 @@ public class UpdateQuery
 
 	public static QueryTemplate<Model> forFields( Table table, Field<?> ... fields)
 	{
-		Condition where = new GroupExpression().whereKeyBind( table );
+		Condition where = GroupExpression.detached().whereKeyBind( table );
 		
 		QueryBuilder qb = new QueryBuilder();
 		qb.append( "UPDATE ", table.getQuotedName(), " SET " );

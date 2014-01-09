@@ -2,6 +2,7 @@ package org.magnos.rekord;
 
 import java.io.FileInputStream;
 import java.sql.Timestamp;
+import java.util.List;
 
 import org.junit.Test;
 import org.magnos.rekord.query.Query;
@@ -23,30 +24,30 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-//		User u = User.byId( User.Load.SHORT_NAME, 1L );
+		long uid = new SelectQuery<Model>( User.TABLE ).create().withLimit( 1 ).first( User.ID );
+		
+//		User u = User.byId( User.Load.SHORT_NAME, uid );
 //		System.out.println( u.getName() );
 //		u.delete();
 		
-//		User u = User.byId( User.Load.ALL, 1L );
+//		User u = User.byId( User.Load.ALL, uid );
 //		System.out.println( u.getState() );
 //		u.getCommentsBy().clear();
 //		u.save();
 
-//		User u1 = User.byId( User.Load.ALL, 14L );
+//		User u1 = User.byId( User.Load.ALL, uid );
 //		System.out.println( u1 );
 		
 //		User u = new User();
 //		u.setName( "lowercase" );
 //		u.save();
 		
-//		User u = User.byId( User.Load.ID, 1L );
-//		System.out.println( u );
-//		
-//		for (Comment c : u.getCommentsBy()) {
-//		    System.out.println( c );
-//		}
-//		
-//		System.out.println( u );
+		User u = User.byId( User.Load.ID, uid );
+		System.out.println( u );
+		for (Comment c : u.getCommentsBy()) {
+		    System.out.println( c );
+		}
+		System.out.println( u );
 		
 /* NativeQuery * /
 		Query<User> nq = User.Queries.CREATED_BEFORE.create();
@@ -71,17 +72,18 @@ public class TestRekord
         us.executeUpdate();
 /**/
 		
-		SelectQuery<User> query = new SelectQuery<User>( User.TABLE );
-		query.select( User.Load.ALL );
-		query.where( User.COMMENTABLE ).eqExp( "?cid" )
-			  .and( User.NAME ).eq( "pdiffenderfer" )
-			  .and( User.CREATED_TIMESTAMP ).between( new Timestamp( System.currentTimeMillis() - 10000000000L ), new Timestamp( System.currentTimeMillis() ) );
-		
-		Query<User> q = query.newQuery();
-		q.bind( "cid", 1L );
-		
-		System.out.println( q.list() );
-        
+//		SelectQuery<Comment> numberOfComments = new SelectQuery<Comment>( Comment.TABLE );
+//		numberOfComments.count().where( Comment.USER_ID ).eq( User.ID );
+//		
+//		SelectQuery<User> query = new SelectQuery<User>( User.TABLE );
+//		query.select( User.Load.ALL );
+//		query.where( User.COMMENTABLE ).eqExp( "?cid" )
+//			  .and( User.NAME ).eq( "LOWERCASE" )
+//			  .and( User.CREATED_TIMESTAMP ).between( new Timestamp( System.currentTimeMillis() - 10000000000L ), new Timestamp( System.currentTimeMillis() ) )
+//		      .and( numberOfComments ).gt( 0 );
+//		
+//		System.out.println( query.create().bind( "cid", 5L ).list() );
+
 		trans.end( false );
 		trans.close();
 	}

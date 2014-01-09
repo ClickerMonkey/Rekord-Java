@@ -6,13 +6,14 @@ import java.util.List;
 
 import org.magnos.rekord.Key;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Operator;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.ManyToOne;
 import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.QueryBuilder;
+import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.CustomCondition;
 import org.magnos.rekord.query.condition.GroupCondition;
@@ -20,7 +21,7 @@ import org.magnos.rekord.query.condition.OperatorCondition;
 import org.magnos.rekord.query.condition.PrependedCondition;
 
 @SuppressWarnings ({ "rawtypes" } )
-public class GroupExpression extends PrependedCondition
+public class GroupExpression<R> extends PrependedCondition
 {
 
     public static final String AND = " AND ";
@@ -28,19 +29,21 @@ public class GroupExpression extends PrependedCondition
     public static final String OR = " OR ";
     public static final String OR_NOT = " OR NOT ";
 
-    public final GroupExpression parent;
+    public R returning;
+    public final GroupExpression<R> group;
     public final List<PrependedCondition> conditions;
 
     public GroupExpression()
     {
-        this( null, AND );
+        this( null, null, AND );
     }
 
-    public GroupExpression( GroupExpression parent, String prepend )
+    public GroupExpression( R returning, GroupExpression<R> group, String prepend )
     {
         super( prepend, null );
         
-        this.parent = parent;
+        this.returning = returning;
+        this.group = group;
         this.conditions = new ArrayList<PrependedCondition>();
     }
     
@@ -80,33 +83,33 @@ public class GroupExpression extends PrependedCondition
         }
     }
 
-    protected GroupExpression add( String prepend, Condition condition )
+    protected R add( String prepend, Condition condition )
     {
         conditions.add( new PrependedCondition( prepend, condition ) );
 
-        return this;
+        return returning;
     }
 
-    protected GroupExpression newChild( String prepend )
+    protected GroupExpression<R> newChild( String prepend )
     {
-        GroupExpression child = new GroupExpression( this, prepend );
+        GroupExpression<R> child = new GroupExpression<R>( returning, this, prepend );
 
         conditions.add( child );
 
         return child;
     }
 
-    protected Expression<Object> newStringExpression( String prepend, String expression )
+    protected Expression<R, Object> newStringExpression( String prepend, String expression )
     {
-        return new StringExpression( this, prepend, expression );
+        return new GivenExpression<R>( returning, this, prepend, expression );
     }
 
-    protected GroupExpression newStringExpressionCustom( String prepend, String expression, Object[] values )
+    protected R newStringExpressionCustom( String prepend, String expression, Object[] values )
     {
         return add( prepend, new CustomCondition( expression, values ) );
     }
 
-    protected GroupExpression newKeyCondition( String prepend, Key key )
+    protected R newKeyCondition( String prepend, Key key )
     {
         final int keySize = key.size();
         Condition[] conditions = new Condition[keySize];
@@ -119,7 +122,7 @@ public class GroupExpression extends PrependedCondition
         return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
-    protected GroupExpression newForeignKeyCondition( String prepend, Key key )
+    protected R newForeignKeyCondition( String prepend, Key key )
     {
         final int keySize = key.size();
         Condition[] conditions = new Condition[keySize];
@@ -134,352 +137,424 @@ public class GroupExpression extends PrependedCondition
         return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
-    protected GroupExpression newColumnsBindExpression( String prepend, Column<?>... columns )
+    protected R newColumnsBindExpression( String prepend, Column<?>... columns )
     {
         Condition[] conditions = new Condition[columns.length];
 
         for (int i = 0; i < columns.length; i++)
         {
-            conditions[i] = getColumnBindCondition( columns[i] );
+            conditions[i] = OperatorCondition.forColumnBind( columns[i], Operator.EQ );
         }
 
         return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
-    protected GroupExpression newColumnsForeignBindExpression( String prepend, ForeignColumn<?>... columns )
+    protected R newColumnsForeignBindExpression( String prepend, ForeignColumn<?>... columns )
     {
         Condition[] conditions = new Condition[columns.length];
 
         for (int i = 0; i < columns.length; i++)
         {
-            conditions[i] = getColumnForeignBindCondition( columns[i] );
+            conditions[i] = OperatorCondition.forForeignColumnBind( columns[i], Operator.EQ );
         }
 
         return add( prepend, new GroupCondition( AND, conditions ) );
     }
 
-    protected GroupExpression newColumnBindExpression( String prepend, Column<?> column )
+    protected R newColumnBindExpression( String prepend, Column<?> column )
     {
-        return add( prepend, getColumnBindCondition( column ) );
-    }
-
-    protected Condition getColumnBindCondition( Column<?> c )
-    {
-    	return new OperatorCondition( c.getQuotedName(), c, c.getName(), "?", Operator.EQ, null, c.getType(), c.getConverter() ); 
-    }
-
-    protected Condition getColumnForeignBindCondition( ForeignColumn<?> c )
-    {
-    	return new OperatorCondition( c.getQuotedName(), c.getForeignColumn(), c.getForeignColumn().getName(), "?", Operator.EQ, null, c.getType(), c.getConverter() );
+        return add( prepend, OperatorCondition.forColumnBind( column, Operator.EQ ) );
     }
 
 
-    public GroupExpression end()
+    public R end()
     {
-        return parent;
+        return returning;
     }
     
+    
+    public R where( Condition condition )
+    {
+        return add( AND, condition );
+    }
 
-    public Expression<Object> where( String expression )
+    public Expression<R, Object> where( String expression )
     {
         return newStringExpression( AND, expression );
     }
-
-    public <T> ColumnExpression<T> where( Column<T> column )
-    {
-    	return new ColumnExpression<T>( this, AND, column );
-    }
     
-    public <M extends Model> ModelExpression<M> where( OneToOne<M> oneToOne )
+    public <T> QueryExpression<R, T> where( SelectQuery<?> subquery )
     {
-    	return new ModelExpression<M>( this, AND, oneToOne, oneToOne.getJoinColumns() );
-    }
-    
-    public <M extends Model> ModelExpression<M> where( ManyToOne<M> manyToOne )
-    {
-    	return new ModelExpression<M>( this, AND, manyToOne, manyToOne.getJoinColumns() );
+        return new QueryExpression<R, T>( returning, this, AND, subquery );
     }
 
-    public GroupExpression where( String expression, Object... values )
+    public <T> ColumnExpression<R, T> where( Column<T> column )
+    {
+    	return new ColumnExpression<R, T>( returning, this, AND, column );
+    }
+    
+    public StringColumnExpression<R> whereString( Column<String> column )
+    {
+        return new StringColumnExpression<R>( returning, this, AND, column );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> where( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> where( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND, manyToOne, manyToOne.getJoinColumns() );
+    }
+
+    public R where( String expression, Object... values )
     {
         return newStringExpressionCustom( AND, expression, values );
     }
 
-    public GroupExpression whereKey( Key key )
+    public R whereKey( Key key )
     {
         return newKeyCondition( AND, key );
     }
 
-    public GroupExpression whereForeignKey( Key key )
+    public R whereForeignKey( Key key )
     {
         return newForeignKeyCondition( AND, key );
     }
 
-    public GroupExpression whereKeyBind( Table table )
+    public R whereKeyBind( Table table )
     {
         return newColumnsBindExpression( AND, table.getKeyColumns() );
     }
     
-    public GroupExpression whereForeignKeyBind( ForeignColumn<?> ... columns )
+    public R whereForeignKeyBind( ForeignColumn<?> ... columns )
     {
         return newColumnsForeignBindExpression( AND, columns );
     }
 
-    public GroupExpression whereColumnBind( Column<?>... columns )
+    public R whereColumnBind( Column<?>... columns )
     {
         return newColumnsBindExpression( AND, columns );
     }
     
-    public GroupExpression whereBind( Column<?> column )
+    public R whereBind( Column<?> column )
     {
         return newColumnBindExpression( AND, column );
     }
     
     
 
-    public GroupExpression and()
+    public GroupExpression<R> and()
     {
         return newChild( AND );
     }
+    
+    public R and( Condition condition )
+    {
+        return add( AND, condition );
+    }
 
-    public Expression<Object> and( String expression )
+    public Expression<R, Object> and( String expression )
     {
         return newStringExpression( AND, expression );
     }
-
-    public <T> ColumnExpression<T> and( Column<T> column )
-    {
-    	return new ColumnExpression<T>( this, AND, column );
-    }
     
-    public <M extends Model> ModelExpression<M> and( OneToOne<M> oneToOne )
+    public <T> QueryExpression<R, T> and( SelectQuery<?> subquery )
     {
-    	return new ModelExpression<M>( this, AND, oneToOne, oneToOne.getJoinColumns() );
-    }
-    
-    public <M extends Model> ModelExpression<M> and( ManyToOne<M> manyToOne )
-    {
-    	return new ModelExpression<M>( this, AND, manyToOne, manyToOne.getJoinColumns() );
+        return new QueryExpression<R, T>( returning, this, AND, subquery );
     }
 
-    public GroupExpression and( String expression, Object... values )
+    public <T> ColumnExpression<R, T> and( Column<T> column )
+    {
+    	return new ColumnExpression<R, T>( returning, this, AND, column );
+    }
+    
+    public StringColumnExpression<R> andString( Column<String> column )
+    {
+        return new StringColumnExpression<R>( returning, this, AND, column );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> and( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> and( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND, manyToOne, manyToOne.getJoinColumns() );
+    }
+
+    public R and( String expression, Object... values )
     {
         return newStringExpressionCustom( AND, expression, values );
     }
 
-    public GroupExpression andKey( Key key )
+    public R andKey( Key key )
     {
         return newKeyCondition( AND, key );
     }
 
-    public GroupExpression andForeignKey( Key key )
+    public R andForeignKey( Key key )
     {
         return newForeignKeyCondition( AND, key );
     }
 
-    public GroupExpression andKeyBind( Table table )
+    public R andKeyBind( Table table )
     {
         return newColumnsBindExpression( AND, table.getKeyColumns() );
     }
     
-    public GroupExpression andForeignKeyBind( ForeignColumn<?> ... columns )
+    public R andForeignKeyBind( ForeignColumn<?> ... columns )
     {
         return newColumnsForeignBindExpression( AND, columns );
     }
 
-    public GroupExpression andColumnBind( Column<?>... columns )
+    public R andColumnBind( Column<?>... columns )
     {
         return newColumnsBindExpression( AND, columns );
     }
     
-    public GroupExpression andBind( Column<?> column )
+    public R andBind( Column<?> column )
     {
         return newColumnBindExpression( AND, column );
     }
     
     
 
-    public GroupExpression andNot()
+    public GroupExpression<R> andNot()
     {
         return newChild( AND_NOT );
     }
+    
+    public R andNot( Condition condition )
+    {
+        return add( AND_NOT, condition );
+    }
 
-    public Expression<Object> andNot( String expression )
+    public Expression<R, Object> andNot( String expression )
     {
         return newStringExpression( AND_NOT, expression );
     }
-
-    public <T> ColumnExpression<T> andNot( Column<T> column )
-    {
-    	return new ColumnExpression<T>( this, AND_NOT, column );
-    }
     
-    public <M extends Model> ModelExpression<M> andNot( OneToOne<M> oneToOne )
+    public <T> QueryExpression<R, T> andNot( SelectQuery<?> subquery )
     {
-    	return new ModelExpression<M>( this, AND_NOT, oneToOne, oneToOne.getJoinColumns() );
-    }
-    
-    public <M extends Model> ModelExpression<M> andNot( ManyToOne<M> manyToOne )
-    {
-    	return new ModelExpression<M>( this, AND_NOT, manyToOne, manyToOne.getJoinColumns() );
+        return new QueryExpression<R, T>( returning, this, AND_NOT, subquery );
     }
 
-    public GroupExpression andNot( String expression, Object... values )
+    public <T> ColumnExpression<R, T> andNot( Column<T> column )
+    {
+    	return new ColumnExpression<R, T>( returning, this, AND_NOT, column );
+    }
+    
+    public StringColumnExpression<R> andNotString( Column<String> column )
+    {
+        return new StringColumnExpression<R>( returning, this, AND_NOT, column );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> andNot( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND_NOT, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> andNot( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, AND_NOT, manyToOne, manyToOne.getJoinColumns() );
+    }
+
+    public R andNot( String expression, Object... values )
     {
         return newStringExpressionCustom( AND_NOT, expression, values );
     }
 
-    public GroupExpression andNotKey( Key key )
+    public R andNotKey( Key key )
     {
         return newKeyCondition( AND_NOT, key );
     }
 
-    public GroupExpression andNotForeignKey( Key key )
+    public R andNotForeignKey( Key key )
     {
         return newForeignKeyCondition( AND_NOT, key );
     }
 
-    public GroupExpression andNotKeyBind( Table table )
+    public R andNotKeyBind( Table table )
     {
         return newColumnsBindExpression( AND_NOT, table.getKeyColumns() );
     }
     
-    public GroupExpression andNotForeignKeyBind( ForeignColumn<?> ... columns )
+    public R andNotForeignKeyBind( ForeignColumn<?> ... columns )
     {
         return newColumnsForeignBindExpression( AND_NOT, columns );
     }
 
-    public GroupExpression andNotColumnBind( Column<?>... columns )
+    public R andNotColumnBind( Column<?>... columns )
     {
         return newColumnsBindExpression( AND_NOT, columns );
     }
     
-    public GroupExpression andNotBind( Column<?> column )
+    public R andNotBind( Column<?> column )
     {
         return newColumnBindExpression( AND_NOT, column );
     }
     
     
 
-    public GroupExpression or()
+    public GroupExpression<R> or()
     {
         return newChild( OR );
     }
+    
+    public R or( Condition condition )
+    {
+        return add( OR, condition );
+    }
 
-    public Expression<Object> or( String expression )
+    public Expression<R, Object> or( String expression )
     {
         return newStringExpression( OR, expression );
     }
-
-    public <T> ColumnExpression<T> or( Column<T> column )
-    {
-    	return new ColumnExpression<T>( this, OR, column );
-    }
     
-    public <M extends Model> ModelExpression<M> or( OneToOne<M> oneToOne )
+    public <T> QueryExpression<R, T> or( SelectQuery<?> subquery )
     {
-    	return new ModelExpression<M>( this, OR, oneToOne, oneToOne.getJoinColumns() );
-    }
-    
-    public <M extends Model> ModelExpression<M> or( ManyToOne<M> manyToOne )
-    {
-    	return new ModelExpression<M>( this, OR, manyToOne, manyToOne.getJoinColumns() );
+        return new QueryExpression<R, T>( returning, this, OR, subquery );
     }
 
-    public GroupExpression or( String expression, Object... values )
+    public <T> ColumnExpression<R, T> or( Column<T> column )
+    {
+    	return new ColumnExpression<R, T>( returning, this, OR, column );
+    }
+    
+    public StringColumnExpression<R> orString( Column<String> column )
+    {
+        return new StringColumnExpression<R>( returning, this, OR, column );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> or( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, OR, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> or( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, OR, manyToOne, manyToOne.getJoinColumns() );
+    }
+
+    public R or( String expression, Object... values )
     {
         return newStringExpressionCustom( OR, expression, values );
     }
 
-    public GroupExpression orKey( Key key )
+    public R orKey( Key key )
     {
         return newKeyCondition( OR, key );
     }
 
-    public GroupExpression orForeignKey( Key key )
+    public R orForeignKey( Key key )
     {
         return newForeignKeyCondition( OR, key );
     }
 
-    public GroupExpression orKeyBind( Table table )
+    public R orKeyBind( Table table )
     {
         return newColumnsBindExpression( OR, table.getKeyColumns() );
     }
     
-    public GroupExpression orForeignKeyBind( ForeignColumn<?> ... columns )
+    public R orForeignKeyBind( ForeignColumn<?> ... columns )
     {
         return newColumnsForeignBindExpression( OR, columns );
     }
 
-    public GroupExpression orColumnBind( Column<?>... columns )
+    public R orColumnBind( Column<?>... columns )
     {
         return newColumnsBindExpression( OR, columns );
     }
     
-    public GroupExpression orBind( Column<?> column )
+    public R orBind( Column<?> column )
     {
         return newColumnBindExpression( OR, column );
     }
     
 
-    public GroupExpression orNot()
+    public GroupExpression<R> orNot()
     {
         return newChild( OR_NOT );
     }
+    
+    public R orNot( Condition condition )
+    {
+        return add( OR_NOT, condition );
+    }
 
-    public Expression<Object> orNot( String expression )
+    public Expression<R, Object> orNot( String expression )
     {
         return newStringExpression( OR_NOT, expression );
     }
-
-    public <T> ColumnExpression<T> orNot( Column<T> column )
-    {
-    	return new ColumnExpression<T>( this, OR_NOT, column );
-    }
     
-    public <M extends Model> ModelExpression<M> orNot( OneToOne<M> oneToOne )
+    public <T> QueryExpression<R, T> orNot( SelectQuery<?> subquery )
     {
-    	return new ModelExpression<M>( this, OR_NOT, oneToOne, oneToOne.getJoinColumns() );
-    }
-    
-    public <M extends Model> ModelExpression<M> orNot( ManyToOne<M> manyToOne )
-    {
-    	return new ModelExpression<M>( this, OR_NOT, manyToOne, manyToOne.getJoinColumns() );
+        return new QueryExpression<R, T>( returning, this, OR_NOT, subquery );
     }
 
-    public GroupExpression orNot( String expression, Object... values )
+    public <T> ColumnExpression<R, T> orNot( Column<T> column )
+    {
+    	return new ColumnExpression<R, T>( returning, this, OR_NOT, column );
+    }
+    
+    public StringColumnExpression<R> orNotString( Column<String> column )
+    {
+        return new StringColumnExpression<R>( returning, this, OR_NOT, column );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> orNot( OneToOne<M> oneToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, OR_NOT, oneToOne, oneToOne.getJoinColumns() );
+    }
+    
+    public <M extends Model> ModelExpression<R, M> orNot( ManyToOne<M> manyToOne )
+    {
+    	return new ModelExpression<R, M>( returning, this, OR_NOT, manyToOne, manyToOne.getJoinColumns() );
+    }
+
+    public R orNot( String expression, Object... values )
     {
         return newStringExpressionCustom( OR_NOT, expression, values );
     }
 
-    public GroupExpression orNotKey( Key key )
+    public R orNotKey( Key key )
     {
         return newKeyCondition( OR_NOT, key );
     }
 
-    public GroupExpression orNotForeignKey( Key key )
+    public R orNotForeignKey( Key key )
     {
         return newForeignKeyCondition( OR_NOT, key );
     }
 
-    public GroupExpression orNotKeyBind( Table table )
+    public R orNotKeyBind( Table table )
     {
         return newColumnsBindExpression( OR_NOT, table.getKeyColumns() );
     }
     
-    public GroupExpression orNotForeignKeyBind( ForeignColumn<?> ... columns )
+    public R orNotForeignKeyBind( ForeignColumn<?> ... columns )
     {
         return newColumnsForeignBindExpression( OR_NOT, columns );
     }
 
-    public GroupExpression orNotColumnBind( Column<?>... columns )
+    public R orNotColumnBind( Column<?>... columns )
     {
         return newColumnsBindExpression( OR_NOT, columns );
     }
 
-    public GroupExpression orNotBind( Column<?> column )
+    public R orNotBind( Column<?> column )
     {
         return newColumnBindExpression( OR_NOT, column );
+    }
+    
+    public static <P extends GroupExpression<P>> GroupExpression<P> detached()
+    {
+        GroupExpression<P> ge = new GroupExpression<P>( null, null, AND );
+        ge.returning = (P)ge;
+        return ge;
     }
 
 }

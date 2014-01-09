@@ -3,24 +3,24 @@ package org.magnos.rekord.query.expr;
 
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Operator;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.GroupCondition;
 import org.magnos.rekord.query.condition.InCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
 
 
-public class ModelExpression<M extends Model> extends Expression<M>
+public class ModelExpression<R, M extends Model> extends Expression<R, M>
 {
 
 	public final Field<M> field;
 	public final ForeignColumn<?>[] joinColumns;
 
-	public ModelExpression( GroupExpression group, String prepend, Field<M> field, ForeignColumn<?>[] joinColumns )
+	public ModelExpression( R returning, GroupExpression<R> group, String prepend, Field<M> field, ForeignColumn<?>[] joinColumns )
 	{
-		super( group, prepend );
+		super( returning, group, prepend );
 
 		this.field = field;
 		this.joinColumns = joinColumns;
@@ -61,12 +61,12 @@ public class ModelExpression<M extends Model> extends Expression<M>
 	}
 
 	@Override
-	public GroupExpression between( M min, M max )
+	public R between( M min, M max )
 	{
 		throw new UnsupportedOperationException();
 	}
 
-	protected GroupExpression in( boolean not, M... values )
+	protected R in( boolean not, M... values )
 	{
 		if (joinColumns.length == 1)
 		{
@@ -84,21 +84,21 @@ public class ModelExpression<M extends Model> extends Expression<M>
 	}
 
 	@Override
-	public GroupExpression in( M... values )
+	public R in( M... values )
 	{
 		return in( false, values );
 	}
 
 	@Override
-	public GroupExpression notIn( M... values )
+	public R notIn( M... values )
 	{
 		return in( true, values );
 	}
 
 	@Override
-	public GroupExpression nil()
+	public R nil()
 	{
-		return group;
+		return returning;
 	}
 
 }
