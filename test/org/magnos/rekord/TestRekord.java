@@ -71,13 +71,13 @@ public class TestRekord
         us.executeUpdate();
 /**/
 		
-		SelectQuery<User> select = new SelectQuery<User>( User.TABLE );
-		select.select( User.Load.ALL );
-		select.where( User.COMMENTABLE ).eqExp( "?cid" )
+		SelectQuery<User> query = new SelectQuery<User>( User.TABLE );
+		query.select( User.Load.ALL );
+		query.where( User.COMMENTABLE ).eqExp( "?cid" )
 			  .and( User.NAME ).eq( "pdiffenderfer" )
 			  .and( User.CREATED_TIMESTAMP ).between( new Timestamp( System.currentTimeMillis() - 10000000000L ), new Timestamp( System.currentTimeMillis() ) );
 		
-		Query<User> q = select.newQuery();
+		Query<User> q = query.newQuery();
 		q.bind( "cid", 1L );
 		
 		System.out.println( q.list() );
