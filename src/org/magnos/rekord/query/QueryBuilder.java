@@ -6,7 +6,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.magnos.rekord.Field;
+import org.magnos.rekord.LoadProfile;
+import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
+import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.field.Column;
 
@@ -33,6 +37,25 @@ public class QueryBuilder
 		{
 			this.binds.add( qb );
 		}
+	}
+	
+	public boolean hasQuery()
+	{
+	    return query.length() > 0;
+	}
+	
+	public void clear()
+	{
+	    query.setLength( 0 );
+	    binds.clear();
+	}
+	
+	public void pad( String pad )
+	{
+	    if (query.length() > 0)
+	    {
+	        query.append( pad );
+	    }
 	}
 
 	public void append( String x )
@@ -134,6 +157,23 @@ public class QueryBuilder
 	{
 		return binds.toArray( new QueryBind[binds.size()] );
 	}
+	
+    public <M extends Model> QueryTemplate<M> create( Table table, LoadProfile loadProfile, Field<?> ... select )
+    {
+        return new QueryTemplate<M>( table, getQueryString(), loadProfile, getBindsArray(), select );
+    }
+    
+    public <M extends Model> QueryTemplate<M> create( Table table )
+    {
+        return create( table, null );
+    }
+    
+    public <M extends Model> QueryTemplate<M> create( Table table, LoadProfile loadProfile, List<? extends Field<?>> selectList )
+    {
+        Field<?>[] select = selectList.toArray( new Field[ selectList.size() ] );
+        
+        return create( table, loadProfile, select );
+    }
 
 	@Override
 	public String toString()

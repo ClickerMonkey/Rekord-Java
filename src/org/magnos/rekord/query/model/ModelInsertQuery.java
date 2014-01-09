@@ -53,16 +53,6 @@ public abstract class ModelInsertQuery
 	    }
 	}
 	
-	protected void prepareFixed()
-	{
-	    prepare( table.getFields() );
-	}
-	
-	protected void prepareDynamic(Model model)
-	{
-	    prepare( model.getValues() );
-	}
-
 	protected void buildQuery()
 	{
 		StringBuilder queryBuilder = new StringBuilder();

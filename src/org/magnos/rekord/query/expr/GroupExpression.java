@@ -30,7 +30,7 @@ public class GroupExpression<R> extends PrependedCondition
     public static final String OR_NOT = " OR NOT ";
 
     public R returning;
-    public final GroupExpression<R> group;
+    public final GroupExpression<R> parent;
     public final List<PrependedCondition> conditions;
 
     public GroupExpression()
@@ -38,12 +38,12 @@ public class GroupExpression<R> extends PrependedCondition
         this( null, null, AND );
     }
 
-    public GroupExpression( R returning, GroupExpression<R> group, String prepend )
+    public GroupExpression( R returning, GroupExpression<R> parent, String prepend )
     {
         super( prepend, null );
         
         this.returning = returning;
-        this.group = group;
+        this.parent = parent;
         this.conditions = new ArrayList<PrependedCondition>();
     }
     
@@ -65,7 +65,10 @@ public class GroupExpression<R> extends PrependedCondition
         }
         else
         {
-            query.appendValuable( "(" );
+            if (parent != null)
+            {
+                query.append( "(" );
+            }
             
             for (int i = 0; i < conditions.size(); i++)
             {
@@ -73,13 +76,16 @@ public class GroupExpression<R> extends PrependedCondition
                 
                 if (i > 0)
                 {
-                    query.appendValuable( pc.prepend );
+                    query.append( pc.prepend );
                 }
                 
                 pc.toQuery( query );
             }
             
-            query.appendValuable( ")" );
+            if (parent != null)
+            {
+                query.append( ")" );
+            }
         }
     }
 

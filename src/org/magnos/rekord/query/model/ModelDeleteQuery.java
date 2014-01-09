@@ -10,10 +10,8 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
-import org.magnos.rekord.query.QueryBuilder;
+import org.magnos.rekord.query.DeleteQuery;
 import org.magnos.rekord.query.QueryTemplate;
-import org.magnos.rekord.query.condition.Condition;
-import org.magnos.rekord.query.expr.GroupExpression;
 
 
 public class ModelDeleteQuery
@@ -25,7 +23,7 @@ public class ModelDeleteQuery
 	public ModelDeleteQuery( Table table )
 	{
 	    this.table = table;
-	    this.queryTemplate = createQueryTemplate( table );
+	    this.queryTemplate = DeleteQuery.forTable( table );
 	}
 
 	public boolean execute( Model model ) throws SQLException
@@ -57,17 +55,6 @@ public class ModelDeleteQuery
 		}
 
 		return deleted;
-	}
-	
-	public static QueryTemplate<Model> createQueryTemplate( Table table )
-	{
-	    Condition where = GroupExpression.detached().whereKeyBind( table );
-        
-	    QueryBuilder qb = new QueryBuilder();
-        qb.append( "DELETE FROM ", table.getQuotedName(), " WHERE " );
-        where.toQuery( qb );
-        
-        return new QueryTemplate<Model>( table, qb.toString(), null, qb.getBindsArray(), null );
 	}
 
 }

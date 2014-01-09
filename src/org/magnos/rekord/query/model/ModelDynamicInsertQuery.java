@@ -21,7 +21,7 @@ public class ModelDynamicInsertQuery extends ModelInsertQuery
 	{
 		Rekord.log( Logging.UPDATES, "pre-insert: %s -> %s", query, model );
 		
-		prepareDynamic( model );
+		prepare( model.getValues() );
 		buildQuery();
 		
 		boolean recordsInserted = executeInsert( model );

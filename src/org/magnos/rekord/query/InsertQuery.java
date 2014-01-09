@@ -5,16 +5,116 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.magnos.rekord.Factory;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.expr.GroupExpression;
 
-public class InsertQuery
+public class InsertQuery<M extends Model> extends GroupExpression<InsertQuery<M>> implements Factory<Query<M>>
 {
 
+    public final Table table;
+    public QueryBuilder columns;
+    public QueryBuilder values;
+    public QueryBuilder returning;
+    public List<Field<?>> returningFields;
+    
+    public InsertQuery( Table table )
+    {
+        this.table = table;
+        this.columns = new QueryBuilder();
+        this.values = new QueryBuilder();
+        this.returning = new QueryBuilder();
+        this.returningFields = new ArrayList<Field<?>>();
+    }
+    
+    public InsertQuery<M> reset()
+    {
+        columns.clear();
+        values.clear();
+        returning.clear();
+        returningFields.clear();
+        
+        return this;
+    }
+    
+    public <T> InsertQuery<M> insert( Column<T> column )
+    {
+        columns.pad( ", " );
+        columns.append( column.getQuotedName() );
+        
+        values.pad( ", " );
+        values.append( column.getName(), column.getIn(), column, null, column.getType() );
+        
+        return this;
+    }
+    
+    public <T> InsertQuery<M> insert( Column<T> column, T value )
+    {
+        columns.pad( ", " );
+        columns.append( column.getQuotedName() );
+        
+        values.pad( ", " );
+        values.append( column.getName(), column.getIn(), column, column.getConverter().toDatabase( value ), column.getType() );
+        
+        return this;
+    }
+    
+    public <T> InsertQuery<M> returning( Field<T> field )
+    {
+        if (field instanceof Column)
+        {
+            returning.pad( ", " );
+            returning.append( field.getQuotedName() );
+        }
+        
+        returningFields.add( field );
+        
+        return this;
+    }
+    
+    public QueryTemplate<M> newTemplate()
+    {
+        QueryBuilder qb = new QueryBuilder();
+        
+        qb.append( "INSERT INTO " );
+        qb.append( table.getQuotedName() );
+        qb.append( " " );
+        
+        if (columns.hasQuery())
+        {
+            qb.append( "(" );
+            qb.append( columns );
+            qb.append( ") VALUES (" );
+            qb.append( values );
+            qb.append( ")" );
+        }
+        else
+        {
+            qb.append( "DEFAULT VALUES" );
+        }
+        
+        if (returning.hasQuery())
+        {
+            qb.append( " RETURNING " );
+            qb.append( returning );
+        }
+        
+        return qb.create( table, null, returningFields );
+    }
+    
+    @Override
+    public Query<M> create()
+    {
+        return newTemplate().create();
+    }
+    
 	public static QueryTemplate<Model> forFields( Table table, Field<?> ... fields)
 	{
+	    InsertQuery<Model> insert = new InsertQuery<Model>( table );
+	    
 	    Set<Field<?>> fieldSet = new HashSet<Field<?>>();
 
 	    for (Field<?> f : fields)
@@ -22,70 +122,27 @@ public class InsertQuery
 	        fieldSet.add( f );
 	    }
 	    
-	    List<Column<?>> returningList = new ArrayList<Column<?>>();
-	    
 	    for (Field<?> f : table.getFields())
 	    {
-	        if (f.is( Field.HAS_DEFAULT ) && !fieldSet.contains( f ) && (f instanceof Column))
+	        if (f.is( Field.HAS_DEFAULT ) && !fieldSet.contains( f ))
 	        {
-	            returningList.add( (Column<?>)f );
+	            insert.returning( f );
 	        }
 	    }
-		
-		StringBuilder columnBuilder = new StringBuilder();
-		StringBuilder valueBuilder = new StringBuilder();
-		
-		int columnsSet = 0;
-		
-		for (int i = 0; i < fields.length; i++)
-		{
-			Field<?> f = fields[i];
-			
-			if (f instanceof Column)
-			{
-				if (columnsSet++ > 0)
-				{
-				    columnBuilder.append( ", " );
-				    valueBuilder.append( ", " );
-				}
-				
-				Column<?> c = (Column<?>) f;
-				
-				columnBuilder.append( c.getQuotedName() );
-				valueBuilder.append( "?" ).append( c.getName() );
-			}
-		}
-		
-		StringBuilder returningBuilder = new StringBuilder();
-		
-		for (int i = 0; i < returningList.size(); i++)
-		{
-		    Column<?> c = returningList.get( i );
-		    
-		    if (i > 0)
-		    {
-		        returningBuilder.append( ", " );
-		    }
-		    
-		    returningBuilder.append( "#" ).append( c.getName() );
-		}
-
-        StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append( "INSERT INTO " );
-        queryBuilder.append( table.getQuotedName() );
-		queryBuilder.append( " (" );
-		queryBuilder.append( columnBuilder );
-		queryBuilder.append( ") VALUES (" );
-		queryBuilder.append( valueBuilder );
-		queryBuilder.append( ")" );
-		
-		if (returningBuilder.length() > 0)
-		{
-		    queryBuilder.append( " RETURNING " );
-		    queryBuilder.append( returningBuilder );
-		}
+	    
+	    for (Field<?> f : fields)
+	    {
+	        if (f instanceof Column)
+	        {
+	            insert.insert( (Column<?>)f );
+	        }
+	        else
+	        {
+	            insert.returning( f );
+	        }
+	    }
         
-		return NativeQuery.parse( table, queryBuilder.toString() );
+		return insert.newTemplate();
 	}
 	
 }

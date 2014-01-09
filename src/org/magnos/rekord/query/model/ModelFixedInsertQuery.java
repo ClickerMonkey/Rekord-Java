@@ -15,7 +15,7 @@ public class ModelFixedInsertQuery extends ModelInsertQuery
 	public ModelFixedInsertQuery( Table table )
 	{
 		super( table );
-		prepareFixed();
+		prepare( table.getFields() );
 		buildQuery();
 	}
 

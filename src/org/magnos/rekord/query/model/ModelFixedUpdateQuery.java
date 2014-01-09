@@ -12,7 +12,7 @@ public class ModelFixedUpdateQuery extends ModelUpdateQuery
 	{
 		super( table );
 		
-		prepareFixed();
+		prepare( table.getFields() );
 	}
 	
 	public boolean execute( Model model ) throws SQLException

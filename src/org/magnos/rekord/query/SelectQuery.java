@@ -178,11 +178,7 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
             toQuery( qb );
         }
 
-        String query = qb.getQueryString();
-        QueryBind[] binds = qb.getBindsArray();
-        Field<?>[] select = selectFields.toArray( new Field[selectFields.size()] );
-
-        return new QueryTemplate<M>( table, query, loadProfile, binds, select );
+        return qb.create( table, loadProfile, selectFields );
     }
 
     public Query<M> create()

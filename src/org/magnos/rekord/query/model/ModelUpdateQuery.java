@@ -69,16 +69,6 @@ public abstract class ModelUpdateQuery
         queryTemplate = NativeQuery.parse( table, queryString, null );
 	}
 	
-	protected void prepareFixed()
-	{
-	    prepare( table.getFields() );
-	}
-	
-	protected void prepareDynamic(Model model)
-	{
-	    prepare( model.getValues() );
-	}
-	
 	protected void saveHistory(Model model) throws SQLException
 	{
 		if (queryHistory != null)

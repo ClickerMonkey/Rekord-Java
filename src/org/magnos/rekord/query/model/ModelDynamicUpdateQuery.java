@@ -17,7 +17,7 @@ public class ModelDynamicUpdateQuery extends ModelUpdateQuery
 	{
 		preSave( model );
 		
-		prepareDynamic( model );
+		prepare( model.getValues() );
 		
 		return updateModel( model );
 	}

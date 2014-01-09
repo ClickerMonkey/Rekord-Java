@@ -1,11 +1,8 @@
 package org.magnos.rekord;
 
 import java.io.FileInputStream;
-import java.sql.Timestamp;
-import java.util.List;
 
 import org.junit.Test;
-import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.xml.XmlLoader;
 
