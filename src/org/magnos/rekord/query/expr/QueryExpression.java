@@ -3,6 +3,7 @@ package org.magnos.rekord.query.expr;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.condition.Condition;
+import org.magnos.rekord.query.condition.ConditionResolver;
 import org.magnos.rekord.query.condition.InCondition;
 import org.magnos.rekord.query.condition.QueryCondition;
 
@@ -12,9 +13,9 @@ public class QueryExpression<R, T> extends Expression<R, T>
     
     public SelectQuery<?> subquery;
 
-    public QueryExpression( R returning, GroupExpression<R> group, String prepend, SelectQuery<?> subquery )
+    public QueryExpression( ConditionResolver<R> resolver, SelectQuery<?> subquery )
     {
-        super( returning, group, prepend );
+        super( resolver );
         
         this.subquery = subquery;
     }
@@ -32,15 +33,15 @@ public class QueryExpression<R, T> extends Expression<R, T>
     }
 
     @Override
-    protected R newStringOperation( Operator op, String expression )
+    protected Condition newStringOperation( Operator op, String expression )
     {
-        return addAndGet( new QueryCondition( subquery, op.getSymbol() + expression ) );
+        return new QueryCondition( subquery, op.getSymbol() + expression );
     }
     
     @Override
     public R between( T min, T max )
     {
-        return addAndGet( new QueryCondition( subquery, " BETWEEN ? AND ?", min, max ) );
+        return resolver.resolve( new QueryCondition( subquery, " BETWEEN ? AND ?", min, max ) );
     }
 
     @Override
@@ -48,7 +49,7 @@ public class QueryExpression<R, T> extends Expression<R, T>
     {
         String in = " IN (" + InCondition.generateParameters( values.length ) + ")";
         
-        return addAndGet( new QueryCondition( subquery, in, values ) );
+        return resolver.resolve( new QueryCondition( subquery, in, values ) );
     }
 
     @Override
@@ -56,13 +57,13 @@ public class QueryExpression<R, T> extends Expression<R, T>
     {
         String notIn = " NOT IN (" + InCondition.generateParameters( values.length ) + ")";
         
-        return addAndGet( new QueryCondition( subquery, notIn, values ) );
+        return resolver.resolve( new QueryCondition( subquery, notIn, values ) );
     }
 
     @Override
     public R nil()
     {
-        return returning;
+        return resolver.resolve( null );
     }
 
 }

@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.magnos.rekord.query.Query;
+import org.magnos.rekord.query.Select;
 import org.magnos.rekord.query.SelectQuery;
 
 
@@ -41,6 +42,11 @@ public class Model implements Serializable
 	    }
 	    
 	    return false;
+	}
+	
+	public boolean exists() throws SQLException
+	{
+	    return hasKey() && Select.find( this ).create().any();
 	}
 
 	public <T> void set( Field<T> field, T value )

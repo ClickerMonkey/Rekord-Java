@@ -3,10 +3,10 @@ package org.magnos.rekord.query;
 import org.magnos.rekord.Factory;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
-import org.magnos.rekord.query.expr.GroupExpression;
+import org.magnos.rekord.query.expr.ExpressionChain;
 
 
-public class DeleteQuery<M extends Model> extends GroupExpression<DeleteQuery<M>> implements Factory<Query<M>>
+public class DeleteQuery<M extends Model> extends ExpressionChain<DeleteQuery<M>> implements Factory<Query<M>>
 {
 
     public final Table table;
@@ -16,7 +16,7 @@ public class DeleteQuery<M extends Model> extends GroupExpression<DeleteQuery<M>
     {
         this.table = table;
         this.from = table.getQuotedName();
-        this.returning = this;
+        this.parent = this;
     }
     
     public DeleteQuery<M> from( String from )

@@ -11,12 +11,12 @@ import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.query.expr.GroupExpression;
+import org.magnos.rekord.query.expr.ExpressionChain;
 
 
-public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>> implements Factory<Query<M>>
+public class SelectQuery<M extends Model> extends ExpressionChain<SelectQuery<M>> implements Factory<Query<M>>
 {
-
+    
     protected Table table;
     protected String from;
     protected StringBuilder selecting;
@@ -26,18 +26,17 @@ public class SelectQuery<M extends Model> extends GroupExpression<SelectQuery<M>
     public SelectQuery( M model )
     {
         this( model.getTable() );
+        
         this.whereKey( model.getKey() );
     }
 
     public SelectQuery( Table table )
     {
-        super( null, null, AND );
-        
         this.table = table;
         this.from = table.getQuotedName();
         this.selecting = new StringBuilder();
         this.selectFields = new ArrayList<Field<?>>();
-        this.returning = this;
+        this.parent = this;
     }
 
     public SelectQuery<M> from( String from )

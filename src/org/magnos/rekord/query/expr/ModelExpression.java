@@ -7,6 +7,7 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.Condition;
+import org.magnos.rekord.query.condition.ConditionResolver;
 import org.magnos.rekord.query.condition.GroupCondition;
 import org.magnos.rekord.query.condition.InCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
@@ -18,10 +19,10 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 	public final Field<M> field;
 	public final ForeignColumn<?>[] joinColumns;
 
-	public ModelExpression( R returning, GroupExpression<R> group, String prepend, Field<M> field, ForeignColumn<?>[] joinColumns )
+	public ModelExpression( ConditionResolver<R> resolver, Field<M> field, ForeignColumn<?>[] joinColumns )
 	{
-		super( returning, group, prepend );
-
+	    super( resolver );
+	    
 		this.field = field;
 		this.joinColumns = joinColumns;
 	}
@@ -77,7 +78,7 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 				actualValues[i] = values[i].get( joinColumns[0] );
 			}
 
-			return addAndGet( new InCondition<Object>( (Column<Object>)joinColumns[0], not, actualValues ) );
+			return resolver.resolve( new InCondition<Object>( (Column<Object>)joinColumns[0], not, actualValues ) );
 		}
 
 		throw new UnsupportedOperationException();
@@ -98,7 +99,7 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 	@Override
 	public R nil()
 	{
-		return returning;
+		return resolver.resolve( null );
 	}
 
 }

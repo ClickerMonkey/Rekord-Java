@@ -11,10 +11,10 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.query.expr.GroupExpression;
+import org.magnos.rekord.query.expr.ExpressionChain;
 
 
-public class InsertQuery<M extends Model> extends GroupExpression<InsertQuery<M>> implements Factory<Query<M>>
+public class InsertQuery<M extends Model> extends ExpressionChain<InsertQuery<M>> implements Factory<Query<M>>
 {
 
     public final Table table;

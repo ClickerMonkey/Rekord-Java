@@ -2,19 +2,20 @@
 package org.magnos.rekord.query.expr;
 
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.condition.ConditionResolver;
 import org.magnos.rekord.query.condition.OperatorCondition;
 
 public class StringColumnExpression<R> extends ColumnExpression<R, String>
 {
 
-    public StringColumnExpression( R returning, GroupExpression<R> group, String prepend, Column<String> column )
+    public StringColumnExpression( ConditionResolver<R> resolver, Column<String> column )
     {
-        super( returning, group, prepend, column );
+        super( resolver, column );
     }
     
     protected R newOperationCondition(String symbol, String value)
     {
-        return addAndGet( new OperatorCondition<String>( column, symbol, value ) );
+        return resolver.resolve( new OperatorCondition<String>( column, symbol, value ) );
     }
     
     public R like( String value )
@@ -31,7 +32,7 @@ public class StringColumnExpression<R> extends ColumnExpression<R, String>
     {
         String columnName = "UPPER(" + column.getQuotedName() + ")";
         
-        return addAndGet( new OperatorCondition<String>( columnName, null, column.getName(), "UPPER(?)", " = ", value, column.getType(), column.getConverter() ) );
+        return resolver.resolve( new OperatorCondition<String>( columnName, null, column.getName(), "UPPER(?)", " = ", value, column.getType(), column.getConverter() ) );
     }
     
 }

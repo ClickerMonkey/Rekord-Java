@@ -7,7 +7,7 @@ import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Selection;
 import org.magnos.rekord.query.condition.Condition;
-import org.magnos.rekord.query.expr.GroupExpression;
+import org.magnos.rekord.query.expr.ExpressionChain;
 import org.magnos.rekord.util.SqlUtil;
 
 public class HistoryTable
@@ -84,7 +84,7 @@ public class HistoryTable
 		final String historyKey = history.getHistoryKey();
 		final Selection selection = Selection.fromFields( history.getHistoryColumns() );
 		
-		Condition where = GroupExpression.detached().whereKeyBind( table );
+		Condition where = ExpressionChain.detached().whereKeyBind( table );
 		
 		QueryBuilder qb = new QueryBuilder();
 		qb.append( "SELECT " );
