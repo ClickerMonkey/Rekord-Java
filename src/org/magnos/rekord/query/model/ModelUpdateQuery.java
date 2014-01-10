@@ -81,7 +81,7 @@ public class ModelUpdateQuery implements ModelQuery
             if (recordsUpdated)
             {
                 Transaction trans = Rekord.getTransaction();
-                trans.cache( model );
+                trans.cache( table, model );
             }
             
             for (Value<?> v : values)

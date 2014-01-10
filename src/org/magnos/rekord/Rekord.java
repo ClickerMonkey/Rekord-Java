@@ -100,14 +100,14 @@ public class Rekord
 		return tableCache[ table.getIndex() ].get( key );
 	}
 	
-	public static boolean cache(Model model)
+	public static boolean cache(Table table, Model model)
 	{
-		return tableCache[ model.getTable().getIndex() ].put( model );
+		return tableCache[ table.getIndex() ].put( model );
 	}
 
-	public static void purge(Model model)
+	public static void purge(Table table, Model model)
 	{
-	    tableCache[ model.getTable().getIndex() ].remove( model.getKey() );
+	    tableCache[ table.getIndex() ].remove( model.getKey() );
 	}
 	
 	public static int getTableCount()

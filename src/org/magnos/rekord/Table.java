@@ -64,6 +64,8 @@ public class Table
     protected Column<?> discriminatorColumn;
     protected Map<Object, Table> childTables;
     
+    protected ModelResolver resolver;
+    
     public Table( String table, int flags, Column<?>... keyColumns )
     {
         this( table, flags, null, keyColumns, NO_FIELDS );
@@ -210,6 +212,16 @@ public class Table
     	
     	return this;
     }
+    
+    public ModelResolver getResolver()
+    {
+        return resolver;
+    }
+    
+    public void setResolver( ModelResolver resolver )
+    {
+        this.resolver = resolver;
+    }
 
     public Value<?>[] newValues( Model model )
     {
@@ -244,6 +256,26 @@ public class Table
     public Key keyForFields( Model model, Field<?>... fields )
     {
         return fields.length == 1 ? new SingleModelKey( model, fields[0] ) : new MultiModelKey( model, fields );
+    }
+    
+    public Table getParentTable()
+    {
+        return parentTable;
+    }
+
+    public Object getDiscriminatorValue()
+    {
+        return discriminatorValue;
+    }
+    
+    public Column<?> getDiscriminatorColumn()
+    {
+        return discriminatorColumn;
+    }
+    
+    public Map<Object, Table> getChildTables()
+    {
+        return childTables;
     }
 
     public int getIndex()

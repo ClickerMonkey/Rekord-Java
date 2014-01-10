@@ -44,7 +44,7 @@ public class ModelDeleteQuery implements ModelQuery
 		if (deleted)
 		{
 		    Transaction trans = Rekord.getTransaction();
-		    trans.purge( model );
+		    trans.purge( table, model );
 		    
 			for (Value<?> v : values)
 			{

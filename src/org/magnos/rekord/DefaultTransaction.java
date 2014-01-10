@@ -189,24 +189,24 @@ public class DefaultTransaction implements Transaction
 	}
 
 	@Override
-	public boolean cache( Model model )
+	public boolean cache( Table table, Model model )
 	{
-		boolean cached = Rekord.cache( model );
+		boolean cached = Rekord.cache( table, model );
 		
 		if (!cached)
 		{
-			cached = modelCache[ model.getTable().getIndex() ].put( model );
+			cached = modelCache[ table.getIndex() ].put( model );
 		}
 		
 		return cached;
 	}
 
 	@Override
-	public void purge( Model model )
+	public void purge( Table table, Model model )
 	{
-	    Rekord.purge( model );
+	    Rekord.purge( table, model );
 	    
-	    modelCache[ model.getTable().getIndex() ].remove( model.getKey() );
+	    modelCache[ table.getIndex() ].remove( model.getKey() );
 	}
 	
 }

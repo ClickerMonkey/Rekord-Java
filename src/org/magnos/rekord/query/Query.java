@@ -13,15 +13,13 @@ import java.util.Set;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Key;
-import org.magnos.rekord.ListenerEvent;
 import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Logging;
 import org.magnos.rekord.Model;
+import org.magnos.rekord.ModelResolver;
 import org.magnos.rekord.Rekord;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Type;
-import org.magnos.rekord.Value;
 import org.magnos.rekord.field.Column;
 
 
@@ -34,6 +32,7 @@ public class Query<M extends Model>
     protected final QueryTemplate<M> template;
     protected final Object[] values;
     protected final Type<Object>[] types;
+    protected ModelResolver resolver;
     protected LoadProfile loadProfile;
     protected Field<?>[] selectFields;
     protected String selectExpression;
@@ -49,6 +48,7 @@ public class Query<M extends Model>
         this.loadProfile = template.getLoadProfile();
         this.selectFields = template.getSelectFields();
         this.selectExpression = template.getSelectExpression();
+        this.resolver = template.getTable().getResolver();
         this.orderBy = new StringBuilder();
         this.offset = null;
         this.limit = null;
@@ -81,6 +81,18 @@ public class Query<M extends Model>
     public Type<Object>[] getTypes()
     {
         return types;
+    }
+
+    public ModelResolver getResolver()
+    {
+        return resolver;
+    }
+    
+    public Query<M> withResolver( ModelResolver resolver )
+    {
+        this.resolver = resolver;
+        
+        return this;
     }
     
     public Field<?>[] getSelectFields()
@@ -627,7 +639,7 @@ public class Query<M extends Model>
         PreparedStatement stmt = prepare( trans, getSelectQuery( true ) );
 
         ResultSet results = stmt.executeQuery();
-
+        
         try
         {
             while (results.next())
@@ -662,73 +674,17 @@ public class Query<M extends Model>
     
     public M fromResultSet( Transaction trans, ResultSet results ) throws SQLException
     {
-        final Table table = template.getTable();
-        final Key key = table.keyFromResults( results );
-
-        M model = trans.getCached( table, key );
-
-        if (model == null)
-        {
-            model = table.newModel();
-
-            populate( results, model );
-
-            trans.cache( model );
-        }
-        else
-        {
-            merge( results, model );
-        }
-
-        table.notifyListeners( model, ListenerEvent.POST_SELECT );
-
-        return model;
+        return (M) resolver.resolve( trans, results, template.getTable(), loadProfile, selectFields );
     }
 
     public void populate( ResultSet results, Model model ) throws SQLException
     {
-        if (loadProfile != null)
-        {
-            for (Field<?> f : selectFields)
-            {
-                model.valueOf( f ).fromSelect( results, loadProfile.getFieldLoad( f ) );
-            }
-        }
-        else
-        {
-            for (Field<?> f : selectFields)
-            {
-                model.valueOf( f ).fromSelect( results, FieldLoad.DEFAULT );
-            }
-        }
+        resolver.populate( model, results, true, loadProfile, selectFields );
     }
 
     public void merge( ResultSet results, Model model ) throws SQLException
     {
-        if (loadProfile != null)
-        {
-            for (Field<?> f : selectFields)
-            {
-                Value<?> value = model.valueOf( f );
-
-                if (!value.hasValue())
-                {
-                    value.fromSelect( results, loadProfile.getFieldLoad( f ) );
-                }
-            }
-        }
-        else
-        {
-            for (Field<?> f : selectFields)
-            {
-                Value<?> value = model.valueOf( f );
-
-                if (!value.hasValue())
-                {
-                    value.fromSelect( results, FieldLoad.DEFAULT );
-                }
-            }
-        }
+        resolver.populate( model, results, false, loadProfile, selectFields ); 
     }
 
     public void postSelect( Collection<M> collection ) throws SQLException
