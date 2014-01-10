@@ -84,6 +84,11 @@ public class SelectQuery<M extends Model> extends ExpressionChain<SelectQuery<M>
         return this;
     }
 
+    public SelectQuery<M> select( Field<?> f, String expression, String alias )
+    {
+        return select( f, expression + " AS " + alias);
+    }
+
     public SelectQuery<M> select( Column<?> column )
     {
         return select( column, column.getQuotedName() );
