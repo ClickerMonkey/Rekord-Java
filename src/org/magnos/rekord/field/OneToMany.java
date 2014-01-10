@@ -14,7 +14,6 @@ import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.Query;
@@ -22,15 +21,12 @@ import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.util.LazyList;
 
-public class OneToMany<T extends Model> extends AbstractField<List<T>>
+public class OneToMany<T extends Model> extends JoinField<List<T>>
 {
 
 	protected final int fetchSize;
 	protected final boolean cascadeDelete;
 	protected final boolean cascadeSave;
-	protected Table joinTable;
-	protected ForeignColumn<?>[] joinColumns;
-	protected LoadProfile joinLoad;
 	
 	public OneToMany( String name, int flags, int fetchSize, boolean cascadeDelete, boolean cascadeSave )
 	{
@@ -41,13 +37,6 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 		this.cascadeSave = cascadeSave;
 	}
 	
-	public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignColumn<?> ... joinColumns )
-	{
-		this.joinTable = joinTable;
-		this.joinLoad = joinLoad;
-		this.joinColumns = joinColumns;
-	}
-
 	@Override
 	public boolean isSelectable()
 	{
@@ -55,54 +44,9 @@ public class OneToMany<T extends Model> extends AbstractField<List<T>>
 	}
 	
 	@Override
-	public String getSelectExpression(FieldLoad fieldLoad)
-	{
-		return null;
-	}
-    
-    @Override
-    public InsertAction getInsertAction()
-    {
-        return InsertAction.NONE;
-    }
-
-    @Override
-    public boolean isUpdatable()
-    {
-        return false;
-    }
-
-    @Override
-    public String getSaveExpression()
-    {
-        return null;
-    }
-    
-    @Override
-    public Field<?> getField()
-    {
-        return this;
-    }
-	
-	@Override
 	public Value<List<T>> newValue(Model model)
 	{
 		return new OneToManyValue<T>( this, model );
-	}
-	
-	public Table getJoinTable()
-	{
-		return joinTable;
-	}
-	
-	public LoadProfile getJoinLoad()
-	{
-		return joinLoad;
-	}
-
-	public ForeignColumn<?>[] getJoinColumns()
-	{
-		return joinColumns;
 	}
 	
 	public int getFetchSize()

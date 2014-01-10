@@ -13,86 +13,29 @@ import org.magnos.rekord.Key;
 import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Rekord;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.SelectQuery;
 
-public class ManyToOne<T extends Model> extends AbstractField<T>
+public class ManyToOne<T extends Model> extends JoinField<T>
 {
 
-	protected Table joinTable;
-	protected ForeignColumn<?>[] joinColumns;
-	protected LoadProfile joinLoad;
-	
 	public ManyToOne( String name, int flags )
 	{
 		super( name, flags );
 	}
 	
-	public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignColumn<?>[] joinColumns )
-	{
-		this.joinTable = joinTable;
-		this.joinLoad = joinLoad;
-		this.joinColumns = joinColumns;
-	}
-
 	@Override
 	public boolean isSelectable()
 	{
 		return !is(LAZY);
 	}
-	
-	@Override
-	public String getSelectExpression(FieldLoad fieldLoad)
-	{
-		return null;
-	}
-    
-    @Override
-    public InsertAction getInsertAction()
-    {
-        return InsertAction.NONE;
-    }
-
-    @Override
-    public boolean isUpdatable()
-    {
-        return false;
-    }
-
-    @Override
-    public String getSaveExpression()
-    {
-        return null;
-    }
-    
-    @Override
-    public Field<?> getField()
-    {
-        return this;
-    }
 
 	@Override
 	public Value<T> newValue(Model model)
 	{
 		return new ManyToOneValue<T>( this, model );
-	}
-	
-	public Table getJoinTable()
-	{
-		return joinTable;
-	}
-	
-	public LoadProfile getJoinLoad()
-	{
-		return joinLoad;
-	}
-
-	public ForeignColumn<?>[] getJoinColumns()
-	{
-		return joinColumns;
 	}
 	
 	@Override
