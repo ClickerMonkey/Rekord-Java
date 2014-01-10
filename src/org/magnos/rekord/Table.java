@@ -186,6 +186,11 @@ public class Table
 	{
 		return lastModifiedColumns;
 	}
+    
+    public boolean hasLastModifiedColumns()
+    {
+        return lastModifiedColumns != null && lastModifiedColumns.length > 0;
+    }
 
 	public void setLastModifiedColumns( Column<?>[] lastModifiedColumns )
 	{

@@ -1,6 +1,8 @@
 package org.magnos.rekord.query.model;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ConcurrentModificationException;
 
 import org.magnos.rekord.HistoryTable;
 import org.magnos.rekord.ListenerEvent;
@@ -25,12 +27,14 @@ public class ModelUpdateQuery implements ModelQuery
 	protected final QueryTemplate<Model> queryHistory;
 	protected final boolean dynamic;
 	protected QueryTemplate<Model> queryTemplate;
+	protected QueryTemplate<Model> queryCheck;
 	
 	public ModelUpdateQuery(Table table, boolean dynamic)
 	{
 		this.table = table;
 		this.dynamic = dynamic;
 		this.queryHistory = buildHistoryInsert( table );
+		this.queryCheck = buildCheckQuery( table );
 		
 		if (!dynamic)
 		{
@@ -58,6 +62,8 @@ public class ModelUpdateQuery implements ModelQuery
         
         if (model.hasChanged())
         {
+            checkForChange( model );
+            
             if (dynamic)
             {
                 buildQuery( values );
@@ -122,6 +128,41 @@ public class ModelUpdateQuery implements ModelQuery
             }
         }
     }
+    
+    protected void checkForChange( Model model ) throws SQLException
+    {
+        if (queryCheck != null)
+        {
+            Query<Model> query = queryCheck.create();
+            
+            ResultSet results = query.getResults(); 
+            
+            try
+            {
+                if (results.next())
+                {
+                    for (Column<?> c : table.getLastModifiedColumns())
+                    {
+                        Object value = c.getConverter().fromDatabase( c.getType().fromResultSet( results, c.getName(), true ) );
+                        
+                        if (notEquals( model.get( c ), value ))
+                        {
+                            throw new ConcurrentModificationException( "Model " + model + " was concurrently modified by another process" );
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                results.close();
+            }
+        }
+    }
+    
+    protected boolean notEquals(Object a, Object b)
+    {
+        return !(a == b || (a != null && b != null && a.equals( b )));
+    }
 	
 	public static QueryTemplate<Model> buildHistoryInsert(Table table)
 	{
@@ -140,6 +181,20 @@ public class ModelUpdateQuery implements ModelQuery
 		insert.into( history.getHistoryTable() );
 		
 		return insert.newTemplateFromSelect( select );
+	}
+	
+	public static QueryTemplate<Model> buildCheckQuery(Table table)
+	{
+	    if (!table.hasLastModifiedColumns())
+	    {
+	        return null;
+	    }
+	    
+	    SelectQuery<Model> select = new SelectQuery<Model>( table );
+	    select.select( table.getLastModifiedColumns() );
+	    select.whereKeyBind( table );
+	    
+	    return select.newTemplate();
 	}
 	
 }
