@@ -81,4 +81,14 @@
         </fields>        
     </table>
     
+    <table name="crazy" key="id_0, id_1" last-modified-columns="last_modified_tms">
+        <fields>
+            <column name="id_0" type="long" generated="true" read-only="true" />
+            <column name="id_1" type="long" generated="true" read-only="true" />
+            <column name="diameter" type="real" />
+            <column name="updates" type="int" return-on-save="true" read-only="true" generated="true" />
+            <column name="last_modified_tms" type="timestamp" return-on-save="true" out="clock_timestamp()" always-update="true" generated="true" />
+        </fields>
+    </table>
+    
 </rekord>

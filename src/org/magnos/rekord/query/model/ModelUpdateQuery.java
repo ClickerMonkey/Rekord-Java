@@ -76,7 +76,28 @@ public class ModelUpdateQuery implements ModelQuery
             Query<Model> query = queryTemplate.create();
             query.bind( model );
             
-            recordsUpdated = query.executeUpdate() > 0;
+            if (!query.hasSelectFields())
+            {
+                recordsUpdated = query.executeUpdate() > 0;
+            }
+            else
+            {
+                ResultSet results = query.getResults();
+                
+                try
+                {
+                    if (results.next())
+                    {
+                        query.populate( results, model );
+                        
+                        recordsUpdated = true;
+                    }
+                }
+                finally
+                {
+                    results.close();
+                }
+            }
             
             if (recordsUpdated)
             {
@@ -134,6 +155,7 @@ public class ModelUpdateQuery implements ModelQuery
         if (queryCheck != null)
         {
             Query<Model> query = queryCheck.create();
+            query.bind( model );
             
             ResultSet results = query.getResults(); 
             
