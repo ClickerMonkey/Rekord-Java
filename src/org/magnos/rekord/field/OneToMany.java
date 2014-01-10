@@ -70,6 +70,7 @@ public class OneToMany<T extends Model> extends JoinField<List<T>>
         StringBuilder sb = beginToString();
         sb.append( ", fetch-size=" ).append( fetchSize );
         sb.append( ", cascade-delete=" ).append( cascadeDelete );
+        sb.append( ", cascade-save=" ).append( cascadeSave );
         sb.append( ", join=" ).append( joinTable.getName() );
         sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
         sb.append( ", join-key={" );
