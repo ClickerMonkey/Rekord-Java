@@ -15,6 +15,7 @@ import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.model.ModelDeleteQuery;
 import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelQuery;
 import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
 import org.magnos.rekord.util.SqlUtil;
@@ -41,9 +42,9 @@ public class Table
     protected Factory<? extends Model> factory;
     protected Column<?>[] keyColumns = {};
     protected Field<?>[] fields = {};
-    protected ModelInsertQuery insert;
-    protected ModelUpdateQuery update;
-    protected ModelDeleteQuery delete;
+    protected ModelQuery insert;
+    protected ModelQuery update;
+    protected ModelQuery delete;
     protected Map<String, Field<?>> fieldMap;
     protected LoadProfile[] loadProfiles;
     protected Map<String, LoadProfile> loadProfileMap;
@@ -55,20 +56,29 @@ public class Table
     protected Map<String, QueryTemplate<?>> queries;
     protected Listener<Model>[][] listeners;
 
+    protected Column<?>[] lastModifiedColumns;
+    
+    protected Table parentTable;
+    protected Object discriminatorValue;
+    
+    protected Column<?> discriminatorColumn;
+    protected Map<Object, Table> childTables;
+    
     public Table( String table, int flags, Column<?>... keyColumns )
     {
-        this( table, flags, keyColumns, NO_FIELDS );
+        this( table, flags, null, keyColumns, NO_FIELDS );
     }
 
     public Table( String table, int flags, Table extension )
     {
-        this( table, flags, extension.keyColumns, extension.fields );
+        this( table, flags, extension, extension.keyColumns, extension.fields );
     }
 
-    private Table( String table, int flags, Column<?>[] id, Field<?>[] existingFields )
+    private Table( String table, int flags, Table extension, Column<?>[] id, Field<?>[] existingFields )
     {
         this.table = table;
         this.quotedName = SqlUtil.namify( table );
+        this.parentTable = extension;
         this.flags = flags;
         this.index = Rekord.newTable( this );
         this.fieldMap = new HashMap<String, Field<?>>();
@@ -93,7 +103,19 @@ public class Table
         update = new ModelUpdateQuery( this, is( DYNAMICALLY_UPDATED ) );
         delete = new ModelDeleteQuery( this );
     }
+    
+    public void setAsParent(Column<?> column)
+    {
+    	discriminatorColumn = column;
+    	childTables = new HashMap<Object, Table>();
+    }
 
+    public void setAsChild(Object value)
+    {
+    	discriminatorValue = value;
+    	parentTable.childTables.put( value, this );
+    }
+    
     public void setLoadProfiles( LoadProfile... newLoadProfiles )
     {
         loadProfiles = newLoadProfiles;
@@ -160,7 +182,17 @@ public class Table
         }
     }
 
-    public Table addNativeQuery( String name, String query, String loadProfileName )
+    public Column<?>[] getLastModifiedColumns()
+	{
+		return lastModifiedColumns;
+	}
+
+	public void setLastModifiedColumns( Column<?>[] lastModifiedColumns )
+	{
+		this.lastModifiedColumns = lastModifiedColumns;
+	}
+
+	public Table addNativeQuery( String name, String query, String loadProfileName )
     {
     	queries.put( name, NativeQuery.parse( this, query, getLoadProfile( loadProfileName ) ) );
     	
@@ -239,22 +271,37 @@ public class Table
         return keyColumns.length;
     }
 
-    public ModelInsertQuery getInsert()
+    public ModelQuery getInsert()
     {
         return insert;
     }
 
-    public ModelUpdateQuery getUpdate()
+    public ModelQuery getUpdate()
     {
         return update;
     }
 
-    public ModelDeleteQuery getDelete()
+    public ModelQuery getDelete()
     {
         return delete;
     }
+    
+    public void setInsert( ModelQuery insert )
+	{
+		this.insert = insert;
+	}
 
-    public Factory<? extends Model> getFactory()
+	public void setUpdate( ModelQuery update )
+	{
+		this.update = update;
+	}
+
+	public void setDelete( ModelQuery delete )
+	{
+		this.delete = delete;
+	}
+
+	public Factory<? extends Model> getFactory()
     {
         return factory;
     }
@@ -323,7 +370,7 @@ public class Table
     {
         return (flags & flag) == flag;
     }
-
+    
     @Override
     public String toString()
     {

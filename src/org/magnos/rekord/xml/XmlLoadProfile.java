@@ -26,6 +26,11 @@ class XmlLoadProfile extends XmlLoadable
         fields = new XmlField[fieldNames.length];
         fieldLoads = new XmlFieldLoad[table.fieldMap.size()];
 
+        for (int i = 0; i < fieldLoads.length; i++)
+        {
+        	fieldLoads[i] = new XmlFieldLoad();
+        }
+        
         for (int i = 0; i < fieldNames.length; i++)
         {
             String fn = fieldNames[i];
@@ -49,16 +54,15 @@ class XmlLoadProfile extends XmlLoadable
             }
 
             fields[i] = f;
-            fieldLoads[i] = new XmlFieldLoad();
             
             if (loadName != null && f.relatedTable != null) 
             {
-                fieldLoads[i].loadProfile = f.relatedTable.loadMap.get( loadName ); 
+                fieldLoads[f.index].loadProfile = f.relatedTable.loadMap.get( loadName ); 
             }
             
             if (limitNumber != null)            
             {
-            	fieldLoads[i].limitNumber = Integer.parseInt( limitNumber );
+            	fieldLoads[f.index].limitNumber = Integer.parseInt( limitNumber );
             }
         }
     }
@@ -70,7 +74,7 @@ class XmlLoadProfile extends XmlLoadable
     	
     	FieldLoad[] fieldLoadArray = new FieldLoad[ fieldLoads.length ];
     	
-    	for (int i = 0; i < fieldArray.length; i++)
+    	for (int i = 0; i < fieldLoadArray.length; i++)
     	{
     		fieldLoadArray[i] = new FieldLoad();
     		fieldLoadArray[i].setLimit( fieldLoads[i].limitNumber );

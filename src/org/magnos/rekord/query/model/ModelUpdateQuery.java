@@ -18,7 +18,7 @@ import org.magnos.rekord.query.Queryable;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
-public class ModelUpdateQuery
+public class ModelUpdateQuery implements ModelQuery
 {
 	
 	protected final Table table;

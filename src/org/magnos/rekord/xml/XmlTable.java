@@ -24,10 +24,14 @@ class XmlTable extends XmlLoadable
 {
     String name;
     String[] keyNames;
+    String[] lastModifiedColumnsNames;
     boolean dynamicInserts;
     boolean dynamicUpdates;
     boolean transactionCached;
     boolean applicationCached;
+    String extensionName;
+    String discriminatorColumnName;
+    String discriminatorValueString;
     Map<String, XmlField> fieldMap = new LinkedHashMap<String, XmlField>();
     Map<String, XmlLoadProfile> loadMap = new LinkedHashMap<String, XmlLoadProfile>();
     Map<String, XmlSaveProfile> saveMap = new LinkedHashMap<String, XmlSaveProfile>();
@@ -39,8 +43,13 @@ class XmlTable extends XmlLoadable
     String historyTimestamp;
     String[] historyColumnNames;
 
+    int flags;
     XmlField[] keys;
+    XmlField[] lastModifiedColumns;
     XmlField[] historyColumns;
+    XmlTable extension;
+    XmlField discriminatorColumn;
+    Object discriminatorValue;
     Class<?> clazz;
     Column<?>[] keyColumns;
     Field<?>[] fields;
@@ -51,9 +60,34 @@ class XmlTable extends XmlLoadable
     {
         keys = XmlLoader.getFields( this, keyNames, "key value %s on table %s was not specified in fields", name );
         
+        if (lastModifiedColumnsNames != null)
+        {
+        	lastModifiedColumns = XmlLoader.getFields( table, lastModifiedColumnsNames, "column %s on table %s was not specified in fields", name );
+        }
+        
         if (historyColumnNames != null)
         {
             historyColumns = XmlLoader.getFields( this, historyColumnNames, "history column %s for table %s was not found in the fields of the table", name );    
+        }
+        
+        if (discriminatorColumnName != null)
+        {
+        	discriminatorColumn = table.fieldMap.get( discriminatorColumnName );
+        	
+        	if (discriminatorColumn == null)
+        	{
+        		throw new RuntimeException( "Discriminator column " + discriminatorColumnName + " was not found" );
+        	}
+        }
+
+        if (extensionName != null)
+        {
+        	extension = tableMap.get( extensionName );
+        }
+        
+        if (extension == null ^ discriminatorValueString == null)
+        {
+        	throw new RuntimeException( "If a table extends another it must have a discriminator-value, and if it has a discriminator-value it must extend a table as well" );
         }
         
         for (XmlField f : fieldMap.values()) f.validate( table, tableMap );
@@ -78,7 +112,14 @@ class XmlTable extends XmlLoadable
     @Override
     public void instantiateTableImplementation()
     {
-        int flags = (
+    	if (discriminatorValueString != null)
+        {
+    		Column<?> c = (Column<?>)extension.discriminatorColumn.field;
+    		
+    		discriminatorValue = c.getConverter().fromDatabase( c.getType().fromString( discriminatorValueString ) );
+        }
+    	
+        flags = (
             (isRelationshipTable() ? Table.RELATIONSHIP_TABLE : 0) |
             (isSubTable() ? Table.SUB_TABLE : 0) |
             (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0) |
@@ -89,7 +130,25 @@ class XmlTable extends XmlLoadable
         );
         
         keyColumns = XmlLoader.getFields( keys );
-        table = new Table( name, flags, keyColumns );
+        
+        if (extensionName == null)
+        {
+        	table = new Table( name, flags, keyColumns );
+        	
+        	if (discriminatorColumn != null)
+            {
+            	table.setAsParent( (Column<?>)discriminatorColumn.field );
+            }
+        }
+        else
+    	{
+    		table = new Table( name, flags, extension.table );
+    		
+    		if (discriminatorValueString != null)
+    		{
+    			table.setAsChild( discriminatorValue );
+    		}
+    	}
     }
     
     @Override
@@ -102,11 +161,20 @@ class XmlTable extends XmlLoadable
     @Override
     public void initializeTable()
     {
+    	
+    	
         if (historyColumns != null)
         {
             Column<?>[] columns = XmlLoader.getFields( historyColumns );
             
             table.setHistory( new HistoryTable( table, historyTable, historyKey, historyTimestamp, columns ) );
+        }
+        
+        if (lastModifiedColumns != null)
+        {
+        	Column<?>[] columns = XmlLoader.getFields( lastModifiedColumns );
+        	
+        	table.setLastModifiedColumns( columns );
         }
         
         Collection<XmlField> fc = fieldMap.values();

@@ -14,7 +14,7 @@ import org.magnos.rekord.query.DeleteQuery;
 import org.magnos.rekord.query.QueryTemplate;
 
 
-public class ModelDeleteQuery
+public class ModelDeleteQuery implements ModelQuery
 {
 
 	protected Table table;

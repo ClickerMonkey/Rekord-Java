@@ -358,6 +358,10 @@ public class XmlLoader
 		XmlTable table = new XmlTable();
 		table.name = getAttribute( tableElement, "name", null, true );
 		table.keyNames = split( getAttribute( tableElement, "key", null, true ) );
+		table.lastModifiedColumnsNames = split( getAttribute( tableElement, "last-modified-columns", null, false ) );
+		table.extensionName = getAttribute( tableElement, "extends", null, false );
+		table.discriminatorColumnName = getAttribute( tableElement, "discriminator", null, false );
+		table.discriminatorValueString = getAttribute( tableElement, "discriminator-value", null, false );
 		table.dynamicInserts = TypeBoolean.parse( getAttribute( tableElement, "dynamic-insert", "false", true ), "dynamic-insert" );
 		table.dynamicUpdates = TypeBoolean.parse( getAttribute( tableElement, "dynamic-update", "true", true ), "dynamic-update" );
 		table.transactionCached = TypeBoolean.parse( getAttribute( tableElement, "transaction-cached", "true", true ), "transaction-cached" );
@@ -402,7 +406,9 @@ public class XmlLoader
 		if (!table.loadMap.containsKey( "all" ))
 		{
 			List<String> fieldNames = new ArrayList<String>();
-			for (XmlField fn : table.fieldMap.values()) {
+			
+			for (XmlField fn : table.fieldMap.values()) 
+			{
 				fieldNames.add( fn.name );
 			}
 			
@@ -418,6 +424,25 @@ public class XmlLoader
 			loadProfile.name = "id";
 			loadProfile.fieldNames = table.keyNames;
 			table.loadMap.put( loadProfile.name, loadProfile );
+		}
+		
+		for (XmlField f : table.fieldMap.values())
+		{
+			if (!table.loadMap.containsKey( f.name ))
+			{
+				XmlLoadProfile loadProfile = new XmlLoadProfile();
+				loadProfile.name = f.name;
+				loadProfile.fieldNames = ArrayUtil.add( f.name, table.keyNames );
+				table.loadMap.put( loadProfile.name, loadProfile );
+			}
+			
+			if (!table.saveMap.containsKey( f.name ))
+			{
+				XmlSaveProfile saveProfile = new XmlSaveProfile();
+				saveProfile.name = f.name;
+				saveProfile.fieldNames = new String[] {f.name};
+				table.saveMap.put( saveProfile.name, saveProfile );
+			}
 		}
 		
 		return table;
@@ -500,6 +525,7 @@ public class XmlLoader
 			field.table = table;
 			field.name = fieldName;
 			field.flags = readFlags( e, field.name, table.name ) | otherFlags;
+			field.index = table.fieldMap.size();
 			table.fieldMap.put( field.name, field );
 		}
 	}
@@ -668,6 +694,11 @@ public class XmlLoader
 	
 	protected static String[] split(String x)
 	{
+		if (x == null)
+		{
+			return null;
+		}
+		
 		String[] split = x.split( "[, ]" );
 
 		int nonZero = 0;

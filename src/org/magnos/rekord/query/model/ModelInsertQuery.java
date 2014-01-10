@@ -17,7 +17,7 @@ import org.magnos.rekord.query.QueryTemplate;
 import org.magnos.rekord.query.Queryable;
 
 
-public class ModelInsertQuery
+public class ModelInsertQuery implements ModelQuery
 {
 
 	protected final Table table;

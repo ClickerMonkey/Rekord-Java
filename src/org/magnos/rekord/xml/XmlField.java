@@ -9,6 +9,7 @@ abstract class XmlField extends XmlLoadable
     XmlTable relatedTable;
     String name;
     int flags;
+    int index;
 
     Field<?> field;
 }
