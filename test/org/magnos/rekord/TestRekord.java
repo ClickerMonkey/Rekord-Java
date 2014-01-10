@@ -23,7 +23,7 @@ public class TestRekord
 //		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 0 ).first( User.ID );
 //		long uid1 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 1 ).first( User.ID );
 		
-/* CRAZY (return-on-save, always-update, out, last-modified-columns) */
+/* CRAZY (return-on-save, always-update, out, last-modified-columns) * /
 		Crazy c = new Crazy();
 		c.setDiameter( 4.5f );
 		c.save();
@@ -96,7 +96,7 @@ public class TestRekord
         us.executeUpdate();
 /**/
 		
-/*SelectQuery #1* /
+/*SelectQuery #1 * /
 		SelectQuery<Comment> numberOfComments = new SelectQuery<Comment>( Comment.TABLE );
 		numberOfComments.count().where( Comment.USER_ID ).eq( User.ID );
 		

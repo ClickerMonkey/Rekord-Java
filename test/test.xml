@@ -26,6 +26,7 @@
         org.magnos.rekord.User
         org.magnos.rekord.Comment
         org.magnos.rekord.Commentable
+        org.magnos.rekord.Crazy
     </classes>
     
     <table name="user" key="id">
