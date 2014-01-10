@@ -537,6 +537,7 @@ public class XmlLoader
 		String generated = getAttribute( e, "generated", "false", true );
 		String nonNull = getAttribute( e, "non-null", "false", true );
 		String hasDefault = getAttribute( e, "has-default", "false", true );
+		String returnOnSave = getAttribute( e, "return-on-save", "false", true );
 		
 		String messagePostfix = " of field " + fieldName + " in table " + tableName;
 		
@@ -545,7 +546,8 @@ public class XmlLoader
 			(TypeBoolean.parse( readOnly, "read-only" + messagePostfix ) ? Field.READ_ONLY : 0) |
 			(TypeBoolean.parse( generated, "generated" + messagePostfix ) ? Field.GENERATED | Field.HAS_DEFAULT : 0) |
 			(TypeBoolean.parse( nonNull, "non-null" + messagePostfix ) ? Field.NON_NULL : 0) |
-			(TypeBoolean.parse( hasDefault, "has-default" + messagePostfix) ? Field.HAS_DEFAULT : 0)
+			(TypeBoolean.parse( hasDefault, "has-default" + messagePostfix) ? Field.HAS_DEFAULT : 0) |
+			(TypeBoolean.parse( returnOnSave, "return-on-save" + messagePostfix) ? Field.RETURN_ON_SAVE : 0)
 		);
 	}
     

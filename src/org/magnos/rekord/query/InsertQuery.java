@@ -60,9 +60,16 @@ public class InsertQuery<M extends Model> extends ExpressionChain<InsertQuery<M>
         {
             returning( f );
         }
-        else if (f instanceof Column && action == InsertAction.VALUE)
+        else
         {
-            insert( (Column<?>)f );
+            if (f instanceof Column && action == InsertAction.VALUE)
+            {
+                insert( (Column<?>)f );    
+            }
+            if (f.is( Field.RETURN_ON_SAVE ))
+            {
+                returning( f );
+            }
         }
 
         return this;
@@ -74,7 +81,17 @@ public class InsertQuery<M extends Model> extends ExpressionChain<InsertQuery<M>
         columns.append( column.getQuotedName() );
 
         values.pad( ", " );
-        values.append( column.getName(), column.getIn(), column, null, column.getType() );
+        
+        String save = column.getSaveExpression();
+        
+        if (save.indexOf( '?' ) == -1)
+        {
+            values.append( save );
+        }
+        else
+        {
+            values.append( column.getName(), save, column, null, column.getType() );    
+        }
 
         return this;
     }
@@ -85,8 +102,8 @@ public class InsertQuery<M extends Model> extends ExpressionChain<InsertQuery<M>
         columns.append( column.getQuotedName() );
 
         values.pad( ", " );
-        values.append( column.getName(), column.getIn(), column, column.getConverter().toDatabase( value ), column.getType() );
-
+        values.append( column.getName(), column.getOut(), column, column.getConverter().toDatabase( value ), column.getType() );
+        
         return this;
     }
 

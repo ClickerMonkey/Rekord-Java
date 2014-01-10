@@ -23,12 +23,12 @@ public class OperatorCondition<T> implements Condition
     
     public OperatorCondition(Column<T> column, Operator operator, T value)
     {
-        this( column.getQuotedName(), null, column.getName(), column.getIn(), operator.getSymbol(), value, column.getType(), column.getConverter() );
+        this( column.getQuotedName(), null, column.getName(), column.getSelectionExpression(), operator.getSymbol(), value, column.getType(), column.getConverter() );
     }
     
     public OperatorCondition(Column<T> column, String symbol, T value)
     {
-        this( column.getQuotedName(), null, column.getName(), column.getIn(), symbol, value, column.getType(), column.getConverter() );
+        this( column.getQuotedName(), null, column.getName(), column.getSelectionExpression(), symbol, value, column.getType(), column.getConverter() );
     }
     
     public OperatorCondition(String expression, Operator operator, T value)
@@ -63,12 +63,12 @@ public class OperatorCondition<T> implements Condition
 
     public static <T> OperatorCondition<T> forColumnBind(Column<T> c, Operator op)
     {
-        return new OperatorCondition<T>( c.getQuotedName(), c, c.getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
+        return new OperatorCondition<T>( c.getQuotedName(), c, c.getName(), c.getSelectionExpression(), op.getSymbol(), null, c.getType(), c.getConverter() );
     }
 
     public static <T> OperatorCondition<T> forForeignColumnBind(ForeignColumn<T> c, Operator op)
     {
-        return new OperatorCondition<T>( c.getQuotedName(), c.getForeignColumn(), c.getForeignColumn().getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
+        return new OperatorCondition<T>( c.getQuotedName(), c.getForeignColumn(), c.getForeignColumn().getName(), c.getSelectionExpression(), op.getSymbol(), null, c.getType(), c.getConverter() );
     }
 	
 }
