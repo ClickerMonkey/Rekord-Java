@@ -160,7 +160,7 @@ public class ForeignColumn<T> extends Column<T>
         @Override
         public boolean isUpdatable()
         {
-            return changed;
+            return changed || field.is(ALWAYS_UPDATE);
         }
 
         @Override

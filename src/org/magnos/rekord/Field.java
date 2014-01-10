@@ -14,6 +14,7 @@ public interface Field<T> extends Queryable
     public static final int MODEL           = 1 << 5;
     public static final int MODEL_LIST      = 1 << 6;
     public static final int RETURN_ON_SAVE  = 1 << 7;
+    public static final int ALWAYS_UPDATE     = 1 << 8;
     
 	public String getName();
     public String getQuotedName();

@@ -70,7 +70,7 @@ public class Column<T> extends AbstractField<T>
     @Override
     public boolean isUpdatable()
     {
-        return !is(READ_ONLY);
+        return !is(READ_ONLY) || is(ALWAYS_UPDATE);
     }
 
     @Override
@@ -220,7 +220,7 @@ public class Column<T> extends AbstractField<T>
         @Override
         public boolean isUpdatable()
         {
-            return !field.is( READ_ONLY ) && !partial && changed;
+            return field.is(ALWAYS_UPDATE) || (!field.is( READ_ONLY ) && !partial && changed);
         }
 
         @Override

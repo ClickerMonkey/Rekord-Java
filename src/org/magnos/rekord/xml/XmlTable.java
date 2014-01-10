@@ -19,6 +19,8 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.SaveProfile;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.resolve.DiscriminatorModelResolver;
+import org.magnos.rekord.resolve.DefaultModelResolver;
 
 class XmlTable extends XmlLoadable
 {
@@ -161,8 +163,6 @@ class XmlTable extends XmlLoadable
     @Override
     public void initializeTable()
     {
-    	
-    	
         if (historyColumns != null)
         {
             Column<?>[] columns = XmlLoader.getFields( historyColumns );
@@ -179,6 +179,15 @@ class XmlTable extends XmlLoadable
         
         Collection<XmlField> fc = fieldMap.values();
         table.setFields( XmlLoader.getFields( fc.toArray( new XmlField[fc.size()] ) ) );
+        
+        if ( discriminatorColumn == null )
+        {
+            table.setResolver( new DefaultModelResolver() );
+        }
+        else
+        {
+            table.setResolver( new DiscriminatorModelResolver() );
+        }
     }
     
     @Override

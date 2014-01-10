@@ -1,6 +1,7 @@
 
 package org.magnos.rekord.query;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.magnos.rekord.Factory;
@@ -23,6 +24,8 @@ public class UpdateQuery<M extends Model> extends ExpressionChain<UpdateQuery<M>
     {
         this.table = table;
         this.set = new QueryBuilder();
+        this.returning = new QueryBuilder();
+        this.returningFields = new ArrayList<Field<?>>();
         this.parent = this;
     }
 
