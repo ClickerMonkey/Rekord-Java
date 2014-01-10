@@ -15,7 +15,9 @@ public class DefaultTransaction implements Transaction
 
 	protected final Connection connection;
 	protected final Map<String, PreparedStatement> statementCache;
-	protected final ModelCache[] modelCache;
+	protected final ModelCache[] committedCache;
+	protected final ModelCache[] saveCache;
+	protected final ModelCache[] deleteCache;
 	protected boolean started;
 	protected boolean closed;
 
@@ -26,13 +28,20 @@ public class DefaultTransaction implements Transaction
 
 		final int tableCount = Rekord.getTableCount();
 		
-		this.modelCache = new ModelCache[ tableCount ];
+		this.committedCache = new ModelCache[ tableCount ];
+		this.saveCache = new ModelCache[ tableCount ];
+		this.deleteCache = new ModelCache[ tableCount ];
 		
 		for (int i = 0; i < tableCount; i++)
 		{
 		    Table table = Rekord.getTable( i );
 		    
-			this.modelCache[i] = new ModelCache( table.is( Table.TRANSACTION_CACHED ) ? new HashMap<Key, Model>() : null, table.getName() + " (transaction-scope)" );
+		    boolean cacheIt = table.is( Table.TRANSACTION_CACHED );
+		    String cacheName = table.getName() + " (transaction-scope)";
+		    
+			this.committedCache[i] = new ModelCache( cacheIt ? new HashMap<Key, Model>() : null, cacheName + " committed" );
+			this.saveCache[i] = new ModelCache( cacheIt ? new HashMap<Key, Model>() : null, cacheName + " uncommitted-save" );
+			this.deleteCache[i] = new ModelCache( cacheIt ? new HashMap<Key, Model>() : null, cacheName + " uncommitted-purge" );
 		}
 	}
 	
@@ -96,10 +105,61 @@ public class DefaultTransaction implements Transaction
 	        if (commit)
 	        {
 	            connection.commit();    
+	            
+	            int committedSaves = 0;
+	            int committedDeletes = 0;
+	            
+	            for (int i = 0; i < committedCache.length; i++)
+	            {
+	                Map<Key, Model> appMap = Rekord.getCache( i );
+                    Map<Key, Model> saveMap = saveCache[i].getMap();
+                    Map<Key, Model> deleteMap = deleteCache[i].getMap();
+                    Map<Key, Model> commitMap = committedCache[i].getMap();
+	                
+	                if (commitMap != null)
+	                {
+	                    committedSaves += saveMap.size();
+	                    committedDeletes += deleteMap.size();
+	                    
+	                    if (appMap != null)
+	                    {
+	                        appMap.putAll( saveMap );
+                            for (Key k : deleteMap.keySet()) appMap.remove( k );
+	                    }
+	                    
+	                    commitMap.putAll( saveMap );
+	                    for (Key k : deleteMap.keySet()) appMap.remove( k );
+	                    
+	                    saveMap.clear();
+	                    deleteMap.clear();
+	                }
+	            }
+	            
+	            Rekord.log( Logging.CACHING, "%d cache saves and %d cache deletions committed", committedSaves, committedDeletes );
 	        }
 	        else
 	        {
 	            connection.rollback();
+	            
+	            int rolledBackSaves = 0;
+	            int rolledBackDeletions = 0;
+	            
+	            for (int i = 0; i < committedCache.length; i++)
+                {
+	                Map<Key, Model> saveMap = saveCache[i].getMap();
+                    Map<Key, Model> deleteMap = deleteCache[i].getMap();
+                    
+                    if (saveMap != null)
+                    {
+                        rolledBackSaves += saveMap.size();
+                        rolledBackDeletions += deleteMap.size();
+                        
+                        saveMap.clear();
+                        deleteMap.clear();
+                    }
+                }
+	            
+	            Rekord.log( Logging.CACHING, "%d cache saves and %d cache deletions rolled-back", rolledBackSaves, rolledBackDeletions );
 	        }
         }
         catch (SQLException e)
@@ -172,41 +232,74 @@ public class DefaultTransaction implements Transaction
 	@Override
 	public <T extends Model> Map<Key, T> getCache( Table table )
 	{
-		return modelCache[ table.getIndex() ].getMap();
+		return committedCache[ table.getIndex() ].getMap();
 	}
 
 	@Override
 	public <T extends Model> T getCached( Table table, Key key )
 	{
-		T cached = Rekord.getCached( table, key );
-		
-		if (cached == null)
-		{
-			cached = modelCache[ table.getIndex() ].get( key );
-		}
-		
+	    int i = table.getIndex();
+	    T cached = null;
+	    
+	    if (started)
+	    {
+	        cached = saveCache[i].get( key );
+	    }
+	    
+	    if (cached == null)
+        {
+            cached = committedCache[i].get( key );
+            
+            if (cached == null)
+            {
+                cached = Rekord.getCached( table, key );
+            }
+        }
+	    
 		return cached;
 	}
 
 	@Override
 	public boolean cache( Table table, Model model )
 	{
-		boolean cached = Rekord.cache( table, model );
-		
-		if (!cached)
-		{
-			cached = modelCache[ table.getIndex() ].put( model );
-		}
-		
+	    boolean cached = false;
+	    int i = table.getIndex();
+	    
+	    if (started)
+	    {
+	        cached = saveCache[i].put( model );
+	        
+	        if (cached)
+	        {
+	            deleteCache[i].remove( model.getKey() );    
+	        }
+	    }
+	    else
+	    {
+	        cached |= committedCache[i].put( model );
+	        cached |= Rekord.cache( table, model );
+	    }
+	    
 		return cached;
 	}
 
 	@Override
 	public void purge( Table table, Model model )
 	{
-	    Rekord.purge( table, model );
+	    int i = table.getIndex();
 	    
-	    modelCache[ table.getIndex() ].remove( model.getKey() );
+	    if (started)
+	    {
+	        if (deleteCache[i].put( model ))
+	        {
+	            saveCache[i].remove( model.getKey() );
+	        }
+	    }
+	    else
+	    {
+	        committedCache[i].remove( model.getKey() );
+	        Rekord.purge( table, model );    
+	    }
 	}
 	
 }

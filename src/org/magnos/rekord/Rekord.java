@@ -90,6 +90,11 @@ public class Rekord
 		return t;
 	}
 	
+	public static Map<Key, Model> getCache(int tableIndex)
+	{
+	    return tableCache[ tableIndex ].getMap();
+	}
+	
 	public static <T extends Model> Map<Key, T> getCache(Table table)
 	{
 		return tableCache[ table.getIndex() ].getMap();

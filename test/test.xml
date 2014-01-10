@@ -6,8 +6,10 @@
         <password>rekord_password</password>
     </data-source>
     
+    <!-- SELECTS, INSERTS, UPDATES, DELETES, LAZY_FETCHING,
+         LOADING, ONE_TO_ONE, CACHING, HISTORY, HUMAN_READABLE_QUERY -->
     <logging mode="include">
-        HUMAN_READABLE_QUERY
+        HUMAN_READABLE_QUERY, CACHING
     </logging>
     
     <converter-classes>
