@@ -42,15 +42,6 @@ public class ManyToOne<T extends Model> extends JoinField<T>
 	public String toString()
 	{
 	    StringBuilder sb = beginToString();
-	    sb.append( ", join=" ).append( joinTable.getName() );
-	    sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
-	    sb.append( ", join-key={" );
-	    for (int i = 0; i < joinColumns.length; i++) {
-	        if (i > 0) sb.append( ", " );
-	        ForeignColumn<?> fc = joinColumns[i];
-	        sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
-	    }
-	    sb.append( "}" );
 	    return endToString( sb );
 	}
 	

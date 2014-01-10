@@ -72,4 +72,20 @@ public abstract class JoinField<T> extends AbstractField<T>
         return joinLoad;
     }
     
+    @Override
+    public String endToString(StringBuilder sb)
+    {
+        sb.append( ", join=" ).append( joinTable.getName() );
+        sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
+        sb.append( ", join-key={" );
+        for (int i = 0; i < joinColumns.length; i++) {
+            if (i > 0) sb.append( ", " );
+            ForeignColumn<?> fc = joinColumns[i];
+            sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
+        }
+        sb.append( "}" );
+        
+        return super.endToString( sb );
+    }
+    
 }

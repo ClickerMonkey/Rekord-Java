@@ -71,15 +71,6 @@ public class OneToMany<T extends Model> extends JoinField<List<T>>
         sb.append( ", fetch-size=" ).append( fetchSize );
         sb.append( ", cascade-delete=" ).append( cascadeDelete );
         sb.append( ", cascade-save=" ).append( cascadeSave );
-        sb.append( ", join=" ).append( joinTable.getName() );
-        sb.append( "[" ).append( joinLoad.getName() ).append( "]" );
-        sb.append( ", join-key={" );
-        for (int i = 0; i < joinColumns.length; i++) {
-            if (i > 0) sb.append( ", " );
-            ForeignColumn<?> fc = joinColumns[i];
-            sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
-        }
-        sb.append( "}" );
         return endToString( sb );
     }
 
