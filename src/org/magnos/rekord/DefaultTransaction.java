@@ -128,7 +128,7 @@ public class DefaultTransaction implements Transaction
 	                    }
 	                    
 	                    commitMap.putAll( saveMap );
-	                    for (Key k : deleteMap.keySet()) appMap.remove( k );
+	                    for (Key k : deleteMap.keySet()) commitMap.remove( k );
 	                    
 	                    saveMap.clear();
 	                    deleteMap.clear();
