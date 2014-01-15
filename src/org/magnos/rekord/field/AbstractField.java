@@ -68,6 +68,12 @@ public abstract class AbstractField<T> implements Field<T>
     {
         return (flags & flag) == flag;
     }
+    
+    @Override
+    public Field<?> getField()
+    {
+    	return this;
+    }
 
     protected StringBuilder beginToString()
     {

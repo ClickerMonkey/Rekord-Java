@@ -72,7 +72,7 @@ public class OneToOne<T extends Model> extends JoinField<T>
 		
 		private void copyBackKey( T value )
 		{
-			ForeignColumn<Object>[] foreign = (ForeignColumn<Object>[])field.getJoinColumns();
+			ForeignField<Object>[] foreign = (ForeignField<Object>[])field.getJoinColumns();
 			
 			for (int i = 0; i < foreign.length; i++)
 			{
@@ -82,7 +82,7 @@ public class OneToOne<T extends Model> extends JoinField<T>
 		
 		private void clearKey()
 		{
-			for (ForeignColumn<?> c : field.getJoinColumns())
+			for (ForeignField<?> c : field.getJoinColumns())
 			{
 				model.set( c, null );
 			}

@@ -11,7 +11,7 @@ public abstract class JoinField<T> extends AbstractField<T>
 {
 
     protected Table joinTable;
-    protected ForeignColumn<?>[] joinColumns;
+    protected ForeignField<?>[] joinColumns;
     protected LoadProfile joinLoad;
 
     public JoinField( String name, int flags )
@@ -20,7 +20,7 @@ public abstract class JoinField<T> extends AbstractField<T>
     }
     
     
-    public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignColumn<?> ... joinColumns )
+    public void setJoin( Table joinTable, LoadProfile joinLoad, ForeignField<?> ... joinColumns )
     {
         this.joinTable = joinTable;
         this.joinLoad = joinLoad;
@@ -62,7 +62,7 @@ public abstract class JoinField<T> extends AbstractField<T>
         return joinTable;
     }
     
-    public ForeignColumn<?>[] getJoinColumns()
+    public ForeignField<?>[] getJoinColumns()
     {
         return joinColumns;
     }
@@ -80,7 +80,7 @@ public abstract class JoinField<T> extends AbstractField<T>
         sb.append( ", join-key={" );
         for (int i = 0; i < joinColumns.length; i++) {
             if (i > 0) sb.append( ", " );
-            ForeignColumn<?> fc = joinColumns[i];
+            ForeignField<?> fc = joinColumns[i];
             sb.append( fc.getName() ).append( "->" ).append( joinTable.getName() ).append( "." ).append( fc.getForeignColumn().getName() );
         }
         sb.append( "}" );

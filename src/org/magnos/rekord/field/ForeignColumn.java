@@ -11,22 +11,18 @@ import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
-import org.magnos.rekord.Table;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.util.SqlUtil;
 
 
-public class ForeignColumn<T> extends Column<T>
+public class ForeignColumn<T> extends ForeignField<T>
 {
 	
-	protected Column<?> foreignColumn;
-	protected Table foreignTable;
-
 	public ForeignColumn( String column, int sqlType, Type<Object> type, String in, String out, T defaultValue, Converter<Object, T> converter )
 	{
-		super( column, sqlType, type, NONE, in, out, defaultValue, converter );
+		super( column, sqlType, type, in, out, defaultValue, converter );
 	}
 
 	@Override
@@ -59,38 +55,12 @@ public class ForeignColumn<T> extends Column<T>
         return out;
     }
     
-    @Override
-    public Field<?> getField()
-    {
-        return this;
-    }
-
 	@Override
 	public Value<T> newValue(Model model)
 	{
 		return new ForeignValue<T>( this );
 	}
 	
-	public Column<?> getForeignColumn()
-	{
-		return foreignColumn;
-	}
-	
-	public void setForeignColumn( Column<?> foreignColumn )
-	{
-		this.foreignColumn = foreignColumn;
-	}
-	
-    public Table getForeignTable()
-    {
-        return foreignTable;
-    }
-
-    public void setForeignTable( Table foreignTable )
-    {
-        this.foreignTable = foreignTable;
-    }
-
     @Override
 	public String toString()
 	{

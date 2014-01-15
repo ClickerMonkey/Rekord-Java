@@ -4,7 +4,7 @@ package org.magnos.rekord.query.expr;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.ConditionResolver;
@@ -17,9 +17,9 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 {
 
 	public final Field<M> field;
-	public final ForeignColumn<?>[] joinColumns;
+	public final ForeignField<?>[] joinColumns;
 
-	public ModelExpression( ConditionResolver<R> resolver, Field<M> field, ForeignColumn<?>[] joinColumns )
+	public ModelExpression( ConditionResolver<R> resolver, Field<M> field, ForeignField<?>[] joinColumns )
 	{
 	    super( resolver );
 	    

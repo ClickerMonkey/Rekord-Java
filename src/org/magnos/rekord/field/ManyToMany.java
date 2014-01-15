@@ -1,6 +1,5 @@
 package org.magnos.rekord.field;
 
-import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
@@ -49,12 +48,6 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
         return null;
     }
     
-    @Override
-    public Field<?> getField()
-    {
-        return this;
-    }
-
 	@Override
 	public Value<T> newValue( Model model )
 	{

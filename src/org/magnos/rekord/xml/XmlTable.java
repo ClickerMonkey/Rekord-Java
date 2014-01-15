@@ -245,7 +245,7 @@ class XmlTable extends XmlLoadable
         
         for (XmlField k : keys)
         {
-            if (!(k instanceof XmlForeignColumn)) 
+            if (!(k instanceof XmlForeignField)) 
             {
                 return false;
             }
@@ -262,7 +262,7 @@ class XmlTable extends XmlLoadable
         
         for (XmlField k : keys)
         {
-            if (!(k instanceof XmlForeignColumn)) 
+            if (!(k instanceof XmlForeignField)) 
             {
                 return false;
             }

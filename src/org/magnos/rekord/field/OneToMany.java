@@ -286,7 +286,7 @@ public class OneToMany<T extends Model> extends JoinField<List<T>>
 		
         private void setModelForeignKey( Model one, Model many )
         {
-            ForeignColumn<?>[] columns = field.getJoinColumns();
+        	ForeignField<?>[] columns = field.getJoinColumns();
             
             for (int i = 0; i < columns.length; i++)
             {

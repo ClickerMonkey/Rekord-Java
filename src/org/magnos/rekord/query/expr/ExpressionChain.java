@@ -8,7 +8,7 @@ import org.magnos.rekord.Key;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.field.ManyToOne;
 import org.magnos.rekord.field.OneToOne;
 import org.magnos.rekord.query.QueryBuilder;
@@ -150,7 +150,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
         return Conditions.newColumnsBindExpression( resolveAnd, table.getKeyColumns() );
     }
     
-    public R whereForeignKeyBind( ForeignColumn<?> ... columns )
+    public R whereForeignKeyBind( ForeignField<?> ... columns )
     {
         return Conditions.newColumnsForeignBindExpression( resolveAnd, columns );
     }
@@ -232,7 +232,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
         return Conditions.newColumnsBindExpression( resolveAnd, table.getKeyColumns() );
     }
     
-    public R andForeignKeyBind( ForeignColumn<?> ... columns )
+    public R andForeignKeyBind( ForeignField<?> ... columns )
     {
         return Conditions.newColumnsForeignBindExpression( resolveAnd, columns );
     }
@@ -314,7 +314,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
         return Conditions.newColumnsBindExpression( resolveAndNot, table.getKeyColumns() );
     }
     
-    public R andNotForeignKeyBind( ForeignColumn<?> ... columns )
+    public R andNotForeignKeyBind( ForeignField<?> ... columns )
     {
         return Conditions.newColumnsForeignBindExpression( resolveAndNot, columns );
     }
@@ -396,7 +396,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
         return Conditions.newColumnsBindExpression( resolveOr, table.getKeyColumns() );
     }
     
-    public R orForeignKeyBind( ForeignColumn<?> ... columns )
+    public R orForeignKeyBind( ForeignField<?> ... columns )
     {
         return Conditions.newColumnsForeignBindExpression( resolveOr, columns );
     }
@@ -477,7 +477,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
         return Conditions.newColumnsBindExpression( resolveOrNot, table.getKeyColumns() );
     }
     
-    public R orNotForeignKeyBind( ForeignColumn<?> ... columns )
+    public R orNotForeignKeyBind( ForeignField<?> ... columns )
     {
         return Conditions.newColumnsForeignBindExpression( resolveOrNot, columns );
     }

@@ -94,4 +94,20 @@
         </fields>
     </table>
     
+    <table name="role_player" key="id" discriminator="type">
+        <fields>
+            <column name="id" type="long" generated="true" />
+            <column name="name" type="text" />
+            <column name="type" type="text" />
+        </fields>
+    </table>
+    
+    <table name="group" key="role_player_id" extends="role_player" discriminator-value="1">
+        <fields>
+            <inherited name="role_player_id" column="id" />
+            <column name="password" type="text" />
+            <column name="salt" type="text" />
+        </fields>        
+    </table>
+    
 </rekord>

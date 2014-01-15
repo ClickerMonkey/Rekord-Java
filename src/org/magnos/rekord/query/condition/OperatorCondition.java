@@ -5,7 +5,7 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.QueryBuilder;
 
@@ -66,7 +66,7 @@ public class OperatorCondition<T> implements Condition
         return new OperatorCondition<T>( c.getSelectionExpression(), c, c.getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
     }
 
-    public static <T> OperatorCondition<T> forForeignColumnBind(ForeignColumn<T> c, Operator op)
+    public static <T> OperatorCondition<T> forForeignColumnBind(ForeignField<T> c, Operator op)
     {
         return new OperatorCondition<T>( c.getSelectionExpression(), c.getForeignColumn(), c.getForeignColumn().getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
     }

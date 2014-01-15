@@ -4,17 +4,17 @@ import org.magnos.rekord.Key;
 import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.field.ForeignColumn;
+import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.field.ManyToOne;
 import org.magnos.rekord.field.OneToOne;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.expr.ColumnExpression;
+import org.magnos.rekord.query.expr.ExpressionChain;
 import org.magnos.rekord.query.expr.GivenExpression;
 import org.magnos.rekord.query.expr.ModelExpression;
 import org.magnos.rekord.query.expr.QueryExpression;
 import org.magnos.rekord.query.expr.StringColumnExpression;
-import org.magnos.rekord.query.expr.ExpressionChain;
 
 
 public class Conditions
@@ -79,7 +79,7 @@ public class Conditions
         return newColumnsBindExpression( RESOLVER, table.getKeyColumns() );
     }
     
-    public static Condition isKeyBind( ForeignColumn<?> ... columns )
+    public static Condition isKeyBind( ForeignField<?> ... columns )
     {
         return newColumnsForeignBindExpression( RESOLVER, columns );
     }
@@ -142,7 +142,7 @@ public class Conditions
 
         for (int i = 0; i < keySize; i++)
         {
-            ForeignColumn<?> foreign = (ForeignColumn<?>)key.fieldAt( i );
+        	ForeignField<?> foreign = (ForeignField<?>)key.fieldAt( i );
 
             conditions[i] = new OperatorCondition( foreign.getForeignColumn(), Operator.EQ, key.valueAt( i ) );
         }
@@ -162,7 +162,7 @@ public class Conditions
         return resolver.resolve( new GroupCondition( ExpressionChain.AND, conditions ) );
     }
 
-    public static <R> R newColumnsForeignBindExpression( ConditionResolver<R> resolver, ForeignColumn<?>... columns )
+    public static <R> R newColumnsForeignBindExpression( ConditionResolver<R> resolver, ForeignField<?>... columns )
     {
         Condition[] conditions = new Condition[columns.length];
 

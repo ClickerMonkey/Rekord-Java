@@ -85,12 +85,6 @@ public class Column<T> extends AbstractField<T>
         return new ColumnValue<T>( this );
     }
     
-    @Override
-    public Field<?> getField()
-    {
-        return this;
-    }
-
     public String getIn()
     {
         return in;

@@ -53,6 +53,7 @@ public class XmlLoader
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
 	private static final String TAG_MANY_TO_ONE = "many-to-one";
 	private static final String TAG_ONE_TO_MANY = "one-to-many";
+	private static final String TAG_INHERITED = "inherited";
 	private static final String TAG_CONVERTER_CLASSES = "converter-classes";
 	private static final String TAG_CONVERTER_CLASS = "converter-class";
 	private static final String TAG_CONVERTERS = "converters";
@@ -452,6 +453,8 @@ public class XmlLoader
 	{
 		XmlIterator<Element> nodes = new XmlIterator<Element>( fields );
 		
+		List<XmlInheritedColumn> inherited = new ArrayList<XmlInheritedColumn>();
+		
 		for (Element e : nodes)
 		{
 			String tag = e.getTagName().toLowerCase();
@@ -516,6 +519,16 @@ public class XmlLoader
 				field = c;
 				otherFlags = Field.MODEL_LIST;
 			}
+			else if (tag.equals( TAG_INHERITED ))
+			{
+				XmlInheritedColumn c = new XmlInheritedColumn();
+				c.table = table;
+				c.name = fieldName;
+				c.foreignTableName = table.extensionName;
+                c.foreignColumnName = getAttribute( e, "column", null, true );
+                inherited.add( c );
+                continue;
+			}
 			else
 			{
 				unexpectedTag( fields, e );
@@ -527,6 +540,12 @@ public class XmlLoader
 			field.flags = readFlags( e, field.name, table.name ) | otherFlags;
 			field.index = table.fieldMap.size();
 			table.fieldMap.put( field.name, field );
+		}
+		
+		for (XmlInheritedColumn c : inherited)
+		{
+			c.index = table.fieldMap.size();
+			table.fieldMap.put( c.name, c );
 		}
 	}
 	

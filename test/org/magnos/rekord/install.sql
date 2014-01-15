@@ -58,4 +58,17 @@ $crazy_update$ LANGUAGE plpgsql;
 CREATE TRIGGER crazy_update BEFORE UPDATE ON crazy
     FOR EACH ROW EXECUTE PROCEDURE crazy_update();
     
-    
+CREATE TABLE "role_player" (
+    "id" BIGSERIAL,
+    "name" TEXT,
+    "type" TEXT,
+    PRIMARY KEY ("id")
+);    
+
+CREATE TABLE "group" (
+    "role_player_id" BIGINT,
+    "password" TEXT,
+    "salt" TEXT,
+    PRIMARY KEY ("role_player_id"),
+    FOREIGN KEY ("role_player_id") REFERENCES "role_player"("id")
+);
