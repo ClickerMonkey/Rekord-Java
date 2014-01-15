@@ -151,6 +151,35 @@ public class XmlLoader
 			}
 		}
 		
+		/* Dependency Keys
+		 * 
+		 * table.field.validate
+		 * table.field.instantiate
+		 * table.field.relateFields
+		 * 
+		 * table.validate
+		 * table.instantiate
+		 * table.history
+		 * table.lastModifiedColumns
+		 * table.fields
+		 * table.resolver
+		 * table.loads
+		 * table.saves
+		 * table.nativeQuery
+		 * table.listeners
+		 * 
+		 * load.validate
+		 * load.instantiate
+		 * load.relateFields
+		 * 
+		 * save.validate
+		 * save.instantiate
+		 * save.relateFields
+		 * 
+		 * 
+		 * 
+		 */
+		
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
 		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
 		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();

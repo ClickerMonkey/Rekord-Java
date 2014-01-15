@@ -3,10 +3,13 @@ package org.magnos.rekord;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.JoinField;
 import org.magnos.rekord.key.MultiModelKey;
 import org.magnos.rekord.key.MultiValueKey;
 import org.magnos.rekord.key.SingleModelKey;
@@ -40,8 +43,12 @@ public class Table
     protected final String quotedName;
     protected final int flags;
     protected Factory<? extends Model> factory;
-    protected Column<?>[] keyColumns = {};
-    protected Field<?>[] fields = {};
+    protected Column<?>[] keyColumns = {};          // key columns specified for this table
+    protected Field<?>[] fields = {};               // all fields (columns + join fields)
+    protected Column<?>[] columns = {};             // all columns
+    protected JoinField<?>[] joinFields = {};       // all join fields
+    protected Field<?>[] inheritedFields = {};      // all fields inherited from parent table
+    protected Field<?>[] givenFields = {};          // all fields defined specifically on this table
     protected ModelQuery insert;
     protected ModelQuery update;
     protected ModelQuery delete;
@@ -97,6 +104,9 @@ public class Table
     {
         int fieldCount = fields.length;
 
+        givenFields = newFields;
+        inheritedFields = fields;
+        
         fields = ArrayUtil.join( Field.class, fields, newFields );
         registerFields( fieldCount );
         mapFields( newFields );
@@ -104,6 +114,24 @@ public class Table
         insert = new ModelInsertQuery( this, is( DYNAMICALLY_INSERTED ) );
         update = new ModelUpdateQuery( this, is( DYNAMICALLY_UPDATED ) );
         delete = new ModelDeleteQuery( this );
+        
+        List<Column<?>> columnList = new ArrayList<Column<?>>();
+        List<JoinField<?>> joinFieldList = new ArrayList<JoinField<?>>();
+
+        for (Field<?> f : fields)
+        {
+            if (f instanceof Column)
+            {
+                columnList.add( (Column<?>)f );
+            }
+            if (f instanceof JoinField)
+            {
+                joinFieldList.add( (JoinField<?>)f );
+            }
+        }
+        
+        columns = columnList.toArray( new Column[ columnList.size() ] );
+        joinFields = joinFieldList.toArray( new JoinField[ joinFieldList.size() ] );
     }
     
     public void setAsParent(Column<?> column)
@@ -323,6 +351,26 @@ public class Table
         return delete;
     }
     
+    public Column<?>[] getColumns()
+    {
+        return columns;
+    }
+
+    public JoinField<?>[] getJoinFields()
+    {
+        return joinFields;
+    }
+
+    public Field<?>[] getInheritedFields()
+    {
+        return inheritedFields;
+    }
+
+    public Field<?>[] getGivenFields()
+    {
+        return givenFields;
+    }
+
     public void setInsert( ModelQuery insert )
 	{
 		this.insert = insert;
@@ -458,6 +506,11 @@ public class Table
             sb.append( fields[i] );
         }
         sb.append( "]" );
+        
+        appendFieldNames( sb, "columns", columns );
+        appendFieldNames( sb, "join-fields", joinFields );
+        appendFieldNames( sb, "inherited-fields", inheritedFields );
+        appendFieldNames( sb, "given-fields", givenFields );
 
         sb.append( ", loads=[" );
         for (int i = 0; i < loadProfiles.length; i++)
@@ -469,6 +522,19 @@ public class Table
 
         sb.append( "}" );
         return sb.toString();
+    }
+    
+    private void appendFieldNames(StringBuilder sb, String property, Field<?>[] fields)
+    {
+        sb.append( ", " ).append( property ).append( "=[" );
+        
+        for (int i = 0; i < fields.length; i++)
+        {
+            if (i > 0) sb.append( ", " );
+            sb.append( fields[i].getName() );
+        }
+        
+        sb.append( "]" );
     }
 
 }
