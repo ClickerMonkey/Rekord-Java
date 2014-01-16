@@ -140,10 +140,17 @@ public class Table
     	childTables = new HashMap<Object, Table>();
     }
 
-    public void setAsChild(Object value)
+    public void setAsChild(Object discriminator)
     {
-    	discriminatorValue = value;
-    	parentTable.childTables.put( value, this );
+    	discriminatorValue = discriminator;
+    	
+    	Table parent = parentTable;
+    	
+    	while (parent != null) 
+    	{
+    	    parent.childTables.put( discriminator, this );
+    	    parent = parent.parentTable;
+    	}
     }
     
     public void setLoadProfiles( LoadProfile... newLoadProfiles )
