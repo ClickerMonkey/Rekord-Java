@@ -78,9 +78,9 @@ public class Table
         this( table, flags, null, keyColumns, NO_FIELDS );
     }
 
-    public Table( String table, int flags, Table extension )
+    public Table( String table, int flags, Table extension, Column<?> ... keyColumns )
     {
-        this( table, flags, extension, extension.keyColumns, extension.fields );
+        this( table, flags, extension, keyColumns, extension.fields );
     }
 
     private Table( String table, int flags, Table extension, Column<?>[] id, Field<?>[] existingFields )

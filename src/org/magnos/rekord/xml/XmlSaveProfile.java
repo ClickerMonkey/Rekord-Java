@@ -1,24 +1,48 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import org.magnos.dependency.DependencyNode;
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.SaveProfile;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.UpdateQuery;
 
-class XmlSaveProfile extends XmlLoadable
+class XmlSaveProfile implements XmlLoadable
 {
+    
+    // set from XML
     String name;
     String[] fieldNames;
+
+    // set from validate
     XmlTable xmlTable;
-        
     XmlField[] fields;
+    
+    // set from Runnable
     SaveProfile saveProfile;
 
+    // nodes
+    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
+
+    public XmlSaveProfile()
+    {
+        stateInstantiate.setValue( new Runnable() {
+            public void run() {
+                Field<?>[] fieldArray = XmlLoader.getFields( fields );
+                
+                saveProfile = new SaveProfile( name, fieldArray, InsertQuery.forFields( xmlTable.table, fieldArray ), UpdateQuery.forFields( xmlTable.table, fieldArray ) );
+            }
+        } );
+    }
+    
     @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
         xmlTable = table;
         fields = new XmlField[fieldNames.length];
@@ -38,11 +62,16 @@ class XmlSaveProfile extends XmlLoadable
     }
 
     @Override
-    public void relateFieldReferences()
+    public void addNodes( List<DependencyNode<Runnable>> nodes )
     {
-        Field<?>[] fieldArray = XmlLoader.getFields( fields );
+        stateInstantiate.addDependencies( stateValidate, xmlTable.stateInstantiate );
         
-        saveProfile = new SaveProfile( name, fieldArray, InsertQuery.forFields( xmlTable.table, fieldArray ), UpdateQuery.forFields( xmlTable.table, fieldArray ) );
+        for (XmlField f : fields)
+        {
+            stateInstantiate.addDependency( f.stateInstantiate );
+        }
+        
+        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate ) );
     }
 
 }

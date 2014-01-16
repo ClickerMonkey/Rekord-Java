@@ -1,8 +1,11 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.List;
 import java.util.Map;
 
+import org.magnos.dependency.DependencyNode;
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignField;
 
@@ -10,23 +13,38 @@ import org.magnos.rekord.field.ForeignField;
 class XmlForeignField extends XmlColumn
 {
 
+    // set from XML
     String foreignTableName;
     String foreignColumnName;
 
+    // set from validate
     XmlTable foreignTable;
     XmlField foreignColumn;
-    
-    @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+
+    public XmlForeignField()
     {
-        super.validate( table, tableMap );
+        stateRelateFields.setValue( new Runnable() {
+
+            public void run()
+            {
+                ForeignField<Object> fc = (ForeignField<Object>)field;
+                fc.setForeignColumn( (Column<Object>)foreignColumn.field );
+                fc.setForeignTable( foreignTable.table );
+            }
+        } );
+    }
+
+    @Override
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
+    {
+        super.validate( table, tableMap, converters );
 
         validateForeign( tableMap );
     }
-    
+
     protected void validateForeign( Map<String, XmlTable> tableMap )
     {
-    	foreignTable = tableMap.get( foreignTableName );
+        foreignTable = tableMap.get( foreignTableName );
 
         if (foreignTable == null)
         {
@@ -43,12 +61,12 @@ class XmlForeignField extends XmlColumn
         relatedTable = foreignTable;
     }
 
-    @Override
-    public void relateFieldReferences()
+    public void addNodes( List<DependencyNode<Runnable>> nodes )
     {
-        ForeignField<Object> fc = (ForeignField<Object>)field;
-        fc.setForeignColumn( (Column<Object>)foreignColumn.field );
-        fc.setForeignTable( foreignTable.table );
+        super.addNodes( nodes );
+
+        stateRelateFields.addDependency( foreignTable.stateInstantiate );
+        stateRelateFields.addDependency( foreignColumn.stateInstantiate );
     }
 
 }

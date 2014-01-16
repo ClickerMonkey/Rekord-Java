@@ -1,8 +1,10 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.List;
 import java.util.Map;
 
+import org.magnos.dependency.DependencyNode;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.InheritColumn;
@@ -11,17 +13,30 @@ import org.magnos.rekord.field.InheritColumn;
 class XmlInheritedColumn extends XmlForeignField
 {
 
-    @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+    public XmlInheritedColumn()
     {
-    	validateForeign( tableMap );
+        stateInstantiate.setValue( new Runnable() {
+
+            @SuppressWarnings ("rawtypes" )
+            public void run()
+            {
+                field = new InheritColumn( name, (Column<?>)foreignColumn.field );
+            }
+        } );
     }
 
-    @SuppressWarnings ("rawtypes" )
     @Override
-    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
-        field = new InheritColumn( name, (Column<?>)foreignColumn.field );
+        validateForeign( tableMap );
+    }
+
+    @Override
+    public void addNodes( List<DependencyNode<Runnable>> nodes )
+    {
+        super.addNodes( nodes );
+
+        stateInstantiate.addDependency( foreignColumn.stateInstantiate );
     }
 
 }

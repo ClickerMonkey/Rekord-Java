@@ -29,7 +29,7 @@ class XmlColumn extends XmlField
 
     public XmlColumn()
     {
-    	nodeInstantiate.setValue( new Runnable() {
+    	stateInstantiate.setValue( new Runnable() {
     		public void run() {
     			field = new Column( name, sqlType, type, flags, in, out, defaultValue, converter );
     		}

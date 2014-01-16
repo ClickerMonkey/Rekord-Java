@@ -1,27 +1,74 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.magnos.dependency.DependencyNode;
+import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.LoadProfile;
 
-class XmlLoadProfile extends XmlLoadable
+class XmlLoadProfile implements XmlLoadable
 {
     static final Pattern VIEW_NAME_PATTERN = Pattern.compile( "^([^\\[\\(]+)(|\\(([\\d]+)\\))(|\\[([^\\]]+)\\])$" );
     
+    // set from XML
     String name;
     String[] fieldNames;
+    
+    // set from validate
     XmlFieldLoad[] fieldLoads;
-
     XmlField[] fields;
+    
+    // set from Runnable
     LoadProfile loadProfile;
 
+    // nodes
+    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateRelateFields = new DependencyNode<Runnable>();
+    
+    public XmlLoadProfile()
+    {
+        stateInstantiate.setValue( new Runnable() {
+            public void run() {
+                Field<?>[] fieldArray = XmlLoader.getFields( fields );
+                
+                FieldLoad[] fieldLoadArray = new FieldLoad[ fieldLoads.length ];
+                
+                for (int i = 0; i < fieldLoadArray.length; i++)
+                {
+                    fieldLoadArray[i] = new FieldLoad();
+                    fieldLoadArray[i].setLimit( fieldLoads[i].limitNumber );
+                }
+                
+                loadProfile = new LoadProfile( name, fieldArray, fieldLoadArray );
+            }
+        } );
+        
+        stateRelateFields.setValue( new Runnable() {
+            public void run() {
+                for (int i = 0; i < fieldLoads.length; i++)
+                {
+                    XmlFieldLoad xfv = fieldLoads[i];
+                    FieldLoad fv = loadProfile.getFieldLoads()[i];
+                    
+                    if (xfv != null && xfv.loadProfile != null)
+                    {
+                        fv.setLoadProfile( xfv.loadProfile.loadProfile );
+                    }
+                }
+            }
+        } );
+    }
+    
     @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
         fields = new XmlField[fieldNames.length];
         fieldLoads = new XmlFieldLoad[table.fieldMap.size()];
@@ -66,36 +113,28 @@ class XmlLoadProfile extends XmlLoadable
             }
         }
     }
-
+    
     @Override
-    public void instantiateProfileImplementation()
+    public void addNodes( List<DependencyNode<Runnable>> nodes )
     {
-    	Field<?>[] fieldArray = XmlLoader.getFields( fields );
-    	
-    	FieldLoad[] fieldLoadArray = new FieldLoad[ fieldLoads.length ];
-    	
-    	for (int i = 0; i < fieldLoadArray.length; i++)
-    	{
-    		fieldLoadArray[i] = new FieldLoad();
-    		fieldLoadArray[i].setLimit( fieldLoads[i].limitNumber );
-    	}
-    	
-        loadProfile = new LoadProfile( name, fieldArray, fieldLoadArray );
-    }
-
-    @Override
-    public void relateFieldReferences()
-    {
-    	for (int i = 0; i < fieldLoads.length; i++)
-    	{
-    		XmlFieldLoad xfv = fieldLoads[i];
-    		FieldLoad fv = loadProfile.getFieldLoads()[i];
-    		
-    		if (xfv != null && xfv.loadProfile != null)
-    		{
-   				fv.setLoadProfile( xfv.loadProfile.loadProfile );
-    		}
-    	}
+        stateInstantiate.addDependency( stateValidate );
+        
+        for (XmlField f : fields)
+        {
+            stateInstantiate.addDependency( f.stateInstantiate );
+        }
+        
+        stateRelateFields.addDependency( stateInstantiate );
+        
+        for (XmlFieldLoad f : fieldLoads)
+        {
+            if (f.loadProfile != null)
+            {
+                stateRelateFields.addDependency( f.loadProfile.stateInstantiate );    
+            }
+        }
+        
+        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateRelateFields ) );
     }
     
 }

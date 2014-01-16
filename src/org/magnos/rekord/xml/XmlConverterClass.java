@@ -5,6 +5,8 @@ import org.magnos.rekord.Converter;
 
 class XmlConverterClass
 {
+    
+    // set from XML
     String elementName;
     String converterClassName;
     Class<?> converterClass;

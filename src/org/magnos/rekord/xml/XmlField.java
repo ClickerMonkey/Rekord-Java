@@ -1,6 +1,7 @@
 
 package org.magnos.rekord.xml;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.magnos.dependency.DependencyNode;
@@ -22,18 +23,16 @@ abstract class XmlField implements XmlLoadable
     Field<?> field;
     
     // nodes
-    DependencyNode<Runnable> nodeValidate = new DependencyNode<Runnable>();
-    DependencyNode<Runnable> nodeInstantiate = new DependencyNode<Runnable>();
-    DependencyNode<Runnable> nodeRelateFields = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateRelateFields = new DependencyNode<Runnable>();
     
     public void addNodes(List<DependencyNode<Runnable>> nodes)
     {
-    	nodeInstantiate.addDependency( nodeValidate );
-    	nodeRelateFields.addDependency( nodeInstantiate );
+    	stateInstantiate.addDependency( stateValidate );
+    	stateRelateFields.addDependency( stateInstantiate );
     	
-    	nodes.add( nodeValidate );
-    	nodes.add( nodeInstantiate );
-    	nodes.add( nodeRelateFields );
+    	nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateRelateFields ) );
     }
     
 }

@@ -2,6 +2,7 @@
 package org.magnos.rekord.xml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,8 +21,8 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.SaveProfile;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
-import org.magnos.rekord.resolve.DiscriminatorModelResolver;
 import org.magnos.rekord.resolve.DefaultModelResolver;
+import org.magnos.rekord.resolve.DiscriminatorModelResolver;
 
 class XmlTable implements XmlLoadable
 {
@@ -61,6 +62,169 @@ class XmlTable implements XmlLoadable
     Field<?>[] fields;
     Table table;
     
+    // nodes
+    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateHistory = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateLastModifiedColumns = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateFields = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateResolver = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateLoadProfiles = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateSaveProfiles = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateNativeQueries = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateListeners = new DependencyNode<Runnable>();
+    
+    public XmlTable()
+    {
+        stateInstantiate.setValue( new Runnable() {
+            public void run() {
+                if (discriminatorValueString != null)
+                {
+                    Column<?> c = (Column<?>)extension.discriminatorColumn.field;
+                    
+                    discriminatorValue = c.getConverter().fromDatabase( c.getType().fromString( discriminatorValueString ) );
+                }
+                
+                flags = (
+                    (isRelationshipTable() ? Table.RELATIONSHIP_TABLE : 0) |
+                    (isSubTable() ? Table.SUB_TABLE : 0) |
+                    (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0) |
+                    (isDynamicallyInserted() ? Table.DYNAMICALLY_INSERTED : 0) |
+                    (isDynamicallyUpdated() ? Table.DYNAMICALLY_UPDATED : 0) |
+                    (isTransactionCached() ? Table.TRANSACTION_CACHED : 0) |
+                    (isApplicationCached() ? Table.APPLICATION_CACHED : 0)
+                );
+                
+                keyColumns = XmlLoader.getFields( keys );
+                
+                if (extension == null)
+                {
+                    table = new Table( name, flags, keyColumns );
+                }
+                else
+                {
+                    table = new Table( name, flags, extension.table, keyColumns );
+                }
+                
+                if (discriminatorColumn != null)
+                {
+                    table.setAsParent( (Column<?>)discriminatorColumn.field );
+                }
+                
+                if (discriminatorValue != null)
+                {
+                    table.setAsChild( discriminatorValue );
+                }
+            }
+        } );
+        
+        stateHistory.setValue( new Runnable() {
+            public void run() {
+                if (historyColumns != null)
+                {
+                    Column<?>[] columns = XmlLoader.getFields( historyColumns );
+                    
+                    table.setHistory( new HistoryTable( table, historyTable, historyKey, historyTimestamp, columns ) );
+                }
+            }
+        } );
+        
+        stateLastModifiedColumns.setValue( new Runnable() {
+            public void run() {
+                if (lastModifiedColumns != null)
+                {
+                    Column<?>[] columns = XmlLoader.getFields( lastModifiedColumns );
+                    
+                    table.setLastModifiedColumns( columns );
+                }
+            }
+        } );
+        
+        stateFields.setValue( new Runnable() {
+            public void run() {
+                Collection<XmlField> fc = fieldMap.values();
+                table.setFields( XmlLoader.getFields( fc.toArray( new XmlField[fc.size()] ) ) );
+            }
+        } );
+        
+        stateResolver.setValue( new Runnable() {
+            public void run() {
+                if ( discriminatorColumn == null )
+                {
+                    table.setResolver( new DefaultModelResolver() );
+                }
+                else
+                {
+                    table.setResolver( new DiscriminatorModelResolver() );
+                }
+            }
+        } );
+        
+        stateLoadProfiles.setValue( new Runnable() {
+            public void run() {
+                Collection<XmlLoadProfile> vc = loadMap.values();
+                XmlLoadProfile[] xmlLoadProfiles = vc.toArray( new XmlLoadProfile[ vc.size() ] );
+                LoadProfile[] loadProfiles = new LoadProfile[ vc.size() ];
+                
+                for (int i = 0; i < loadProfiles.length; i++)
+                {
+                    loadProfiles[i] = xmlLoadProfiles[i].loadProfile;
+                }
+                
+                table.setLoadProfiles( loadProfiles );
+            }
+        } );
+        
+        stateSaveProfiles.setValue( new Runnable() {
+            public void run() {
+                Collection<XmlSaveProfile> sc = saveMap.values();
+                XmlSaveProfile[] xmlSaveProfiles = sc.toArray( new XmlSaveProfile[ sc.size() ] );
+                SaveProfile[] saveProfiles = new SaveProfile[ sc.size() ];
+                
+                for (int i = 0; i < saveProfiles.length; i++)
+                {
+                    saveProfiles[i] = xmlSaveProfiles[i].saveProfile;
+                }
+                
+                table.setSaveProfiles( saveProfiles );
+            }
+        } );
+        
+        stateNativeQueries.setValue( new Runnable() {
+            public void run() {
+                for (XmlNativeQuery nq : nativeQueries)
+                {
+                    table.addNativeQuery( nq.name, nq.query, nq.loadProfile );
+                }
+            }
+        } );
+        
+        stateListeners.setValue( new Runnable() {
+            public void run() {
+                for (XmlListener xl : listeners)
+                {
+                    try
+                    {
+                        xl.listener.configure( table, xl.attributes );
+                    }
+                    catch (RuntimeException e)
+                    {
+                        throw e;
+                    }
+                    catch (Exception e)
+                    {
+                        throw new RuntimeException( e );
+                    }
+                    
+                    for (ListenerEvent le : xl.listenerClass.listenerEvents)
+                    {
+                        table.addListener( (Listener<Model>)xl.listener, le );
+                    }
+                }
+            }
+        } );
+    }
+    
     @Override
     public void validate(XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters)
     {
@@ -97,8 +261,8 @@ class XmlTable implements XmlLoadable
         }
         
         for (XmlField f : fieldMap.values()) f.validate( table, tableMap, converters );
-        for (XmlLoadProfile v : loadMap.values()) v.validate( table, tableMap );
-        for (XmlSaveProfile v : saveMap.values()) v.validate( table, tableMap );
+        for (XmlLoadProfile v : loadMap.values()) v.validate( table, tableMap, converters );
+        for (XmlSaveProfile v : saveMap.values()) v.validate( table, tableMap, converters );
         
         for (XmlNativeQuery nq : nativeQueries)
         {
@@ -112,141 +276,41 @@ class XmlTable implements XmlLoadable
     @Override
     public void addNodes(List<DependencyNode<Runnable>> nodes)
     {
-    	
-    }
-    
-    @Override
-    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
-    {
-        for (XmlField f : fieldMap.values()) f.instantiateFieldImplementation(converters);
-    }
-    
-    @Override
-    public void instantiateTableImplementation()
-    {
-    	if (discriminatorValueString != null)
-        {
-    		Column<?> c = (Column<?>)extension.discriminatorColumn.field;
-    		
-    		discriminatorValue = c.getConverter().fromDatabase( c.getType().fromString( discriminatorValueString ) );
-        }
-    	
-        flags = (
-            (isRelationshipTable() ? Table.RELATIONSHIP_TABLE : 0) |
-            (isSubTable() ? Table.SUB_TABLE : 0) |
-            (isCompletelyGenerated() ? Table.COMPLETELY_GENERATED : 0) |
-            (isDynamicallyInserted() ? Table.DYNAMICALLY_INSERTED : 0) |
-            (isDynamicallyUpdated() ? Table.DYNAMICALLY_UPDATED : 0) |
-            (isTransactionCached() ? Table.TRANSACTION_CACHED : 0) |
-            (isApplicationCached() ? Table.APPLICATION_CACHED : 0)
-        );
+        stateInstantiate.addDependency( stateValidate );
         
-        keyColumns = XmlLoader.getFields( keys );
-        
-        if (extensionName == null)
+        if (extension != null)
         {
-        	table = new Table( name, flags, keyColumns );
-        	
-        	if (discriminatorColumn != null)
-            {
-            	table.setAsParent( (Column<?>)discriminatorColumn.field );
-            }
-        }
-        else
-    	{
-    		table = new Table( name, flags, extension.table );
-    		
-    		if (discriminatorValueString != null)
-    		{
-    			table.setAsChild( discriminatorValue );
-    		}
-    	}
-    }
-    
-    @Override
-    public void instantiateProfileImplementation()
-    {
-        for (XmlLoadProfile v : loadMap.values()) v.instantiateProfileImplementation();
-        for (XmlSaveProfile v : saveMap.values()) v.instantiateProfileImplementation();
-    }
-    
-    @Override
-    public void initializeTable()
-    {
-        if (historyColumns != null)
-        {
-            Column<?>[] columns = XmlLoader.getFields( historyColumns );
-            
-            table.setHistory( new HistoryTable( table, historyTable, historyKey, historyTimestamp, columns ) );
+            stateInstantiate.addDependency( extension.discriminatorColumn.stateInstantiate );
+            stateInstantiate.addDependencies( extension.stateFields );
         }
         
-        if (lastModifiedColumns != null)
+        for (XmlField f : fieldMap.values())
         {
-        	Column<?>[] columns = XmlLoader.getFields( lastModifiedColumns );
-        	
-        	table.setLastModifiedColumns( columns );
+            stateInstantiate.addDependency( f.stateInstantiate );
         }
         
-        Collection<XmlField> fc = fieldMap.values();
-        table.setFields( XmlLoader.getFields( fc.toArray( new XmlField[fc.size()] ) ) );
+        stateHistory.addDependency( stateInstantiate );
+        stateLastModifiedColumns.addDependency( stateInstantiate );
+        stateFields.addDependency( stateInstantiate );
+        stateResolver.addDependency( stateInstantiate );
         
-        if ( discriminatorColumn == null )
-        {
-            table.setResolver( new DefaultModelResolver() );
-        }
-        else
-        {
-            table.setResolver( new DiscriminatorModelResolver() );
-        }
-    }
-    
-    @Override
-    public void relateFieldReferences()
-    {
-        for (XmlLoadProfile v : loadMap.values()) v.relateFieldReferences();
-        for (XmlSaveProfile v : saveMap.values()) v.relateFieldReferences();
-        for (XmlField f : fieldMap.values()) f.relateFieldReferences();
-    }
-    
-    @Override
-    public void finishTable() throws Exception
-    {
-        Collection<XmlLoadProfile> vc = loadMap.values();
-        XmlLoadProfile[] xmlLoadProfiles = vc.toArray( new XmlLoadProfile[ vc.size() ] );
-        LoadProfile[] loadProfiles = new LoadProfile[ vc.size() ];
+        stateLoadProfiles.addDependency( stateInstantiate );
         
-        for (int i = 0; i < loadProfiles.length; i++)
-        {
-            loadProfiles[i] = xmlLoadProfiles[i].loadProfile;
-        }
+        for (XmlLoadProfile l : loadMap.values()) stateLoadProfiles.addDependency( l.stateInstantiate );
         
-        table.setLoadProfiles( loadProfiles );
+        stateSaveProfiles.addDependency( stateInstantiate );
         
-        Collection<XmlSaveProfile> sc = saveMap.values();
-        XmlSaveProfile[] xmlSaveProfiles = sc.toArray( new XmlSaveProfile[ sc.size() ] );
-        SaveProfile[] saveProfiles = new SaveProfile[ sc.size() ];
+        for (XmlSaveProfile s : saveMap.values()) stateSaveProfiles.addDependency( s.stateInstantiate );
         
-        for (int i = 0; i < saveProfiles.length; i++)
-        {
-            saveProfiles[i] = xmlSaveProfiles[i].saveProfile;
-        }
+        stateNativeQueries.addDependencies( stateInstantiate, stateLoadProfiles );
         
-        table.setSaveProfiles( saveProfiles );
+        stateListeners.addDependencies( stateValidate, stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries );
         
-        for (XmlNativeQuery nq : nativeQueries)
-        {
-            table.addNativeQuery( nq.name, nq.query, nq.loadProfile );
-        }
+        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries, stateListeners ) );
         
-        for (XmlListener xl : listeners)
-        {
-        	xl.listener.configure( table, xl.attributes );
-        	
-        	for (ListenerEvent le : xl.listenerClass.listenerEvents)
-        	{
-        		table.addListener( (Listener<Model>)xl.listener, le );
-        	}
-        }
+        for (XmlField f : fieldMap.values()) f.addNodes( nodes );
+        for (XmlLoadProfile l : loadMap.values()) l.addNodes( nodes );
+        for (XmlSaveProfile s : saveMap.values()) s.addNodes( nodes );
     }
     
     private boolean isRelationshipTable()

@@ -15,6 +15,8 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.magnos.dependency.DependencyAnalyzer;
+import org.magnos.dependency.DependencyNode;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.DefaultTransactionFactory;
 import org.magnos.rekord.Field;
@@ -151,42 +153,31 @@ public class XmlLoader
 			}
 		}
 		
-		/* Dependency Keys
-		 * 
-		 * table.field.validate
-		 * table.field.instantiate
-		 * table.field.relateFields
-		 * 
-		 * table.validate
-		 * table.instantiate
-		 * table.history
-		 * table.lastModifiedColumns
-		 * table.fields
-		 * table.resolver
-		 * table.loads
-		 * table.saves
-		 * table.nativeQuery
-		 * table.listeners
-		 * 
-		 * load.validate
-		 * load.instantiate
-		 * load.relateFields
-		 * 
-		 * save.validate
-		 * save.instantiate
-		 * save.relateFields
-		 * 
-		 * 
-		 * 
-		 */
+		List<DependencyNode<Runnable>> dependencyGraph = new ArrayList<DependencyNode<Runnable>>();
 		
-		for (XmlTable t : tableMap.values()) t.validate( t, tableMap );
-		for (XmlTable t : tableMap.values()) t.instantiateFieldImplementation( converters );
-		for (XmlTable t : tableMap.values()) t.instantiateTableImplementation();
-		for (XmlTable t : tableMap.values()) t.initializeTable();
-        for (XmlTable t : tableMap.values()) t.instantiateProfileImplementation();
-		for (XmlTable t : tableMap.values()) t.relateFieldReferences();
-		for (XmlTable t : tableMap.values()) t.finishTable();
+		for (XmlTable t : tableMap.values()) t.validate( t, tableMap, converters );
+		for (XmlTable t : tableMap.values()) t.addNodes( dependencyGraph );
+		
+		DependencyAnalyzer<Runnable> analyzer = new DependencyAnalyzer<Runnable>();
+		
+		analyzer.analyze( dependencyGraph );
+		
+		System.out.println( "Dependency Tree Depth: " + analyzer.getMaximumDepth() );
+		
+		if (analyzer.isValid())
+		{
+		    for (Runnable r : analyzer.getOrdered())
+		    {
+		        if (r != null)
+		        {
+		            r.run();
+		        }
+		    }
+		}
+		else
+		{
+		    throw new RuntimeException( "Unexpected cyclical dependency in parsing configuration!" ); 
+		}
 		
 		for (String className : classesSet)
 		{
@@ -482,8 +473,6 @@ public class XmlLoader
 	{
 		XmlIterator<Element> nodes = new XmlIterator<Element>( fields );
 		
-		List<XmlInheritedColumn> inherited = new ArrayList<XmlInheritedColumn>();
-		
 		for (Element e : nodes)
 		{
 			String tag = e.getTagName().toLowerCase();
@@ -555,8 +544,7 @@ public class XmlLoader
 				c.name = fieldName;
 				c.foreignTableName = table.extensionName;
                 c.foreignColumnName = getAttribute( e, "column", null, true );
-                inherited.add( c );
-                continue;
+                field = c;
 			}
 			else
 			{
@@ -571,11 +559,6 @@ public class XmlLoader
 			table.fieldMap.put( field.name, field );
 		}
 		
-		for (XmlInheritedColumn c : inherited)
-		{
-			c.index = table.fieldMap.size();
-			table.fieldMap.put( c.name, c );
-		}
 	}
 	
 	private int readFlags(Element e, String fieldName, String tableName)

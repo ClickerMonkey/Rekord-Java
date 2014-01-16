@@ -4,44 +4,41 @@ package org.magnos.rekord.xml;
 import java.util.Map;
 
 import org.magnos.rekord.Converter;
-import org.magnos.rekord.field.ForeignColumn;
 import org.magnos.rekord.field.OneToMany;
 
-class XmlOneToMany extends XmlField
+
+class XmlOneToMany extends XmlJoinField
 {
 
-    String joinTableName;
-    String joinLoadName;
-    String[] joinKeyNames;
+    // set from XML
     String fetchSizeString;
     boolean cascadeDelete;
     boolean cascadeSave;
 
+    // set from validate
     int fetchSize;
-    XmlTable joinTable;
-    XmlField[] joinKey;
-    XmlLoadProfile loadProfile;
+
+    public XmlOneToMany()
+    {
+        stateInstantiate.setValue( new Runnable() {
+
+            @SuppressWarnings ("rawtypes" )
+            public void run()
+            {
+                field = new OneToMany( name, flags, fetchSize, cascadeDelete, cascadeSave );
+            }
+        } );
+    }
+
+    protected XmlTable getForeignTable()
+    {
+        return relatedTable;
+    }
 
     @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
-        joinTable = tableMap.get( joinTableName );
-
-        if (joinTable == null)
-        {
-            throw new RuntimeException( "join-table " + joinTableName + " specified for field " + name + " was not found" );
-        }
-
-        joinKey = XmlLoader.getFields( joinTable, joinKeyNames, "join-key value %s specified for field %s was not found", name );
-
-        loadProfile = joinTable.loadMap.get( joinLoadName );
-
-        if (loadProfile == null)
-        {
-            throw new RuntimeException( "join-load " + joinLoadName + " specified for field " + name + " was not found" );
-        }
-
-        relatedTable = joinTable;
+        super.validate( table, tableMap, converters );
 
         try
         {
@@ -58,20 +55,4 @@ class XmlOneToMany extends XmlField
         }
     }
 
-    @SuppressWarnings ("rawtypes" )
-    @Override
-    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
-    {
-        field = new OneToMany( name, flags, fetchSize, cascadeDelete, cascadeSave );
-    }
-
-    @SuppressWarnings ("rawtypes" )
-    @Override
-    public void relateFieldReferences()
-    {
-        OneToMany f = (OneToMany)field;
-        ForeignColumn<?>[] fcs = XmlLoader.getFields( joinKey );
-        f.setJoin( joinTable.table, loadProfile.loadProfile, fcs );
-    }
-    
 }
