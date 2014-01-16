@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.magnos.dependency.DependencyNode;
 import org.magnos.rekord.Converter;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.HistoryTable;
@@ -22,8 +23,10 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.resolve.DiscriminatorModelResolver;
 import org.magnos.rekord.resolve.DefaultModelResolver;
 
-class XmlTable extends XmlLoadable
+class XmlTable implements XmlLoadable
 {
+	
+	// set from XML
     String name;
     String[] keyNames;
     String[] lastModifiedColumnsNames;
@@ -39,26 +42,27 @@ class XmlTable extends XmlLoadable
     Map<String, XmlSaveProfile> saveMap = new LinkedHashMap<String, XmlSaveProfile>();
     List<XmlNativeQuery> nativeQueries = new ArrayList<XmlNativeQuery>();
     List<XmlListener> listeners = new ArrayList<XmlListener>();
-    
     String historyTable;
     String historyKey;
     String historyTimestamp;
     String[] historyColumnNames;
 
-    int flags;
+    // set from validate
     XmlField[] keys;
     XmlField[] lastModifiedColumns;
     XmlField[] historyColumns;
     XmlTable extension;
     XmlField discriminatorColumn;
     Object discriminatorValue;
-    Class<?> clazz;
+    
+    // set from Runnable
+    int flags;
     Column<?>[] keyColumns;
     Field<?>[] fields;
     Table table;
     
     @Override
-    public void validate(XmlTable table, Map<String, XmlTable> tableMap)
+    public void validate(XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters)
     {
         keys = XmlLoader.getFields( this, keyNames, "key value %s on table %s was not specified in fields", name );
         
@@ -92,7 +96,7 @@ class XmlTable extends XmlLoadable
         	throw new RuntimeException( "If a table extends another it must have a discriminator-value, and if it has a discriminator-value it must extend a table as well" );
         }
         
-        for (XmlField f : fieldMap.values()) f.validate( table, tableMap );
+        for (XmlField f : fieldMap.values()) f.validate( table, tableMap, converters );
         for (XmlLoadProfile v : loadMap.values()) v.validate( table, tableMap );
         for (XmlSaveProfile v : saveMap.values()) v.validate( table, tableMap );
         
@@ -105,6 +109,12 @@ class XmlTable extends XmlLoadable
         }
     }
 
+    @Override
+    public void addNodes(List<DependencyNode<Runnable>> nodes)
+    {
+    	
+    }
+    
     @Override
     public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
     {

@@ -10,10 +10,11 @@ import org.magnos.rekord.Type;
 import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
 
-
+@SuppressWarnings ("rawtypes" )
 class XmlColumn extends XmlField
 {
 
+	// set from XML
     Integer sqlType;
     String typeName;
     String in;
@@ -22,10 +23,21 @@ class XmlColumn extends XmlField
     String defaultValueString;
     String converterName;
     
+    // set from validation
     Object defaultValue;
+	Converter converter;
 
+    public XmlColumn()
+    {
+    	nodeInstantiate.setValue( new Runnable() {
+    		public void run() {
+    			field = new Column( name, sqlType, type, flags, in, out, defaultValue, converter );
+    		}
+    	});
+    }
+    
     @Override
-    public void validate( XmlTable table, Map<String, XmlTable> tableMap )
+    public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
         if (sqlType == null && typeName == null)
         {
@@ -34,30 +46,21 @@ class XmlColumn extends XmlField
         
         type = sqlType != null ? Rekord.getType( sqlType ) : Rekord.getType( typeName );
         
-        defaultValue = type.fromString( defaultValueString );
-    }
-
-    @SuppressWarnings ("rawtypes" )
-    @Override
-    public void instantiateFieldImplementation(Map<String, Converter<?, ?>> converters)
-    {
-    	Converter convert = converters.get( converterName );
-    	
-    	if (convert == null)
-    	{
-    		convert = NoConverter.INSTANCE;
-    	}
-    	else
-    	{
-    		defaultValue = convert.fromDatabase( defaultValue );
-    	}
-    	
-    	if (sqlType == null)
+        if (sqlType == null)
     	{
     	    sqlType = Types.OTHER;
     	}
+        
+        converter = converters.get( converterName );
     	
-        field = new Column( name, sqlType, type, flags, in, out, defaultValue, convert );
+    	if (converter == null)
+    	{
+    		converter = NoConverter.INSTANCE;
+    	}
+    	else
+    	{
+    		defaultValue = converter.fromDatabase( type.fromString( defaultValueString ) );
+    	}
     }
-    
+
 }
