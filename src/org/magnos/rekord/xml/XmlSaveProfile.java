@@ -27,7 +27,6 @@ class XmlSaveProfile implements XmlLoadable
     SaveProfile saveProfile;
 
     // nodes
-    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
 
     public XmlSaveProfile()
@@ -64,14 +63,14 @@ class XmlSaveProfile implements XmlLoadable
     @Override
     public void addNodes( List<DependencyNode<Runnable>> nodes )
     {
-        stateInstantiate.addDependencies( stateValidate, xmlTable.stateInstantiate );
+        stateInstantiate.addDependency( xmlTable.stateInstantiate );
         
         for (XmlField f : fields)
         {
             stateInstantiate.addDependency( f.stateInstantiate );
         }
         
-        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate ) );
+        nodes.addAll( Arrays.asList( stateInstantiate ) );
     }
 
 }

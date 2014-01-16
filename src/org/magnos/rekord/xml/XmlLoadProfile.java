@@ -29,7 +29,6 @@ class XmlLoadProfile implements XmlLoadable
     LoadProfile loadProfile;
 
     // nodes
-    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateRelateFields = new DependencyNode<Runnable>();
     
@@ -117,8 +116,6 @@ class XmlLoadProfile implements XmlLoadable
     @Override
     public void addNodes( List<DependencyNode<Runnable>> nodes )
     {
-        stateInstantiate.addDependency( stateValidate );
-        
         for (XmlField f : fields)
         {
             stateInstantiate.addDependency( f.stateInstantiate );
@@ -134,7 +131,7 @@ class XmlLoadProfile implements XmlLoadable
             }
         }
         
-        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateRelateFields ) );
+        nodes.addAll( Arrays.asList( stateInstantiate, stateRelateFields ) );
     }
     
 }

@@ -10,11 +10,12 @@ import org.magnos.rekord.Type;
 import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
 
+
 @SuppressWarnings ("rawtypes" )
 class XmlColumn extends XmlField
 {
 
-	// set from XML
+    // set from XML
     Integer sqlType;
     String typeName;
     String in;
@@ -22,20 +23,22 @@ class XmlColumn extends XmlField
     Type<?> type;
     String defaultValueString;
     String converterName;
-    
+
     // set from validation
     Object defaultValue;
-	Converter converter;
+    Converter converter;
 
     public XmlColumn()
     {
-    	stateInstantiate.setValue( new Runnable() {
-    		public void run() {
-    			field = new Column( name, sqlType, type, flags, in, out, defaultValue, converter );
-    		}
-    	});
+        stateInstantiate.setValue( new Runnable() {
+
+            public void run()
+            {
+                field = new Column( name, sqlType, type, flags, in, out, defaultValue, converter );
+            }
+        } );
     }
-    
+
     @Override
     public void validate( XmlTable table, Map<String, XmlTable> tableMap, Map<String, Converter<?, ?>> converters )
     {
@@ -43,24 +46,25 @@ class XmlColumn extends XmlField
         {
             throw new RuntimeException( "unknown type specified for " + name + " on table " + table.name );
         }
-        
+
         type = sqlType != null ? Rekord.getType( sqlType ) : Rekord.getType( typeName );
-        
+
         if (sqlType == null)
-    	{
-    	    sqlType = Types.OTHER;
-    	}
-        
+        {
+            sqlType = Types.OTHER;
+        }
+
         converter = converters.get( converterName );
-    	
-    	if (converter == null)
-    	{
-    		converter = NoConverter.INSTANCE;
-    	}
-    	else
-    	{
-    		defaultValue = converter.fromDatabase( type.fromString( defaultValueString ) );
-    	}
+
+        if (converter == null)
+        {
+            converter = NoConverter.INSTANCE;
+        }
+        
+        if (defaultValueString != null)
+        {
+            defaultValue = converter.fromDatabase( type.fromString( defaultValueString ) );    
+        }
     }
 
 }

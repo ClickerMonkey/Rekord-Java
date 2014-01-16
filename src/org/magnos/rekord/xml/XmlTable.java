@@ -63,7 +63,6 @@ class XmlTable implements XmlLoadable
     Table table;
     
     // nodes
-    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateHistory = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateLastModifiedColumns = new DependencyNode<Runnable>();
@@ -276,8 +275,6 @@ class XmlTable implements XmlLoadable
     @Override
     public void addNodes(List<DependencyNode<Runnable>> nodes)
     {
-        stateInstantiate.addDependency( stateValidate );
-        
         if (extension != null)
         {
             stateInstantiate.addDependency( extension.discriminatorColumn.stateInstantiate );
@@ -304,9 +301,9 @@ class XmlTable implements XmlLoadable
         
         stateNativeQueries.addDependencies( stateInstantiate, stateLoadProfiles );
         
-        stateListeners.addDependencies( stateValidate, stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries );
+        stateListeners.addDependencies( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries );
         
-        nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries, stateListeners ) );
+        nodes.addAll( Arrays.asList( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries, stateListeners ) );
         
         for (XmlField f : fieldMap.values()) f.addNodes( nodes );
         for (XmlLoadProfile l : loadMap.values()) l.addNodes( nodes );

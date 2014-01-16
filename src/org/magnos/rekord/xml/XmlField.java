@@ -23,16 +23,14 @@ abstract class XmlField implements XmlLoadable
     Field<?> field;
     
     // nodes
-    DependencyNode<Runnable> stateValidate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateInstantiate = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateRelateFields = new DependencyNode<Runnable>();
     
     public void addNodes(List<DependencyNode<Runnable>> nodes)
     {
-    	stateInstantiate.addDependency( stateValidate );
     	stateRelateFields.addDependency( stateInstantiate );
     	
-    	nodes.addAll( Arrays.asList( stateValidate, stateInstantiate, stateRelateFields ) );
+    	nodes.addAll( Arrays.asList( stateInstantiate, stateRelateFields ) );
     }
     
 }

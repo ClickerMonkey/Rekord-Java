@@ -158,6 +158,8 @@ public class XmlLoader
 		for (XmlTable t : tableMap.values()) t.validate( t, tableMap, converters );
 		for (XmlTable t : tableMap.values()) t.addNodes( dependencyGraph );
 		
+		System.out.println( "Dependency Graph Size: " + dependencyGraph.size() );
+		
 		DependencyAnalyzer<Runnable> analyzer = new DependencyAnalyzer<Runnable>();
 		
 		analyzer.analyze( dependencyGraph );

@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import org.junit.Test;
 import org.magnos.rekord.xml.XmlLoader;
 
+
+
 public class TestRekord
 {
 	
@@ -20,8 +22,8 @@ public class TestRekord
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
 		
-//		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 0 ).first( User.ID );
-//		long uid1 = new SelectQuery<Model>( User.TABLE ).create().withPage( 1, 1 ).first( User.ID );
+//		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withOffset( 0 ).first( User.ID );
+//		long uid1 = new SelectQuery<Model>( User.TABLE ).create().withOffset( 1 ).first( User.ID );
 		
 /* CRAZY (return-on-save, always-update, out, last-modified-columns) * /
 		Crazy c = new Crazy();
@@ -115,7 +117,7 @@ public class TestRekord
 /**/
 		  
 /*SelectQuery #2* /
-		Condition c_user = Conditions.is( Comment.USER_ID ).eq( User.ID );
+		Condition c_user = is( Comment.USER_ID ).eq( User.ID );
 		
         SelectQuery<Comment> numberOfComments = new SelectQuery<Comment>( Comment.TABLE ).count().where( c_user );
 		
