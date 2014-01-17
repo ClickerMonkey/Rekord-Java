@@ -14,6 +14,7 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.Type;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
+import org.magnos.rekord.query.expr.ColumnResolver;
 import org.magnos.rekord.util.SqlUtil;
 
 
@@ -32,9 +33,9 @@ public class ForeignColumn<T> extends ForeignField<T>
 	}
 	
 	@Override
-	public String getSelectExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(ColumnResolver resolver, FieldLoad fieldLoad)
 	{
-		return getSelectionExpression();
+	    return resolver.resolve( this );
 	}
 
     @Override

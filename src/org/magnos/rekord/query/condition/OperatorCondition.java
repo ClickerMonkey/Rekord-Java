@@ -8,6 +8,7 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.QueryBuilder;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 public class OperatorCondition<T> implements Condition
 {
@@ -24,6 +25,11 @@ public class OperatorCondition<T> implements Condition
     public OperatorCondition(Column<T> column, Operator operator, T value)
     {
         this( column.getSelectionExpression(), null, column.getName(), column.getIn(), operator.getSymbol(), value, column.getType(), column.getConverter() );
+    }
+    
+    public OperatorCondition(ColumnResolver resolver, Column<T> column, Operator operator, T value)
+    {
+        this( resolver.resolve( column ), null, column.getName(), column.getIn(), operator.getSymbol(), value, column.getType(), column.getConverter() );
     }
     
     public OperatorCondition(Column<T> column, String symbol, T value)
@@ -64,6 +70,11 @@ public class OperatorCondition<T> implements Condition
     public static <T> OperatorCondition<T> forColumnBind(Column<T> c, Operator op)
     {
         return new OperatorCondition<T>( c.getSelectionExpression(), c, c.getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
+    }
+
+    public static <T> OperatorCondition<T> forColumnBind(ColumnResolver resolver, Column<T> c, Operator op)
+    {
+        return new OperatorCondition<T>( resolver.resolve( c ), c, c.getName(), c.getIn(), op.getSymbol(), null, c.getType(), c.getConverter() );
     }
 
     public static <T> OperatorCondition<T> forForeignColumnBind(ForeignField<T> c, Operator op)

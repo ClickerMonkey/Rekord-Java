@@ -73,7 +73,8 @@ public class View
             }
         }
         
-        select.from( from );
+        // TODO custom from
+        // select.from( from );
         
         select.setLoadProfile( load );
         

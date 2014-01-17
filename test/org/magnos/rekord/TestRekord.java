@@ -3,8 +3,9 @@ package org.magnos.rekord;
 import java.io.FileInputStream;
 
 import org.junit.Test;
+import org.magnos.rekord.query.Select;
+import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.xml.XmlLoader;
-
 
 
 public class TestRekord
@@ -41,13 +42,34 @@ public class TestRekord
 		CommentableGroup cg = new CommentableGroup();
 		cg.setName( "name#3" );
 		cg.setPassword( "password#3" );
-		cg.getCommentable().setCount( 4 );
 		cg.save();
-		
+
+		cg.getCommentable().setCount( 4 );
 		cg.setPassword( "password#4" );
 		cg.save();
+/**/
 		
-		cg.delete();
+/* JOINING */
+		
+		SelectQuery<CommentableGroup> q = Select.build( CommentableGroup.TABLE, CommentableGroup.TABLE.getLoadProfileAll() );
+		
+//		SelectQuery<CommentableGroup> q = Select.from( CommentableGroup.TABLE );
+//		
+//		TableAlias commentableGroup = q.getTableAlias();
+//		TableAlias group = q.alias( Group.TABLE );
+//		TableAlias rolePlayer = q.alias( RolePlayer.TABLE );
+//		
+//		Join groupJoin = q.join( Join.INNER, group );
+//		groupJoin.where( Group.ROLE_PLAYER_ID ).eq( commentableGroup.alias( CommentableGroup.GROUP_ID ) );
+//
+//		Join rolePlayerJoin = q.join( Join.INNER, rolePlayer );
+//		rolePlayerJoin.where( RolePlayer.ID ).eq( group.alias( Group.ROLE_PLAYER_ID ) );
+//		
+//		q.select( commentableGroup.alias( CommentableGroup.COMMENTABLE_ID ) );
+//		q.select( group.alias( Group.PASSWORD ) );
+//		q.select( rolePlayer.alias( RolePlayer.NAME ) );
+		
+		System.out.println( q.create().list() );
 /**/
 		
 //		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withOffset( 0 ).first( User.ID );
@@ -135,11 +157,7 @@ public class TestRekord
 		query.where( User.COMMENTABLE ).eqExp( "?cid" )
 			  .and( User.NAME ).eq( "LOWERCASE" )
 			  .and( User.CREATED_TIMESTAMP ).between( new Timestamp( System.currentTimeMillis() - 10000000000L ), new Timestamp( System.currentTimeMillis() ) )
-		      .and( numberOfComments ).gt( 0 )
-		      .and()
-		          .where( User.ID ).gt( 0L )
-		          .or( User.ID ).lt( 0L )
-		      .end();
+		      .and( numberOfComments ).gt( 0 );
 		
 		System.out.println( query.create().bind( "cid", 5L ).list() );
 /**/

@@ -29,7 +29,7 @@
         org.magnos.rekord.Crazy
     </classes>
     
-    <table name="user" key="id">
+    <table name="user" key="id" alias="u">
         <fields>
             <column name="id" type="long" generated="true" read-only="true" />
             <column name="name" type="string" />
@@ -61,7 +61,7 @@
         <history table="user_history" timestamp="user_history_timestamp" columns="id, name" />
     </table>
     
-    <table name="comment" key="id">
+    <table name="comment" key="id" alias="c">
         <fields>
             <column name="id" type="long" generated="true" read-only="true" />
             <column name="text" type="string" />
@@ -75,7 +75,7 @@
         </load-profiles>
     </table>
     
-    <table name="commentable" key="id">
+    <table name="commentable" key="id" alias="cb">
         <fields>
             <column name="id" type="long" generated="true" read-only="true" />
             <column name="count" type="int" generated="true" default-value="42" />
@@ -84,7 +84,7 @@
         </fields>        
     </table>
     
-    <table name="crazy" key="id_0, id_1" last-modified-columns="last_modified_tms">
+    <table name="crazy" key="id_0, id_1" last-modified-columns="last_modified_tms" alias="cr">
         <fields>
             <column name="id_0" type="long" generated="true" read-only="true" />
             <column name="id_1" type="long" generated="true" read-only="true" />
@@ -94,7 +94,7 @@
         </fields>
     </table>
     
-    <table name="role_player" key="id" discriminator="type">
+    <table name="role_player" key="id" discriminator="type" alias="rp">
         <fields>
             <column name="id" type="long" generated="true" />
             <column name="name" type="text" />
@@ -102,7 +102,7 @@
         </fields>
     </table>
     
-    <table name="group" key="role_player_id" extends="role_player" discriminator-value="1">
+    <table name="group" key="role_player_id" extends="role_player" discriminator-value="1" alias="g">
         <fields>
             <inherited name="role_player_id" column="id" />
             <column name="password" type="text" />
@@ -110,7 +110,7 @@
         </fields>        
     </table>
     
-    <table name="commentable_group" key="group_id" extends="group" discriminator-value="2">
+    <table name="commentable_group" key="group_id" extends="group" discriminator-value="2" alias="cg">
         <fields>
             <inherited name="group_id" column="role_player_id" />
             <foreign name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />

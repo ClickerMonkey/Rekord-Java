@@ -17,6 +17,7 @@ import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.SelectQuery;
+import org.magnos.rekord.query.expr.ColumnResolver;
 import org.magnos.rekord.util.SqlUtil;
 
 
@@ -49,16 +50,16 @@ public class Column<T> extends AbstractField<T>
     }
 
     @Override
-    public String getSelectExpression( FieldLoad fieldLoad )
+    public String getSelectExpression( ColumnResolver resolver, FieldLoad fieldLoad )
     {
         int limit = fieldLoad.getLimit();
 
         if (limit == -1)
         {
-            return getSelectionExpression();
+            return resolver.resolve( this );
         }
 
-        return type.getPartialExpression( getSelectionExpression(), limit, quotedName );
+        return type.getPartialExpression( resolver.resolve( this ), limit, quotedName );
     }
 
     @Override
@@ -97,7 +98,7 @@ public class Column<T> extends AbstractField<T>
 
     public String getSelectionExpression()
     {
-        return in.replaceAll( "\\?", quotedName );
+        return in.replaceAll( "\\?", name );
     }
 
     public int getSqlType()

@@ -380,6 +380,7 @@ public class XmlLoader
 	{
 		XmlTable table = new XmlTable();
 		table.name = getAttribute( tableElement, "name", null, true );
+		table.alias = getAttribute( tableElement, "alias", table.name, true );
 		table.keyNames = split( getAttribute( tableElement, "key", null, true ) );
 		table.lastModifiedColumnsNames = split( getAttribute( tableElement, "last-modified-columns", null, false ) );
 		table.extensionName = getAttribute( tableElement, "extends", null, false );

@@ -5,6 +5,7 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Value;
 import org.magnos.rekord.query.InsertAction;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 public class ManyToMany<T extends Model> extends AbstractField<T>
 {
@@ -25,7 +26,7 @@ public class ManyToMany<T extends Model> extends AbstractField<T>
 	}
 	
 	@Override
-	public String getSelectExpression(FieldLoad fieldLoad)
+	public String getSelectExpression(ColumnResolver resolver, FieldLoad fieldLoad)
 	{
 		return null;
 	}

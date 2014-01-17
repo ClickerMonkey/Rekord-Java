@@ -39,6 +39,7 @@ public class Table
     protected final int index;
     protected final String table;
     protected final String quotedName;
+    protected final String alias;
     protected final int flags;
     protected Factory<? extends Model> factory;
     protected Column<?>[] keyColumns = {};          // key columns specified for this table
@@ -62,29 +63,30 @@ public class Table
     protected Listener<Model>[][] listeners;
 
     protected Column<?>[] lastModifiedColumns;
-    
+
     protected Table parentTable;
     protected Object discriminatorValue;
-    
+
     protected Column<?> discriminatorColumn;
     protected Map<Object, Table> childTables;
-    
+
     protected ModelResolver resolver;
-    
-    public Table( String table, int flags, Column<?>... keyColumns )
+
+    public Table( String table, String alias, int flags, Column<?>... keyColumns )
     {
-        this( table, flags, null, keyColumns, NO_FIELDS );
+        this( table, alias, flags, null, keyColumns, NO_FIELDS );
     }
 
-    public Table( String table, int flags, Table extension, Column<?> ... keyColumns )
+    public Table( String table, String alias, int flags, Table extension, Column<?>... keyColumns )
     {
-        this( table, flags, extension, keyColumns, extension.fields );
+        this( table, alias, flags, extension, keyColumns, extension.fields );
     }
 
-    private Table( String table, int flags, Table extension, Column<?>[] id, Field<?>[] existingFields )
+    private Table( String table, String alias, int flags, Table extension, Column<?>[] id, Field<?>[] existingFields )
     {
         this.table = table;
         this.quotedName = SqlUtil.namify( table );
+        this.alias = alias;
         this.parentTable = extension;
         this.flags = flags;
         this.index = Rekord.newTable( this );
@@ -94,7 +96,7 @@ public class Table
         this.queries = new HashMap<String, QueryTemplate<?>>();
         this.keyColumns = id;
         this.fields = existingFields;
-        this.listeners = new Listener[ ListenerEvent.values().length ][];
+        this.listeners = new Listener[ListenerEvent.values().length][];
         this.mapFields( existingFields );
     }
 
@@ -104,7 +106,7 @@ public class Table
 
         givenFields = newFields;
         inheritedFields = fields;
-        
+
         fields = ArrayUtil.join( Field.class, fields, newFields );
         registerFields( fieldCount );
         mapFields( newFields );
@@ -123,31 +125,31 @@ public class Table
                 joinFieldList.add( (JoinField<?>)f );
             }
         }
-        
-        columns = columnList.toArray( new Column[ columnList.size() ] );
-        joinFields = joinFieldList.toArray( new JoinField[ joinFieldList.size() ] );
-    }
-    
-    public void setAsParent(Column<?> column)
-    {
-    	discriminatorColumn = column;
-    	childTables = new HashMap<Object, Table>();
+
+        columns = columnList.toArray( new Column[columnList.size()] );
+        joinFields = joinFieldList.toArray( new JoinField[joinFieldList.size()] );
     }
 
-    public void setAsChild(Object discriminator)
+    public void setAsParent( Column<?> column )
     {
-    	discriminatorValue = discriminator;
-    	discriminatorColumn = parentTable.discriminatorColumn;
-    	
-    	Table parent = parentTable;
-    	
-    	while (parent != null) 
-    	{
-    	    parent.childTables.put( discriminator, this );
-    	    parent = parent.parentTable;
-    	}
+        discriminatorColumn = column;
+        childTables = new HashMap<Object, Table>();
     }
-    
+
+    public void setAsChild( Object discriminator )
+    {
+        discriminatorValue = discriminator;
+        discriminatorColumn = parentTable.discriminatorColumn;
+
+        Table parent = parentTable;
+
+        while (parent != null)
+        {
+            parent.childTables.put( discriminator, this );
+            parent = parent.parentTable;
+        }
+    }
+
     public void setLoadProfiles( LoadProfile... newLoadProfiles )
     {
         loadProfiles = newLoadProfiles;
@@ -170,26 +172,26 @@ public class Table
             saveProfileMap.put( v.getName(), v );
         }
     }
-    
-    public void addListener(Listener<Model> listener, ListenerEvent e)
+
+    public void addListener( Listener<Model> listener, ListenerEvent e )
     {
-    	int i = e.ordinal();
-    	listeners[i] = ArrayUtil.add( listener, listeners[i] );
+        int i = e.ordinal();
+        listeners[i] = ArrayUtil.add( listener, listeners[i] );
     }
-    
-    public void notifyListeners(Model model, ListenerEvent e) throws SQLException
+
+    public void notifyListeners( Model model, ListenerEvent e ) throws SQLException
     {
-    	int i = e.ordinal();
-    	
-    	Listener<Model>[] lm = listeners[i];
-    	
-    	if (lm != null && lm.length > 0)
-    	{
-    	    for (Listener<Model> l : lm)
-    	    {
-    	        l.onEvent( model, e );
-    	    }
-    	}
+        int i = e.ordinal();
+
+        Listener<Model>[] lm = listeners[i];
+
+        if (lm != null && lm.length > 0)
+        {
+            for (Listener<Model> l : lm)
+            {
+                l.onEvent( model, e );
+            }
+        }
     }
 
     private void registerFields( int start )
@@ -215,39 +217,39 @@ public class Table
     }
 
     public Column<?>[] getLastModifiedColumns()
-	{
-		return lastModifiedColumns;
-	}
-    
+    {
+        return lastModifiedColumns;
+    }
+
     public boolean hasLastModifiedColumns()
     {
         return lastModifiedColumns != null && lastModifiedColumns.length > 0;
     }
 
-	public void setLastModifiedColumns( Column<?>[] lastModifiedColumns )
-	{
-		this.lastModifiedColumns = lastModifiedColumns;
-	}
-
-	public Table addNativeQuery( String name, String query, String loadProfileName )
+    public void setLastModifiedColumns( Column<?>[] lastModifiedColumns )
     {
-    	queries.put( name, NativeQuery.parse( this, query, getLoadProfile( loadProfileName ) ) );
-    	
-    	return this;
+        this.lastModifiedColumns = lastModifiedColumns;
     }
-    
+
+    public Table addNativeQuery( String name, String query, String loadProfileName )
+    {
+        queries.put( name, NativeQuery.parse( this, query, getLoadProfile( loadProfileName ) ) );
+
+        return this;
+    }
+
     public Table addQuery( String name, QueryTemplate<Model> queryTemplate )
     {
-    	queries.put( name, queryTemplate );
-    	
-    	return this;
+        queries.put( name, queryTemplate );
+
+        return this;
     }
-    
+
     public ModelResolver getResolver()
     {
         return resolver;
     }
-    
+
     public void setResolver( ModelResolver resolver )
     {
         this.resolver = resolver;
@@ -258,24 +260,24 @@ public class Table
         final int valueCount = fields.length;
         Value<?>[] values = new Value[valueCount];
 
-    	// XXX hack
-        
+        // XXX hack
+
         for (int i = 0; i < valueCount; i++)
         {
-        	if (!(fields[i] instanceof InheritColumn))
-        	{
-        		values[i] = fields[i].newValue( model );
-        	}
+            if (!(fields[i] instanceof InheritColumn))
+            {
+                values[i] = fields[i].newValue( model );
+            }
         }
-        
+
         for (int i = 0; i < valueCount; i++)
         {
-        	if (fields[i] instanceof InheritColumn)
-        	{
-        		InheritColumn<?> ic = (InheritColumn<?>)fields[i];
-        		
-        		values[i] = values[ ic.getForeignColumn().getIndex() ];
-        	}
+            if (fields[i] instanceof InheritColumn)
+            {
+                InheritColumn<?> ic = (InheritColumn<?>)fields[i];
+
+                values[i] = values[ic.getForeignColumn().getIndex()];
+            }
         }
 
         return values;
@@ -302,7 +304,7 @@ public class Table
     {
         return fields.length == 1 ? new SingleModelKey( model, fields[0] ) : new MultiModelKey( model, fields );
     }
-    
+
     public Table getParentTable()
     {
         return parentTable;
@@ -312,12 +314,12 @@ public class Table
     {
         return discriminatorValue;
     }
-    
+
     public Column<?> getDiscriminatorColumn()
     {
         return discriminatorColumn;
     }
-    
+
     public Map<Object, Table> getChildTables()
     {
         return childTables;
@@ -336,6 +338,11 @@ public class Table
     public String getQuotedName()
     {
         return quotedName;
+    }
+
+    public String getAlias()
+    {
+        return alias;
     }
 
     public Field<?>[] getFields()
@@ -367,7 +374,12 @@ public class Table
     {
         return delete;
     }
-    
+
+    public boolean isOnTable( Field<?> f )
+    {
+        return f.getIndex() < fields.length && fields[f.getIndex()] == f;
+    }
+
     public Column<?>[] getColumns()
     {
         return columns;
@@ -389,21 +401,21 @@ public class Table
     }
 
     public void setInsert( ModelQuery insert )
-	{
-		this.insert = insert;
-	}
+    {
+        this.insert = insert;
+    }
 
-	public void setUpdate( ModelQuery update )
-	{
-		this.update = update;
-	}
+    public void setUpdate( ModelQuery update )
+    {
+        this.update = update;
+    }
 
-	public void setDelete( ModelQuery delete )
-	{
-		this.delete = delete;
-	}
+    public void setDelete( ModelQuery delete )
+    {
+        this.delete = delete;
+    }
 
-	public Factory<? extends Model> getFactory()
+    public Factory<? extends Model> getFactory()
     {
         return factory;
     }
@@ -427,7 +439,7 @@ public class Table
     {
         return loadProfileMap.get( name );
     }
-    
+
     public SaveProfile getSaveProfile( String name )
     {
         return saveProfileMap.get( name );
@@ -472,7 +484,7 @@ public class Table
     {
         return (flags & flag) == flag;
     }
-    
+
     @Override
     public String toString()
     {
@@ -523,7 +535,7 @@ public class Table
             sb.append( fields[i] );
         }
         sb.append( "]" );
-        
+
         appendFieldNames( sb, "columns", columns );
         appendFieldNames( sb, "join-fields", joinFields );
         appendFieldNames( sb, "inherited-fields", inheritedFields );
@@ -540,17 +552,17 @@ public class Table
         sb.append( "}" );
         return sb.toString();
     }
-    
-    private void appendFieldNames(StringBuilder sb, String property, Field<?>[] fields)
+
+    private void appendFieldNames( StringBuilder sb, String property, Field<?>[] fields )
     {
         sb.append( ", " ).append( property ).append( "=[" );
-        
+
         for (int i = 0; i < fields.length; i++)
         {
             if (i > 0) sb.append( ", " );
             sb.append( fields[i].getName() );
         }
-        
+
         sb.append( "]" );
     }
 

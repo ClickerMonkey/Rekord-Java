@@ -21,16 +21,8 @@ public class QueryCondition implements Condition
     @Override
     public void toQuery( QueryBuilder query )
     {
-        query.append( "(SELECT " );
-        query.append( subquery.getSelecting() );
-        query.append( " FROM " );
-        query.append( subquery.getFrom() );
-
-        if (subquery.hasConditions())
-        {
-            query.append( " WHERE " );
-            subquery.toQuery( query );    
-        }
+        query.append( "(" );
+        subquery.toQueryBuilder( query );
         query.append( ")" );
         
         query.appendValuable( expression, values );

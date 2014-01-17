@@ -129,7 +129,7 @@ public class Model implements Serializable
 		{
 			if (!valueOf( f ).hasValue() && f.isSelectable())
 			{
-			    select.select( f, f.getSelectExpression( loadProfile.getFieldLoad( f ) ) );
+			    select.select( f, f.getSelectExpression( select.columnResolver, loadProfile.getFieldLoad( f ) ) );
 			}
 		}
 

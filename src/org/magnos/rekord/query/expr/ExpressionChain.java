@@ -11,6 +11,7 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.field.ManyToOne;
 import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.ColumnAlias;
 import org.magnos.rekord.query.QueryBuilder;
 import org.magnos.rekord.query.SelectQuery;
 import org.magnos.rekord.query.condition.Condition;
@@ -28,6 +29,7 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
     public static final String OR_NOT = " OR NOT ";
 
     public R parent;
+    public ColumnResolver columnResolver = ColumnResolver.DEFAULT;
     public final List<PrependedCondition> conditions;
     public final ConditionResolver<R> resolveAnd;
     public final ConditionResolver<R> resolveAndNot;
@@ -112,22 +114,27 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
 
     public <T> ColumnExpression<R, T> where( Column<T> column )
     {
-        return new ColumnExpression<R, T>( resolveAnd, column );
+        return new ColumnExpression<R, T>( resolveAnd, column, columnResolver );
+    }
+
+    public <T> AliasedColumnExpression<R, T> where( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<R, T>( resolveAnd, column );
     }
     
     public StringColumnExpression<R> whereString( Column<String> column )
     {
-        return new StringColumnExpression<R>( resolveAnd, column );
+        return new StringColumnExpression<R>( resolveAnd, column, columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> where( OneToOne<M> oneToOne )
     {
-    	return new ModelExpression<R, M>( resolveAnd, oneToOne, oneToOne.getJoinColumns() );
+    	return new ModelExpression<R, M>( resolveAnd, oneToOne, oneToOne.getJoinColumns(), columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> where( ManyToOne<M> manyToOne )
     {
-    	return new ModelExpression<R, M>( resolveAnd, manyToOne, manyToOne.getJoinColumns() );
+    	return new ModelExpression<R, M>( resolveAnd, manyToOne, manyToOne.getJoinColumns(), columnResolver );
     }
 
     public R where( String expression, Object... values )
@@ -194,22 +201,27 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
 
     public <T> ColumnExpression<R, T> and( Column<T> column )
     {
-        return new ColumnExpression<R, T>( resolveAnd, column );
+        return new ColumnExpression<R, T>( resolveAnd, column, columnResolver );
+    }
+
+    public <T> AliasedColumnExpression<R, T> and( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<R, T>( resolveAnd, column );
     }
     
     public StringColumnExpression<R> andString( Column<String> column )
     {
-        return new StringColumnExpression<R>( resolveAnd, column );
+        return new StringColumnExpression<R>( resolveAnd, column, columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> and( OneToOne<M> oneToOne )
     {
-        return new ModelExpression<R, M>( resolveAnd, oneToOne, oneToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveAnd, oneToOne, oneToOne.getJoinColumns(), columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> and( ManyToOne<M> manyToOne )
     {
-        return new ModelExpression<R, M>( resolveAnd, manyToOne, manyToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveAnd, manyToOne, manyToOne.getJoinColumns(), columnResolver );
     }
 
     public R and( String expression, Object... values )
@@ -276,22 +288,27 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
 
     public <T> ColumnExpression<R, T> andNot( Column<T> column )
     {
-        return new ColumnExpression<R, T>( resolveAndNot, column );
+        return new ColumnExpression<R, T>( resolveAndNot, column, columnResolver );
+    }
+
+    public <T> AliasedColumnExpression<R, T> andNot( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<R, T>( resolveAndNot, column );
     }
     
     public StringColumnExpression<R> andNotString( Column<String> column )
     {
-        return new StringColumnExpression<R>( resolveAndNot, column );
+        return new StringColumnExpression<R>( resolveAndNot, column, columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> andNot( OneToOne<M> oneToOne )
     {
-        return new ModelExpression<R, M>( resolveAndNot, oneToOne, oneToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveAndNot, oneToOne, oneToOne.getJoinColumns(), columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> andNot( ManyToOne<M> manyToOne )
     {
-        return new ModelExpression<R, M>( resolveAndNot, manyToOne, manyToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveAndNot, manyToOne, manyToOne.getJoinColumns(), columnResolver );
     }
 
     public R andNot( String expression, Object... values )
@@ -358,22 +375,27 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
 
     public <T> ColumnExpression<R, T> or( Column<T> column )
     {
-        return new ColumnExpression<R, T>( resolveOr, column );
+        return new ColumnExpression<R, T>( resolveOr, column, columnResolver );
+    }
+
+    public <T> AliasedColumnExpression<R, T> or( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<R, T>( resolveOr, column );
     }
     
     public StringColumnExpression<R> orString( Column<String> column )
     {
-        return new StringColumnExpression<R>( resolveOr, column );
+        return new StringColumnExpression<R>( resolveOr, column, columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> or( OneToOne<M> oneToOne )
     {
-        return new ModelExpression<R, M>( resolveOr, oneToOne, oneToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveOr, oneToOne, oneToOne.getJoinColumns(), columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> or( ManyToOne<M> manyToOne )
     {
-        return new ModelExpression<R, M>( resolveOr, manyToOne, manyToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveOr, manyToOne, manyToOne.getJoinColumns(), columnResolver );
     }
 
     public R or( String expression, Object... values )
@@ -439,22 +461,27 @@ public class ExpressionChain<R extends ExpressionChain<R>> extends PrependedCond
 
     public <T> ColumnExpression<R, T> orNot( Column<T> column )
     {
-        return new ColumnExpression<R, T>( resolveOrNot, column );
+        return new ColumnExpression<R, T>( resolveOrNot, column, columnResolver );
+    }
+
+    public <T> AliasedColumnExpression<R, T> orNot( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<R, T>( resolveOrNot, column );
     }
     
     public StringColumnExpression<R> orNotString( Column<String> column )
     {
-        return new StringColumnExpression<R>( resolveOrNot, column );
+        return new StringColumnExpression<R>( resolveOrNot, column, columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> orNot( OneToOne<M> oneToOne )
     {
-        return new ModelExpression<R, M>( resolveOrNot, oneToOne, oneToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveOrNot, oneToOne, oneToOne.getJoinColumns(), columnResolver );
     }
     
     public <M extends Model> ModelExpression<R, M> orNot( ManyToOne<M> manyToOne )
     {
-        return new ModelExpression<R, M>( resolveOrNot, manyToOne, manyToOne.getJoinColumns() );
+        return new ModelExpression<R, M>( resolveOrNot, manyToOne, manyToOne.getJoinColumns(), columnResolver );
     }
 
     public R orNot( String expression, Object... values )

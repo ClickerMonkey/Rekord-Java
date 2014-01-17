@@ -8,14 +8,14 @@ import org.magnos.rekord.query.condition.OperatorCondition;
 public class StringColumnExpression<R> extends ColumnExpression<R, String>
 {
 
-    public StringColumnExpression( ConditionResolver<R> resolver, Column<String> column )
+    public StringColumnExpression( ConditionResolver<R> resolver, Column<String> column, ColumnResolver columnResolver )
     {
-        super( resolver, column );
+        super( resolver, column, columnResolver );
     }
     
     protected R newOperationCondition(String symbol, String value)
     {
-        return resolver.resolve( new OperatorCondition<String>( column, symbol, value ) );
+        return resolver.resolve( new OperatorCondition<String>( columnResolver.resolve( column ), null, column.getName(), column.getIn(), symbol, value, column.getType(), column.getConverter() ) );
     }
     
     public R like( String value )
@@ -30,7 +30,7 @@ public class StringColumnExpression<R> extends ColumnExpression<R, String>
     
     public R ieq( String value )
     {
-        String columnName = "UPPER(" + column.getQuotedName() + ")";
+        String columnName = "UPPER(" + columnResolver.resolve( column ) + ")";
         
         return resolver.resolve( new OperatorCondition<String>( columnName, null, column.getName(), "UPPER(?)", " = ", value, column.getType(), column.getConverter() ) );
     }

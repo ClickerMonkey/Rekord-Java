@@ -1,6 +1,6 @@
 package org.magnos.rekord.query.expr;
 
-import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.ColumnAlias;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.BetweenCondition;
 import org.magnos.rekord.query.condition.Condition;
@@ -8,35 +8,33 @@ import org.magnos.rekord.query.condition.ConditionResolver;
 import org.magnos.rekord.query.condition.InCondition;
 import org.magnos.rekord.query.condition.OperatorCondition;
 
-public class ColumnExpression<R, T> extends Expression<R, T>
+public class AliasedColumnExpression<R, T> extends Expression<R, T>
 {
 	
-	public final Column<T> column;
-	public final ColumnResolver columnResolver;
+	public final ColumnAlias<T> aliased;
 	
-	public ColumnExpression(ConditionResolver<R> resolver, Column<T> column, ColumnResolver columnResolver)
+	public AliasedColumnExpression(ConditionResolver<R> resolver, ColumnAlias<T> aliased)
 	{
 	    super( resolver );
 	    
-		this.column = column;
-		this.columnResolver = columnResolver;
+		this.aliased = aliased;
 	}
 
 	@Override
 	protected Condition newOperationCondition(Operator op, T value)
 	{
-	    return new OperatorCondition<T>( columnResolver, column, op, value );
+	    return new OperatorCondition<T>( aliased, aliased.getColumn(), op, value );
 	}
 
 	@Override
 	protected String getExpressionString()
 	{
-	    return columnResolver.resolve( column );
+	    return aliased.getSelectionExpression();
 	}
 	
 	protected R newBindOperation( Operator op )
 	{
-	    return resolver.resolve( OperatorCondition.forColumnBind( columnResolver, column, op ) );
+	    return resolver.resolve( OperatorCondition.forColumnBind( aliased, aliased.getColumn(), op ) );
 	}
 
     public R eq()
@@ -72,19 +70,19 @@ public class ColumnExpression<R, T> extends Expression<R, T>
 	@Override
 	public R between( T min, T max )
 	{
-		return resolver.resolve( new BetweenCondition<T>( columnResolver, column, min, max ) );
+	    return resolver.resolve( new BetweenCondition<T>( aliased, aliased.getColumn(), min, max  ) );
 	}
 
 	@Override
 	public R in( T ... values )
 	{
-		return resolver.resolve( new InCondition<T>( columnResolver, column, false, values ) );
+		return resolver.resolve( new InCondition<T>( aliased, aliased.getColumn(), false, values ) );
 	}
 
 	@Override
 	public R notIn( T ... values )
 	{
-		return resolver.resolve( new InCondition<T>( columnResolver, column, true, values ) );
+        return resolver.resolve( new InCondition<T>( aliased, aliased.getColumn(), true, values ) );
 	}
 
 	@Override

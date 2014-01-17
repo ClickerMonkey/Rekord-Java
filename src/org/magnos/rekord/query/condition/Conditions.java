@@ -7,9 +7,12 @@ import org.magnos.rekord.field.Column;
 import org.magnos.rekord.field.ForeignField;
 import org.magnos.rekord.field.ManyToOne;
 import org.magnos.rekord.field.OneToOne;
+import org.magnos.rekord.query.ColumnAlias;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.SelectQuery;
+import org.magnos.rekord.query.expr.AliasedColumnExpression;
 import org.magnos.rekord.query.expr.ColumnExpression;
+import org.magnos.rekord.query.expr.ColumnResolver;
 import org.magnos.rekord.query.expr.ExpressionChain;
 import org.magnos.rekord.query.expr.GivenExpression;
 import org.magnos.rekord.query.expr.ModelExpression;
@@ -41,22 +44,27 @@ public class Conditions
 
     public static <T> ColumnExpression<Condition, T> is( Column<T> column )
     {
-        return new ColumnExpression<Condition, T>( RESOLVER, column );
+        return new ColumnExpression<Condition, T>( RESOLVER, column, ColumnResolver.DEFAULT );
+    }
+
+    public static <T> AliasedColumnExpression<Condition, T> is( ColumnAlias<T> column )
+    {
+        return new AliasedColumnExpression<Condition, T>( RESOLVER, column );
     }
     
     public static StringColumnExpression<Condition> isString( Column<String> column )
     {
-        return new StringColumnExpression<Condition>( RESOLVER, column );
+        return new StringColumnExpression<Condition>( RESOLVER, column, ColumnResolver.DEFAULT );
     }
     
     public static <M extends Model> ModelExpression<Condition, M> is( OneToOne<M> oneToOne )
     {
-        return new ModelExpression<Condition, M>( RESOLVER, oneToOne, oneToOne.getJoinColumns() );
+        return new ModelExpression<Condition, M>( RESOLVER, oneToOne, oneToOne.getJoinColumns(), ColumnResolver.DEFAULT );
     }
     
     public static <M extends Model> ModelExpression<Condition, M> is( ManyToOne<M> manyToOne )
     {
-        return new ModelExpression<Condition, M>( RESOLVER, manyToOne, manyToOne.getJoinColumns() );
+        return new ModelExpression<Condition, M>( RESOLVER, manyToOne, manyToOne.getJoinColumns(), ColumnResolver.DEFAULT );
     }
 
     public static Condition is( String expression, Object... values )
@@ -162,13 +170,13 @@ public class Conditions
         return resolver.resolve( new GroupCondition( ExpressionChain.AND, conditions ) );
     }
 
-    public static <R> R newColumnsForeignBindExpression( ConditionResolver<R> resolver, ForeignField<?>... columns )
+    public static <R> R newColumnsForeignBindExpression( ConditionResolver<R> resolver, ForeignField<?>... foreignFields )
     {
-        Condition[] conditions = new Condition[columns.length];
+        Condition[] conditions = new Condition[foreignFields.length];
 
-        for (int i = 0; i < columns.length; i++)
+        for (int i = 0; i < foreignFields.length; i++)
         {
-            conditions[i] = OperatorCondition.forForeignColumnBind( columns[i], Operator.EQ );
+            conditions[i] = OperatorCondition.forForeignColumnBind( foreignFields[i], Operator.EQ );
         }
 
         return resolver.resolve( new GroupCondition( ExpressionChain.AND, conditions ) );

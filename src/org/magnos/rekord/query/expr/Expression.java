@@ -1,7 +1,8 @@
 
 package org.magnos.rekord.query.expr;
 
-import org.magnos.rekord.Field;
+import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.ColumnAlias;
 import org.magnos.rekord.query.Operator;
 import org.magnos.rekord.query.condition.Condition;
 import org.magnos.rekord.query.condition.ConditionResolver;
@@ -31,11 +32,16 @@ public abstract class Expression<R, T>
 	{
 		return resolver.resolve( newOperationCondition( Operator.EQ, value ) );
 	}
-	
-	public R eq( Field<T> field )
-	{
-		return resolver.resolve( newStringOperation( Operator.EQ, field.getQuotedName() ) );
-	}
+    
+    public R eq( Column<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.EQ, column.getSelectionExpression() ) );
+    }
+    
+    public R eq( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.EQ, column.getSelectionExpression() ) );
+    }
 	
 	public R eqExp( String expression )
 	{
@@ -47,10 +53,15 @@ public abstract class Expression<R, T>
 		return resolver.resolve( newOperationCondition( Operator.NEQ, value ) );
 	}
 	
-	public R neq( Field<T> field )
+	public R neq( Column<T> column )
 	{
-		return resolver.resolve( newStringOperation( Operator.NEQ, field.getQuotedName() ) );
+		return resolver.resolve( newStringOperation( Operator.NEQ, column.getSelectionExpression() ) );
 	}
+    
+    public R neq( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.NEQ, column.getSelectionExpression() ) );
+    }
 	
 	public R neqExp( String expression )
 	{
@@ -62,10 +73,15 @@ public abstract class Expression<R, T>
 		return resolver.resolve( newOperationCondition( Operator.LT, value ) );
 	}
 	
-	public R lt( Field<T> field )
+	public R lt( Column<T> column )
 	{
-		return resolver.resolve( newStringOperation( Operator.LT, field.getQuotedName() ) );
+		return resolver.resolve( newStringOperation( Operator.LT, column.getSelectionExpression() ) );
 	}
+    
+    public R lt( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.LT, column.getSelectionExpression() ) );
+    }
 	
 	public R ltExp( String expression )
 	{
@@ -77,10 +93,15 @@ public abstract class Expression<R, T>
 		return resolver.resolve( newOperationCondition( Operator.GT, value ) );
 	}
 	
-	public R gt( Field<T> field )
+	public R gt( Column<T> column )
 	{
-		return resolver.resolve( newStringOperation( Operator.GT, field.getQuotedName() ) );
+		return resolver.resolve( newStringOperation( Operator.GT, column.getSelectionExpression() ) );
 	}
+    
+    public R gt( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.GT, column.getSelectionExpression() ) );
+    }
 	
 	public R gtExp( String expression )
 	{
@@ -92,10 +113,15 @@ public abstract class Expression<R, T>
 		return resolver.resolve( newOperationCondition( Operator.LTEQ, value ) );
 	}
 	
-	public R lte( Field<T> field )
+	public R lte( Column<T> column )
 	{
-		return resolver.resolve( newStringOperation( Operator.LTEQ, field.getQuotedName() ) );
+		return resolver.resolve( newStringOperation( Operator.LTEQ, column.getSelectionExpression() ) );
 	}
+    
+    public R lte( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.LTEQ, column.getSelectionExpression() ) );
+    }
 	
 	public R lteExp( String expression )
 	{
@@ -107,10 +133,15 @@ public abstract class Expression<R, T>
 		return resolver.resolve( newOperationCondition( Operator.GTEQ, value ) );
 	}
 	
-	public R gte( Field<T> field )
+	public R gte( Column<T> column )
 	{
-		return resolver.resolve( newStringOperation( Operator.GTEQ, field.getQuotedName() ) );
+		return resolver.resolve( newStringOperation( Operator.GTEQ, column.getSelectionExpression() ) );
 	}
+    
+    public R gte( ColumnAlias<T> column )
+    {
+        return resolver.resolve( newStringOperation( Operator.GTEQ, column.getSelectionExpression() ) );
+    }
 	
 	public R gteExp( String expression )
 	{

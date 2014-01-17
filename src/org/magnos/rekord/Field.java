@@ -1,6 +1,7 @@
 package org.magnos.rekord;
 
 import org.magnos.rekord.query.Queryable;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 
 public interface Field<T> extends Queryable
@@ -29,7 +30,7 @@ public interface Field<T> extends Queryable
 	public boolean is(int flag);
 
 	public boolean isSelectable();
-    public String getSelectExpression(FieldLoad fieldLoad);
+    public String getSelectExpression(ColumnResolver resolver, FieldLoad fieldLoad);
 	
 	public Value<T> newValue(Model model);
 }

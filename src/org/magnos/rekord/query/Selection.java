@@ -6,6 +6,7 @@ import java.util.List;
 import org.magnos.rekord.Field;
 import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.LoadProfile;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 public class Selection
 {
@@ -39,7 +40,7 @@ public class Selection
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectExpression( FieldLoad.DEFAULT );
+				String se = f.getSelectExpression( ColumnResolver.DEFAULT, FieldLoad.DEFAULT );
 				
 				if (se != null)
 				{
@@ -70,7 +71,7 @@ public class Selection
 			{
 				selectedList.add( f );
 				
-				String se = f.getSelectExpression( load.getFieldLoad( f ) );
+				String se = f.getSelectExpression( ColumnResolver.DEFAULT, load.getFieldLoad( f ) );
 				
 				if (se != null)
 				{

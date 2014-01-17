@@ -18,13 +18,15 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 
 	public final Field<M> field;
 	public final ForeignField<?>[] joinColumns;
+	public final ColumnResolver columnResolver;
 
-	public ModelExpression( ConditionResolver<R> resolver, Field<M> field, ForeignField<?>[] joinColumns )
+	public ModelExpression( ConditionResolver<R> resolver, Field<M> field, ForeignField<?>[] joinColumns, ColumnResolver columnResolver )
 	{
 	    super( resolver );
 	    
 		this.field = field;
 		this.joinColumns = joinColumns;
+		this.columnResolver = columnResolver;
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 
 	protected <T> Condition newOperatorCondition( Operator op, int column, M value )
 	{
-		return new OperatorCondition<T>( (Column<T>)joinColumns[column], op, (T)value.get( joinColumns[column] ) );
+		return new OperatorCondition<T>( columnResolver, (Column<T>)joinColumns[column], op, (T)value.get( joinColumns[column] ) );
 	}
 
 	@Override
@@ -55,7 +57,7 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 	{
 		if (joinColumns.length == 1)
 		{
-			return joinColumns[0].getQuotedName();
+		    return columnResolver.resolve( joinColumns[0] );
 		}
 
 		throw new UnsupportedOperationException();
@@ -78,7 +80,7 @@ public class ModelExpression<R, M extends Model> extends Expression<R, M>
 				actualValues[i] = values[i].get( joinColumns[0] );
 			}
 
-			return resolver.resolve( new InCondition<Object>( (Column<Object>)joinColumns[0], not, actualValues ) );
+			return resolver.resolve( new InCondition<Object>( columnResolver, (Column<Object>)joinColumns[0], not, actualValues ) );
 		}
 
 		throw new UnsupportedOperationException();

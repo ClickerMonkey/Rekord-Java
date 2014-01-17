@@ -33,6 +33,7 @@ class XmlTable implements XmlLoadable
 
     // set from XML
     String name;
+    String alias;
     String[] keyNames;
     String[] lastModifiedColumnsNames;
     boolean dynamicInserts;
@@ -105,11 +106,11 @@ class XmlTable implements XmlLoadable
 
                 if (extension == null)
                 {
-                    table = new Table( name, flags, keyColumns );
+                    table = new Table( name, alias, flags, keyColumns );
                 }
                 else
                 {
-                    table = new Table( name, flags, extension.table, keyColumns );
+                    table = new Table( name, alias, flags, extension.table, keyColumns );
                 }
 
                 if (discriminatorColumn != null)
@@ -188,6 +189,8 @@ class XmlTable implements XmlLoadable
 
             public void run()
             {
+                // TODO load default load profiles
+                
                 Collection<XmlLoadProfile> vc = loadMap.values();
                 XmlLoadProfile[] xmlLoadProfiles = vc.toArray( new XmlLoadProfile[vc.size()] );
                 LoadProfile[] loadProfiles = new LoadProfile[vc.size()];
@@ -205,6 +208,8 @@ class XmlTable implements XmlLoadable
 
             public void run()
             {
+                // TODO load default save profiles
+                
                 Collection<XmlSaveProfile> sc = saveMap.values();
                 XmlSaveProfile[] xmlSaveProfiles = sc.toArray( new XmlSaveProfile[sc.size()] );
                 SaveProfile[] saveProfiles = new SaveProfile[sc.size()];

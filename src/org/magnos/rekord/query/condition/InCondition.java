@@ -6,6 +6,7 @@ import org.magnos.rekord.Type;
 import org.magnos.rekord.convert.NoConverter;
 import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.QueryBuilder;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 public class InCondition<T> implements Condition
 {
@@ -15,11 +16,16 @@ public class InCondition<T> implements Condition
 	public T[] values;
 	public Type<Object> type;
 	public Converter<Object, T> converter;
-	
-	public InCondition(Column<T> column, boolean not, T ... values)
-	{
-		this( column.getQuotedName(), not, column.getType(), column.getConverter(), values );
-	}
+
+    public InCondition(Column<T> column, boolean not, T ... values)
+    {
+        this( column.getSelectionExpression(), not, column.getType(), column.getConverter(), values );
+    }
+    
+    public InCondition(ColumnResolver resolver, Column<T> column, boolean not, T ... values)
+    {
+        this( resolver.resolve( column ), not, column.getType(), column.getConverter(), values );
+    }
 	
 	public InCondition(String expression, boolean not, T ... values)
 	{

@@ -5,6 +5,7 @@ import org.magnos.rekord.FieldLoad;
 import org.magnos.rekord.LoadProfile;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.query.InsertAction;
+import org.magnos.rekord.query.expr.ColumnResolver;
 
 
 public abstract class JoinField<T> extends AbstractField<T>
@@ -28,7 +29,7 @@ public abstract class JoinField<T> extends AbstractField<T>
     }
     
     @Override
-    public String getSelectExpression(FieldLoad fieldLoad)
+    public String getSelectExpression(ColumnResolver resolver, FieldLoad fieldLoad)
     {
         return null;
     }
