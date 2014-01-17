@@ -38,7 +38,7 @@ public class ModelUpdateQuery implements ModelQuery
 		
 		if (!dynamic)
 		{
-		    buildQuery( table.getFields() );
+		    buildQuery( table.getGivenFields() );
 		}
 	}
 	
@@ -49,18 +49,30 @@ public class ModelUpdateQuery implements ModelQuery
 	
 	public boolean execute( Model model ) throws SQLException
 	{
-	    final Value<?>[] values = model.getValues();
+		Table parentTable = table.getParentTable();
+		Value<?>[] values = model.getValues( table.getGivenFields() );
+		
+		if (parentTable != null)
+		{
+			model.set( (Column<Object>) parentTable.getDiscriminatorColumn(), table.getDiscriminatorValue() );
+			
+			parentTable.getUpdate().execute( model );
+		}
 	    
 	    model.getTable().notifyListeners( model, ListenerEvent.PRE_UPDATE );
         
+	    boolean changed = false;
+	    
         for (Value<?> v : values)
         {
             v.preSave( model );
+            
+            changed |= v.hasChanged();
         }
         
         boolean recordsUpdated = false;
         
-        if (model.hasChanged())
+        if (changed)
         {
             checkForChange( model );
             

@@ -248,6 +248,18 @@ public class Model implements Serializable
 	{
 		return values;
 	}
+	
+	public Value<?>[] getValues(Field<?> ... fields)
+	{
+		Value<?>[] customValues = new Value[ fields.length ];
+		
+		for (int i = 0; i < fields.length; i++)
+		{
+			customValues[i] = values[ fields[i].getIndex() ];
+		}
+		
+		return customValues;
+	}
 
 	public int hashCode()
 	{

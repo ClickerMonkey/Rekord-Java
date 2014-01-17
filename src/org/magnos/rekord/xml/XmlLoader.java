@@ -51,7 +51,7 @@ public class XmlLoader
     private static final String TAG_SAVE_PROFILE = "save-profile";
 	private static final String TAG_HISTORY = "history";
 	private static final String TAG_COLUMN = "column";
-	private static final String TAG_FOREIGN_COLUMN = "foreign-column";
+	private static final String TAG_FOREIGN_COLUMN = "foreign";
 	private static final String TAG_ONE_TO_ONE = "one-to-one";
 	private static final String TAG_MANY_TO_ONE = "many-to-one";
 	private static final String TAG_ONE_TO_MANY = "one-to-many";

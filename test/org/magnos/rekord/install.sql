@@ -72,3 +72,11 @@ CREATE TABLE "group" (
     PRIMARY KEY ("role_player_id"),
     FOREIGN KEY ("role_player_id") REFERENCES "role_player"("id")
 );
+
+CREATE TABLE "commentable_group" (
+    "group_id" BIGINT,
+    "commentable_id" BIGINT,
+    PRIMARY KEY ("group_id"),
+    FOREIGN KEY ("group_id") REFERENCES "group"("role_player_id"),
+    FOREIGN KEY ("commentable_id") REFERENCES "commentable"("id")
+);

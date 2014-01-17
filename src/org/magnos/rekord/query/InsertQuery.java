@@ -198,7 +198,7 @@ public class InsertQuery<M extends Model> extends ExpressionChain<InsertQuery<M>
             insert.insert( q );
         }
 
-        for (Field<?> f : table.getFields())
+        for (Field<?> f : table.getGivenFields())
         {
             if (f.is( Field.HAS_DEFAULT ) && !queryableSet.contains( f ))
             {

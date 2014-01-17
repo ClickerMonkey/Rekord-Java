@@ -11,6 +11,7 @@ import org.magnos.rekord.Rekord;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.Transaction;
 import org.magnos.rekord.Value;
+import org.magnos.rekord.field.Column;
 import org.magnos.rekord.query.InsertQuery;
 import org.magnos.rekord.query.Query;
 import org.magnos.rekord.query.QueryTemplate;
@@ -31,7 +32,7 @@ public class ModelInsertQuery implements ModelQuery
 		
 		if (!dynamic)
 		{
-		    buildQuery( table.getFields() );
+		    buildQuery( table.getGivenFields() );
 		}
 	}
 	
@@ -42,7 +43,15 @@ public class ModelInsertQuery implements ModelQuery
 	
 	public boolean execute( Model model ) throws SQLException
 	{
-	    final Value<?>[] values = model.getValues();
+		Table parentTable = table.getParentTable();
+		Value<?>[] values = model.getValues( table.getGivenFields() );
+		
+		if (parentTable != null)
+		{
+			model.set( (Column<Object>) parentTable.getDiscriminatorColumn(), table.getDiscriminatorValue() );
+			
+			parentTable.getInsert().execute( model );
+		}
 	    
 	    if (dynamic)
 	    {

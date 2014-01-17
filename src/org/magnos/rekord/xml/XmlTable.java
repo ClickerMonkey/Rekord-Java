@@ -21,6 +21,9 @@ import org.magnos.rekord.Model;
 import org.magnos.rekord.SaveProfile;
 import org.magnos.rekord.Table;
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.query.model.ModelDeleteQuery;
+import org.magnos.rekord.query.model.ModelInsertQuery;
+import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.resolve.DefaultModelResolver;
 import org.magnos.rekord.resolve.DiscriminatorModelResolver;
 
@@ -69,6 +72,7 @@ class XmlTable implements XmlLoadable
     DependencyNode<Runnable> stateLastModifiedColumns = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateFields = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateResolver = new DependencyNode<Runnable>();
+    DependencyNode<Runnable> stateQueries = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateLoadProfiles = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateSaveProfiles = new DependencyNode<Runnable>();
     DependencyNode<Runnable> stateNativeQueries = new DependencyNode<Runnable>();
@@ -155,6 +159,16 @@ class XmlTable implements XmlLoadable
             }
         } );
 
+        stateQueries.setValue( new Runnable() {
+        	
+        	public void run()
+        	{
+       			table.setInsert( new ModelInsertQuery( table, table.is( Table.DYNAMICALLY_INSERTED ) ) );
+           		table.setUpdate( new ModelUpdateQuery( table, table.is( Table.DYNAMICALLY_UPDATED ) ) );
+           		table.setDelete( new ModelDeleteQuery( table ) );	
+        	}
+        } );
+        
         stateResolver.setValue( new Runnable() {
 
             public void run()
@@ -271,6 +285,7 @@ class XmlTable implements XmlLoadable
         if (extensionName != null)
         {
             extension = tableMap.get( extensionName );
+            discriminatorColumn = extension.discriminatorColumn;
         }
 
         if (extension == null ^ discriminatorValueString == null)
@@ -311,6 +326,7 @@ class XmlTable implements XmlLoadable
         stateHistory.addDependency( stateInstantiate );
         stateLastModifiedColumns.addDependency( stateInstantiate );
         stateFields.addDependency( stateInstantiate );
+        stateQueries.addDependency( stateFields );
         stateResolver.addDependency( stateInstantiate );
 
         stateLoadProfiles.addDependency( stateInstantiate );
@@ -325,9 +341,9 @@ class XmlTable implements XmlLoadable
 
         stateNativeQueries.addDependencies( stateInstantiate, stateLoadProfiles );
 
-        stateListeners.addDependencies( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries );
+        stateListeners.addDependencies( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateQueries, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries );
 
-        nodes.addAll( Arrays.asList( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries, stateListeners ) );
+        nodes.addAll( Arrays.asList( stateInstantiate, stateHistory, stateLastModifiedColumns, stateFields, stateQueries, stateResolver, stateLoadProfiles, stateSaveProfiles, stateNativeQueries, stateListeners ) );
 
         for (XmlField f : fieldMap.values())
             f.addNodes( nodes );

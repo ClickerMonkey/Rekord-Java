@@ -21,6 +21,34 @@ public class TestRekord
 		
 		Transaction trans = Rekord.getTransaction();
 		trans.start();
+
+/* INHERITANCE 1 LEVEL * /
+		Group g = new Group();
+		g.setName( "name#1" );
+		g.setPassword( "password#1" );
+		g.save();
+		
+		g.setPassword( "passsword#2" );
+		g.save();
+		
+		g.setName( "name#2" );
+		g.save();
+		
+		g.delete();
+/**/
+	
+/* INHERITANCE 2 LEVEL */
+		CommentableGroup cg = new CommentableGroup();
+		cg.setName( "name#3" );
+		cg.setPassword( "password#3" );
+		cg.getCommentable().setCount( 4 );
+		cg.save();
+		
+		cg.setPassword( "password#4" );
+		cg.save();
+		
+		cg.delete();
+/**/
 		
 //		long uid0 = new SelectQuery<Model>( User.TABLE ).create().withOffset( 0 ).first( User.ID );
 //		long uid1 = new SelectQuery<Model>( User.TABLE ).create().withOffset( 1 ).first( User.ID );

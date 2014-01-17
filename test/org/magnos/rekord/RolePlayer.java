@@ -21,6 +21,11 @@ public class RolePlayer extends Model
 		super( TABLE );
 	}
 	
+	public RolePlayer( Table table )
+	{
+		super( table );
+	}
+	
 	public Long getId()						{ return get( ID ); }
 	public void setId(Long x)				{ set( ID, x ); }
 	public String getName()					{ return get( NAME ); }

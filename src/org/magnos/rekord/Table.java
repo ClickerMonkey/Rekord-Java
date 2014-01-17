@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.magnos.rekord.field.Column;
+import org.magnos.rekord.field.InheritColumn;
 import org.magnos.rekord.field.JoinField;
 import org.magnos.rekord.key.MultiModelKey;
 import org.magnos.rekord.key.MultiValueKey;
@@ -16,10 +17,7 @@ import org.magnos.rekord.key.SingleModelKey;
 import org.magnos.rekord.key.SingleValueKey;
 import org.magnos.rekord.query.NativeQuery;
 import org.magnos.rekord.query.QueryTemplate;
-import org.magnos.rekord.query.model.ModelDeleteQuery;
-import org.magnos.rekord.query.model.ModelInsertQuery;
 import org.magnos.rekord.query.model.ModelQuery;
-import org.magnos.rekord.query.model.ModelUpdateQuery;
 import org.magnos.rekord.util.ArrayUtil;
 import org.magnos.rekord.util.SqlUtil;
 
@@ -111,10 +109,6 @@ public class Table
         registerFields( fieldCount );
         mapFields( newFields );
 
-        insert = new ModelInsertQuery( this, is( DYNAMICALLY_INSERTED ) );
-        update = new ModelUpdateQuery( this, is( DYNAMICALLY_UPDATED ) );
-        delete = new ModelDeleteQuery( this );
-        
         List<Column<?>> columnList = new ArrayList<Column<?>>();
         List<JoinField<?>> joinFieldList = new ArrayList<JoinField<?>>();
 
@@ -143,6 +137,7 @@ public class Table
     public void setAsChild(Object discriminator)
     {
     	discriminatorValue = discriminator;
+    	discriminatorColumn = parentTable.discriminatorColumn;
     	
     	Table parent = parentTable;
     	
@@ -263,9 +258,24 @@ public class Table
         final int valueCount = fields.length;
         Value<?>[] values = new Value[valueCount];
 
+    	// XXX hack
+        
         for (int i = 0; i < valueCount; i++)
         {
-            values[i] = fields[i].newValue( model );
+        	if (!(fields[i] instanceof InheritColumn))
+        	{
+        		values[i] = fields[i].newValue( model );
+        	}
+        }
+        
+        for (int i = 0; i < valueCount; i++)
+        {
+        	if (fields[i] instanceof InheritColumn)
+        	{
+        		InheritColumn<?> ic = (InheritColumn<?>)fields[i];
+        		
+        		values[i] = values[ ic.getForeignColumn().getIndex() ];
+        	}
         }
 
         return values;

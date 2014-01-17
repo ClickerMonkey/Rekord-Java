@@ -222,16 +222,16 @@ public class OneToOne<T extends Model> extends JoinField<T>
         @Override
         public void preDelete(Model model) throws SQLException
         {
-            if (value != null && value.hasKey())
-            {
-                value.delete();
-            }
+        	
         }
 
         @Override
         public void postDelete(Model model) throws SQLException
         {
-            
+        	if (value != null && value.hasKey())
+            {
+                value.delete();
+            }            
         }
 
 		@Override

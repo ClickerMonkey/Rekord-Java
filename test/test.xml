@@ -9,7 +9,7 @@
     <!-- SELECTS, INSERTS, UPDATES, DELETES, LAZY_FETCHING,
          LOADING, ONE_TO_ONE, CACHING, HISTORY, HUMAN_READABLE_QUERY -->
     <logging mode="include">
-        HUMAN_READABLE_QUERY, CACHING
+        HUMAN_READABLE_QUERY
     </logging>
     
     <converter-classes>
@@ -35,7 +35,7 @@
             <column name="name" type="string" />
             <column name="created_timestamp" type="timestamp" generated="true" read-only="true" />
             <column name="state" type="string" converter="user-state" default-value="U" />
-            <foreign-column name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
+            <foreign name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
             <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-load="all" join-key="commentable_id" />
             <one-to-many name="comments_by" lazy="true" read-only="true" join-table="comment" join-load="basic" join-key="user_id" />
         </fields>
@@ -65,8 +65,8 @@
         <fields>
             <column name="id" type="long" generated="true" read-only="true" />
             <column name="text" type="string" />
-            <foreign-column name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
-            <foreign-column name="user_id" type="long" foreign-table="user" foreign-column="id" />
+            <foreign name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
+            <foreign name="user_id" type="long" foreign-table="user" foreign-column="id" />
             <many-to-one name="commentable" join-table="commentable" join-key="commentable_id" />
             <many-to-one name="user" join-table="user" join-load="for-link" join-key="user_id" />
         </fields>
@@ -108,6 +108,14 @@
             <column name="password" type="text" />
             <column name="salt" type="text" />
         </fields>        
+    </table>
+    
+    <table name="commentable_group" key="group_id" extends="group" discriminator-value="2">
+        <fields>
+            <inherited name="group_id" column="role_player_id" />
+            <foreign name="commentable_id" type="long" foreign-table="commentable" foreign-column="id" />
+            <one-to-one name="commentable" generated="true" lazy="true" non-null="true" join-table="commentable" join-load="all" join-key="commentable_id" />             
+        </fields>
     </table>
     
 </rekord>
